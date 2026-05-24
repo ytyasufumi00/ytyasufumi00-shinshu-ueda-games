@@ -1,3 +1,14 @@
+import streamlit as st
+import streamlit.components.v1 as components
+
+# 🌟 ページの設定（タイトルやアイコン）
+st.set_page_config(page_title="ヴァンサバ風・酸塩基アクション", page_icon="🥷", layout="wide")
+
+st.title("🥷 ヴァンサバ風・酸塩基サバイバル")
+st.write("迫り来る「尿毒素スライム（赤）」を避けながら、倒した敵が落とす「経験値（青）」を集めよう！")
+st.write("レベルアップ時にクイズが発生。正解すると手裏剣の連射速度がアップします！")
+
+# 🌟 ここからがJavaScriptとHTMLの世界
 html_code = """
 <!DOCTYPE html>
 <html>
@@ -6,20 +17,19 @@ html_code = """
 <style>
     body { margin: 0; display: flex; justify-content: center; background: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; }
     
-    /* 🌟 変更点1：スマホの画面サイズに合わせて自動で縮小する設定 */
+    /* スマホ画面に合わせて自動で伸び縮みする設定 */
     #game-wrapper { 
         position: relative; 
         width: 100%; 
-        max-width: 700px; /* PCでは最大700px */
-        aspect-ratio: 7 / 5; /* 縦横比を常に7:5に保つ */
+        max-width: 700px;
+        aspect-ratio: 7 / 5;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
         border-radius: 8px; 
         overflow: hidden; 
     }
-    /* キャンバスがwrapperにぴったり重なるようにする */
     canvas { width: 100%; height: 100%; background-color: #2c3e50; display: block; }
     
-    /* 🌟 変更点2：スマホ用バーチャルパッド（十字キー）のデザイン */
+    /* スマホ用バーチャルパッド（十字キー）のデザイン */
     #dpad {
         position: absolute;
         bottom: 15px;
@@ -36,11 +46,10 @@ html_code = """
         border-radius: 10px;
         font-size: 24px;
         display: flex; justify-content: center; align-items: center;
-        user-select: none; /* テキスト選択防止 */
-        touch-action: none; /* ズームやスクロール防止（重要！）*/
+        user-select: none;
+        touch-action: none;
         color: white;
     }
-    /* 押した時だけ白く光る */
     .dpad-btn:active { background: rgba(255, 255, 255, 0.8); }
     #btn-up { grid-column: 2; grid-row: 1; }
     #btn-left { grid-column: 1; grid-row: 2; }
@@ -94,19 +103,19 @@ html_code = """
     const quizText = document.getElementById("quiz-text");
     const quizBtns = document.getElementById("quiz-buttons");
 
+    window.onerror = function(msg, url, line) {
+        ctx.fillStyle = "red"; ctx.font = "18px Arial";
+        ctx.fillText("エラー: " + msg, 20, 50); ctx.fillText("行: " + line, 20, 80);
+    };
+
     let isPaused = false;
     let frameCount = 0;
     let keys = {};
 
-    // 🌟 変更点3：画面上のボタンとキーボードを連動させる魔法
     function bindVirtualKey(btnId, keyName) {
         const btn = document.getElementById(btnId);
-        // スマホでタッチした時
         btn.addEventListener("touchstart", e => { e.preventDefault(); keys[keyName] = true; });
-        // スマホで指を離した時
         btn.addEventListener("touchend", e => { e.preventDefault(); keys[keyName] = false; });
-        
-        // PCでマウスでクリックした時（テスト用）
         btn.addEventListener("mousedown", e => { e.preventDefault(); keys[keyName] = true; });
         btn.addEventListener("mouseup", e => { e.preventDefault(); keys[keyName] = false; });
         btn.addEventListener("mouseleave", e => { e.preventDefault(); keys[keyName] = false; });
@@ -117,7 +126,6 @@ html_code = """
     bindVirtualKey("btn-left", "ArrowLeft");
     bindVirtualKey("btn-right", "ArrowRight");
 
-    // （従来のキーボード操作もそのまま残しておきます）
     window.addEventListener("keydown", e => { 
         keys[e.key] = true; 
         if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault(); 
@@ -264,3 +272,6 @@ html_code = """
 </body>
 </html>
 """
+
+# 🌟 最後に、Streamlitの画面に上のHTMLを表示させる魔法
+components.html(html_code, height=600)
