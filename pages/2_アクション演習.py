@@ -3,9 +3,8 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ヴァンサバ風・酸塩基アクション", page_icon="🥷", layout="wide")
 
-st.title("🥷 ヴァンサバ風・酸塩基サバイバル V4")
-st.write("キーボード（矢印キー）とスマホ（ジョイスティック）の両方で快適に操作できます！")
-st.write("クイズ正解後、ランダムに提示される3つの武器から好きなものを選択してビルドを組みましょう。")
+st.title("🥷 ヴァンサバ風・酸塩基サバイバル V9（代償性・ボーナス版）")
+st.write("Lv5ごとの節目では「二次性変化（代償）」に関する難問が出題されます。正解すると超絶ボーナスが発動！")
 
 html_code = """
 <!DOCTYPE html>
@@ -14,10 +13,9 @@ html_code = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
     body { margin: 0; background: #f0f2f6; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; }
-    
     #game-container { display: flex; flex-direction: column; width: 100%; max-width: 700px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; -webkit-touch-callout: none; user-select: none; }
     #canvas-wrapper { position: relative; width: 100%; aspect-ratio: 7 / 5; }
-    canvas { width: 100%; height: 100%; background-color: #2c3e50; display: block; }
+    canvas { width: 100%; height: 100%; background-color: #1a252c; display: block; }
 
     #controller-area { width: 100%; height: 180px; background: #e5e9f0; display: flex; justify-content: center; align-items: center; position: relative; border-top: 2px solid #ccc; }
     #joystick-zone { width: 120px; height: 120px; background: rgba(0, 0, 0, 0.1); border: 3px solid rgba(0, 0, 0, 0.2); border-radius: 50%; position: relative; touch-action: none; }
@@ -34,9 +32,11 @@ html_code = """
     .quiz-btn { background: #3498db; color: white; border: none; border-radius: 8px; padding: 15px 5px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
     .quiz-btn:active { background: #2980b9; transform: scale(0.95); }
 
-    /* 報酬選択用の1列ボタン */
+    .bonus-btn { background: #9b59b6 !important; }
+    .bonus-btn:active { background: #8e44ad !important; transform: scale(0.95); }
+
     #reward-buttons { display: flex; flex-direction: column; gap: 10px; }
-    .reward-btn { background: #f39c12; color: white; border: none; border-radius: 8px; padding: 12px; text-align: left; cursor: pointer; transition: 0.1s; }
+    .reward-btn { background: #f39c12; color: white; border: none; border-radius: 8px; padding: 12px; text-align: left; cursor: pointer; transition: 0.1s; border-left: 6px solid #e67e22; }
     .reward-btn b { font-size: 16px; display: block; margin-bottom: 4px; }
     .reward-btn small { font-size: 12px; opacity: 0.9; }
     .reward-btn:active { background: #e67e22; transform: scale(0.98); }
@@ -47,17 +47,9 @@ html_code = """
 <div id="game-container">
     <div id="canvas-wrapper">
         <canvas id="gameCanvas" width="700" height="500"></canvas>
-        <div id="quiz-overlay">
-            <div id="quiz-box">
-                </div>
-        </div>
+        <div id="quiz-overlay"><div id="quiz-box"></div></div>
     </div>
-    
-    <div id="controller-area">
-        <div id="joystick-zone">
-            <div id="joystick-knob"></div>
-        </div>
-    </div>
+    <div id="controller-area"><div id="joystick-zone"><div id="joystick-knob"></div></div></div>
 </div>
 
 <script>
@@ -68,31 +60,60 @@ html_code = """
 
     let isPaused = false;
     let frameCount = 0;
-    let player = { x: 350, y: 250, size: 24, speed: 3.5, level: 1, exp: 0, nextExp: 3 };
+    let bossWarningTimer = 0;
+    
+    let player = { x: 350, y: 250, size: 24, speed: 3.5, level: 1, exp: 0, nextExp: 5 };
     let enemies = []; let bullets = []; let gems = []; let effects = [];
-    let joyVector = { x: 0, y: 0 };
-    let keys = {};
+    let joyVector = { x: 0, y: 0 }; let keys = {};
 
-    // 🌟 10種類の武器データ庫
     const weaponDB = {
-        shuriken:  { name: "🟡 クエン酸手裏剣", desc: "最も近い敵を自動で狙い撃つ基本弾" },
-        shield:    { name: "🟢 重曹シールド", desc: "自身の周囲を回転し、敵を弾き飛ばす" },
-        piercer:   { name: "🔵 フロセミド貫通弾", desc: "一直線に敵を貫通する水流を放つ" },
-        potassium: { name: "🔴 カリウム爆弾", desc: "ランダムな敵の位置で大爆発を起こす" },
-        calcium:   { name: "⚪ カルシウム・オーラ", desc: "自身の周囲に継続ダメージ領域を展開" },
-        dialyzer:  { name: "🌐 透析クロスレイ", desc: "上下左右の4方向へ同時にビームを放つ" },
-        resin:     { name: "⚫ レジン・トラップ", desc: "歩いた跡に敵を吸着する罠を設置する" },
-        tolvaptan: { name: "🌊 トルバプタン波", desc: "敵に向かって3方向に広がる波を放つ" },
-        mra:       { name: "🟣 MRAブーメラン", desc: "飛んでいき、一定時間後に手元に戻る" },
-        epo:       { name: "✨ エリスロポエチン", desc: "[強化] 自身の移動と全攻撃速度がアップ" }
+        shuriken:  { name: "🟡 クエン酸手裏剣", desc: "自動連射。Lvで弾数が爆発的に増加。" },
+        shield:    { name: "🟢 重曹シールド", desc: "回転バリア。Lvで数と大きさが劇的アップ。" },
+        piercer:   { name: "🔵 フロセミド貫通弾", desc: "直線貫通弾。Lvで極太レーザー化。" },
+        potassium: { name: "🔴 カリウム爆弾", desc: "敵地で大爆発。Lvで爆発範囲が画面を覆う。" },
+        calcium:   { name: "⚪ カルシウム・オーラ", desc: "周囲継続ダメージ。Lvで範囲拡大。" },
+        dialyzer:  { name: "🌐 透析クロスレイ", desc: "多方向レーザー。Lvで回転しながら薙ぎ払う。" },
+        resin:     { name: "⚫ レジン・トラップ", desc: "吸着罠。Lvで巨大化し敵を足止め。" },
+        tolvaptan: { name: "🌊 トルバプタン波", desc: "広がる波。Lvで全方位大津波に進化。" },
+        mra:       { name: "🟣 MRAブーメラン", desc: "往復弾。Lvで超巨大ブーメラン乱舞。" },
+        epo:       { name: "✨ エリスロポエチン", desc: "移動・全武器の攻撃速度がパッシブ強化。" }
     };
-
-    // 現在の所持レベル（初期状態は手裏剣Lv1のみ）
     let wp = { shuriken: 1, shield: 0, piercer: 0, potassium: 0, calcium: 0, dialyzer: 0, resin: 0, tolvaptan: 0, mra: 0, epo: 0 };
     let timers = { shuriken: 0, piercer: 0, potassium: 0, dialyzer: 0, resin: 0, tolvaptan: 0, mra: 0 };
-    let shieldAngle = 0;
+    let shieldAngle = 0; let globalDialyzerAngle = 0;
 
-    // --- クイズ生成 ---
+    const enemyTypes = [
+        { name: "尿毒素",   emoji: "🦠", size: 24, speedBase: 1.2, hpBase: 2,   exp: 1, reqLv: 1,  moveType: 'chase' },
+        { name: "過剰Na",   emoji: "🧂", size: 20, speedBase: 2.2, hpBase: 2,   exp: 1, reqLv: 3,  moveType: 'sine' }, 
+        { name: "結石",     emoji: "🪨", size: 36, speedBase: 0.5, hpBase: 15,  exp: 3, reqLv: 5,  moveType: 'chase' }, 
+        { name: "LDL",      emoji: "🍔", size: 28, speedBase: 1.0, hpBase: 8,   exp: 2, reqLv: 8,  moveType: 'random' }, 
+        { name: "乳酸",     emoji: "👻", size: 28, speedBase: 1.8, hpBase: 12,  exp: 2, reqLv: 12, moveType: 'sine' }, 
+        { name: "石灰化",   emoji: "🦴", size: 32, speedBase: 0.8, hpBase: 35,  exp: 4, reqLv: 15, moveType: 'chase' }, 
+        { name: "重症アシ", emoji: "☠️", size: 40, speedBase: 1.5, hpBase: 50,  exp: 6, reqLv: 20, moveType: 'chase' },
+        { name: "高K血症",  emoji: "⚡", size: 26, speedBase: 2.5, hpBase: 40,  exp: 4, reqLv: 25, moveType: 'sine' }, 
+        { name: "AGEs",     emoji: "🍩", size: 30, speedBase: 1.3, hpBase: 60,  exp: 5, reqLv: 30, moveType: 'random' }, 
+        { name: "低酸素",   emoji: "🌀", size: 34, speedBase: 1.6, hpBase: 80,  exp: 6, reqLv: 35, moveType: 'sine' }, 
+        { name: "ｻｲﾄｶｲﾝ",   emoji: "🌪️", size: 36, speedBase: 2.0, hpBase: 120, exp: 8, reqLv: 40, moveType: 'chase' }, 
+        { name: "多臓器不全",emoji: "💀", size: 44, speedBase: 1.0, hpBase: 300, exp: 12,reqLv: 45, moveType: 'chase' }, 
+        { name: "DKA",      emoji: "🩸", size: 38, speedBase: 2.2, hpBase: 200, exp: 10,reqLv: 50, moveType: 'sine' } 
+    ];
+
+    const bossTypes = [
+        { name: "巨大結石", emoji: "🪨", size: 90,  speedBase: 0.6, hpBase: 500,  exp: 100, moveType: 'chase' },
+        { name: "メガLDL",  emoji: "🍔", size: 100, speedBase: 0.8, hpBase: 1200, exp: 200, moveType: 'random' },
+        { name: "大石灰化", emoji: "🦴", size: 120, speedBase: 0.5, hpBase: 3000, exp: 350, moveType: 'chase' },
+        { name: "敗血症",   emoji: "🦠", size: 140, speedBase: 1.1, hpBase: 6000, exp: 500, moveType: 'sine' },
+        { name: "末期腎不全",emoji: "🥀", size: 180, speedBase: 0.9, hpBase: 15000,exp: 1000,moveType: 'chase' }
+    ];
+
+    // 🌟 節目問題（代償性変化）のデータベース
+    const compQuestions = [
+        { q: "代謝性アシドーシスの一次代償反応は？", options: ["PaCO2の低下（過換気）", "PaCO2の上昇（低換気）", "HCO3-の低下", "HCO3-の上昇"], ans: "PaCO2の低下（過換気）" },
+        { q: "呼吸性アシドーシス（急性）の代償反応は？", options: ["HCO3-のわずかな上昇", "HCO3-の低下", "PaCO2のさらなる上昇", "代償は起こらない"], ans: "HCO3-のわずかな上昇" },
+        { q: "代謝性アルカローシスの一次代償反応は？", options: ["PaCO2の上昇（低換気）", "PaCO2の低下（過換気）", "HCO3-の上昇", "HCO3-の低下"], ans: "PaCO2の上昇（低換気）" },
+        { q: "呼吸性アルカローシス（急性）の代償反応は？", options: ["HCO3-のわずかな低下", "HCO3-の上昇", "PaCO2のさらなる低下", "代償は起こらない"], ans: "HCO3-のわずかな低下" }
+    ];
+
     function generateAcidBaseCase() {
         const disorders = ["呼吸性アシドーシス", "代謝性アシドーシス", "呼吸性アルカローシス", "代謝性アルカローシス"];
         const primary = disorders[Math.floor(Math.random() * disorders.length)];
@@ -107,314 +128,288 @@ html_code = """
     }
 
     function triggerQuiz() {
-        isPaused = true;
-        endJoy(); // ジョイスティックリセット
-        const q = generateAcidBaseCase();
+        isPaused = true; endJoy(); 
         
-        let html = `
-            <div class="quiz-title">🆙 レベルアップ！診断せよ</div>
-            <div class="data-card">
-                <div class="data-val">pH : ${q.pH}</div>
-                <div class="data-val">PaCO2 : ${q.PaCO2} mmHg</div>
-                <div class="data-val">HCO3- : ${q.HCO3} mEq/L</div>
-            </div>
-            <div id="quiz-buttons">
-        `;
-        q.options.forEach(opt => {
-            html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${q.ans}')">${opt}</button>`;
-        });
-        html += `</div>`;
-        quizBox.innerHTML = html;
-        overlay.style.display = "block";
+        // 🌟 5レベルごとの節目チェック
+        let isMilestone = (player.level % 5 === 0);
+        let html = '';
+
+        if (isMilestone) {
+            let cq = compQuestions[Math.floor(Math.random() * compQuestions.length)];
+            let shuffledOptions = [...cq.options].sort(() => 0.5 - Math.random());
+            
+            html = `<div class="quiz-title" style="color:#9b59b6;">🌟 節目Lv${player.level}の試練 🌟</div>
+                <div class="data-card"><div class="data-val" style="font-size:16px;">${cq.q}</div></div><div id="quiz-buttons">`;
+            shuffledOptions.forEach(opt => { 
+                html += `<button class="quiz-btn bonus-btn" onclick="checkAnswer('${opt}', '${cq.ans}', true)">${opt}</button>`; 
+            });
+        } else {
+            const q = generateAcidBaseCase();
+            html = `<div class="quiz-title">🆙 レベルアップ！診断せよ</div>
+                <div class="data-card"><div class="data-val">pH : ${q.pH}</div><div class="data-val">PaCO2 : ${q.PaCO2} mmHg</div><div class="data-val">HCO3- : ${q.HCO3} mEq/L</div></div><div id="quiz-buttons">`;
+            q.options.forEach(opt => { 
+                html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${q.ans}', false)">${opt}</button>`; 
+            });
+        }
+        
+        html += `</div>`; quizBox.innerHTML = html; overlay.style.display = "block";
     }
 
-    function checkAnswer(selected, correct) {
-        if (selected === correct) {
-            showRewardSelection(); // 正解なら武器選択画面へ！
-        } else {
-            alert("誤診です...\\nボーナス獲得ならず。生き延びてください！");
-            overlay.style.display = "none";
-            isPaused = false;
-            loop();
+    function checkAnswer(selected, correct, isMilestone) {
+        if (selected === correct) { 
+            if (isMilestone) {
+                // 🌟 スーパーボーナス発動
+                let upgradedNames = [];
+                for(let k in wp) { 
+                    if(wp[k] > 0) { 
+                        wp[k]++; 
+                        upgradedNames.push(weaponDB[k].name.split(" ")[1]); 
+                    } 
+                }
+                
+                // 画面上の全敵を消滅させる（超巨大爆発エフェクト）
+                enemies = [];
+                effects.push({ x: 350, y: 250, radius: 1000, life: 60, type: 'explosion', dmg: 9999 });
+
+                let msg = upgradedNames.length > 0 ? upgradedNames.join(", ") : "なし（武器を取得していません）";
+                alert(`🎉 節目問題 正解！\\n\\n【スーパーボーナス発動！】\\n・画面の敵を全滅させました\\n・所持している全武器のLvが+1されました\\n\\n[強化された武器]\\n${msg}`);
+                
+                overlay.style.display = "none"; isPaused = false; loop();
+            } else {
+                showRewardSelection(); 
+            }
+        } 
+        else { 
+            alert("誤診です...\\nボーナス獲得ならず。"); 
+            overlay.style.display = "none"; isPaused = false; loop(); 
         }
     }
 
-    // 🌟 3択の武器提示システム
     function showRewardSelection() {
-        let available = Object.keys(weaponDB);
-        available.sort(() => 0.5 - Math.random());
-        let choices = available.slice(0, 3); // ランダムに3つ選出
-        
-        let html = `<div class="quiz-title">🎁 報酬を選択（3択）</div><div id="reward-buttons">`;
-        choices.forEach(key => {
-            let w = weaponDB[key];
-            let currentLv = wp[key];
-            html += `<button class="reward-btn" onclick="selectReward('${key}')">
-                        <b>${w.name} (Lv ${currentLv} → ${currentLv + 1})</b>
-                        <small>${w.desc}</small>
-                     </button>`;
+        let available = Object.keys(weaponDB).sort(() => 0.5 - Math.random()).slice(0, 3);
+        let html = `<div class="quiz-title">🎁 極限強化を選択（3択）</div><div id="reward-buttons">`;
+        available.forEach(key => {
+            let w = weaponDB[key]; let currentLv = wp[key];
+            html += `<button class="reward-btn" onclick="selectReward('${key}')"><b>${w.name} <span style="color:#ffeaa7;">(Lv ${currentLv} → ${currentLv + 1})</span></b><small>${w.desc}</small></button>`;
         });
-        html += `</div>`;
-        quizBox.innerHTML = html;
+        html += `</div>`; quizBox.innerHTML = html;
     }
 
-    function selectReward(weaponKey) {
-        wp[weaponKey]++;
-        overlay.style.display = "none";
-        isPaused = false;
-        loop();
-    }
+    function selectReward(weaponKey) { wp[weaponKey]++; overlay.style.display = "none"; isPaused = false; loop(); }
 
-    // --- コントローラー入力 ---
     const joyZone = document.getElementById("joystick-zone"); const joyKnob = document.getElementById("joystick-knob");
     let isDragging = false; let joyCenter = { x: 0, y: 0 }; const maxRadius = 45;
-
     function startJoy(e) { e.preventDefault(); isDragging = true; const rect = joyZone.getBoundingClientRect(); joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
     function moveJoy(e) {
         if (!isDragging) return;
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        let dx = clientX - joyCenter.x; let dy = clientY - joyCenter.y; let dist = Math.hypot(dx, dy);
+        const cx = e.touches ? e.touches[0].clientX : e.clientX; const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        let dx = cx - joyCenter.x; let dy = cy - joyCenter.y; let dist = Math.hypot(dx, dy);
         if (dist > maxRadius) { dx *= maxRadius / dist; dy *= maxRadius / dist; }
-        joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-        joyVector = { x: dx / maxRadius, y: dy / maxRadius };
+        joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; joyVector = { x: dx / maxRadius, y: dy / maxRadius };
     }
     function endJoy() { isDragging = false; joyKnob.style.transform = `translate(-50%, -50%)`; joyVector = { x: 0, y: 0 }; }
     joyZone.addEventListener("touchstart", startJoy, {passive:false}); window.addEventListener("touchmove", moveJoy, {passive:false}); window.addEventListener("touchend", endJoy);
     joyZone.addEventListener("mousedown", startJoy); window.addEventListener("mousemove", moveJoy); window.addEventListener("mouseup", endJoy);
-
     window.addEventListener("keydown", e => { keys[e.key] = true; if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault(); });
     window.addEventListener("keyup", e => keys[e.key] = false);
 
-    // --- ゲームループ ---
     function update() {
         frameCount++;
-        
-        // 🌟 PCキーボードとスマホジョイスティックの両立修正！
         let moveX = 0; let moveY = 0;
-        if (keys["ArrowUp"]) moveY -= 1;
-        if (keys["ArrowDown"]) moveY += 1;
-        if (keys["ArrowLeft"]) moveX -= 1;
-        if (keys["ArrowRight"]) moveX += 1;
-        if (moveX !== 0 || moveY !== 0) {
-            let dist = Math.hypot(moveX, moveY); moveX = moveX / dist; moveY = moveY / dist;
-        } else {
-            moveX = joyVector.x; moveY = joyVector.y;
-        }
+        if (keys["ArrowUp"]) moveY -= 1; if (keys["ArrowDown"]) moveY += 1; if (keys["ArrowLeft"]) moveX -= 1; if (keys["ArrowRight"]) moveX += 1;
+        if (moveX !== 0 || moveY !== 0) { let dist = Math.hypot(moveX, moveY); moveX /= dist; moveY /= dist; } 
+        else { moveX = joyVector.x; moveY = joyVector.y; }
 
-        // EPOによる移動速度バフ
-        let speedBuff = 1 + (wp.epo * 0.15);
-        let fireBuff = 1 + (wp.epo * 0.1);
-
-        player.x += moveX * player.speed * speedBuff; 
-        player.y += moveY * player.speed * speedBuff;
-        player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
-        player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
-
+        let speedBuff = 1 + (wp.epo * 0.15); let fireBuff = 1 + (wp.epo * 0.2); 
+        player.x += moveX * player.speed * speedBuff; player.y += moveY * player.speed * speedBuff;
+        player.x = Math.max(0, Math.min(canvas.width - player.size, player.x)); player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
         let px = player.x + 12; let py = player.y + 12;
 
-        if (frameCount % Math.max(8, 45 - player.level * 2) === 0) {
-            let ex = Math.random() < 0.5 ? -20 : 720; let ey = Math.random() * 500;
-            enemies.push({ x: ex, y: ey, size: 16, speed: 1.2 + player.level * 0.1 });
+        if (frameCount % 1800 === 0 && frameCount > 0) {
+            let bossIdx = Math.min(Math.floor(frameCount / 1800) - 1, bossTypes.length - 1);
+            let b = bossTypes[bossIdx];
+            enemies.push({ 
+                x: Math.random() < 0.5 ? -150 : 850, y: 250, 
+                size: b.size, emoji: b.emoji, exp: b.exp,
+                speed: b.speedBase + (player.level * 0.01), hp: b.hpBase + (player.level * 25), 
+                moveType: b.moveType, timeOffset: 0, isBoss: true
+            });
+            bossWarningTimer = 180; 
         }
 
-        // ================= 武器の発射ロジック =================
-        let nearest = enemies.length > 0 ? enemies.reduce((a, b) => Math.hypot((a.x+8)-px, (a.y+8)-py) < Math.hypot((b.x+8)-px, (b.y+8)-py) ? a : b) : null;
-        let aimAngle = nearest ? Math.atan2((nearest.y+8)-py, (nearest.x+8)-px) : 0;
-
-        // 1. クエン酸手裏剣
-        if (wp.shuriken > 0) {
-            timers.shuriken += fireBuff;
-            if (timers.shuriken > Math.max(10, 60 - wp.shuriken * 5) && nearest) {
-                timers.shuriken = 0;
-                bullets.push({ x: px, y: py, vx: Math.cos(aimAngle)*8, vy: Math.sin(aimAngle)*8, size: 5, type: 'shuriken', life: 100, maxLife: 100 });
-                if(wp.shuriken >= 3) { // 3WAY
-                    bullets.push({ x: px, y: py, vx: Math.cos(aimAngle+0.3)*8, vy: Math.sin(aimAngle+0.3)*8, size: 5, type: 'shuriken', life: 100, maxLife: 100 });
-                    bullets.push({ x: px, y: py, vx: Math.cos(aimAngle-0.3)*8, vy: Math.sin(aimAngle-0.3)*8, size: 5, type: 'shuriken', life: 100, maxLife: 100 });
-                }
+        let spawnInterval = Math.max(2, 35 - Math.floor(player.level * 1.2)); 
+        if (frameCount % spawnInterval === 0) {
+            let spawnCount = 1 + Math.floor(player.level / 3);
+            for(let i=0; i<spawnCount; i++){
+                let ex = Math.random() < 0.5 ? -40 : 740; let ey = Math.random() * 540 - 20;
+                let availableTypes = enemyTypes.filter(t => player.level >= t.reqLv);
+                let type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                
+                enemies.push({ 
+                    x: ex, y: ey, size: type.size, emoji: type.emoji, exp: type.exp,
+                    speed: type.speedBase + (player.level * 0.015), hp: type.hpBase + Math.floor(player.level / 3),
+                    moveType: type.moveType, timeOffset: Math.random() * 100, isBoss: false
+                });
             }
         }
-        // 3. フロセミド貫通弾
+
+        let nearest = enemies.length > 0 ? enemies.reduce((a, b) => Math.hypot((a.x+a.size/2)-px, (a.y+a.size/2)-py) < Math.hypot((b.x+b.size/2)-px, (b.y+b.size/2)-py) ? a : b) : null;
+        let aimAngle = nearest ? Math.atan2((nearest.y+nearest.size/2)-py, (nearest.x+nearest.size/2)-px) : 0;
+
+        if (wp.shuriken > 0) {
+            timers.shuriken += fireBuff; let fireDelay = Math.max(4, 50 - wp.shuriken * 6);
+            if (timers.shuriken > fireDelay && nearest) {
+                timers.shuriken = 0; let sCount = 1 + Math.floor(wp.shuriken / 2);
+                for (let i=0; i<sCount; i++) { let spread = (i - Math.floor(sCount/2)) * 0.2; bullets.push({ x: px, y: py, vx: Math.cos(aimAngle+spread)*9, vy: Math.sin(aimAngle+spread)*9, size: 5 + wp.shuriken, type: 'shuriken', life: 100, dmg: 1 + wp.shuriken*0.3 }); }
+            }
+        }
         if (wp.piercer > 0) {
             timers.piercer += fireBuff;
-            if (timers.piercer > Math.max(20, 100 - wp.piercer * 10) && enemies.length > 0) {
-                timers.piercer = 0;
-                let rndEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-                let a = Math.atan2((rndEnemy.y+8)-py, (rndEnemy.x+8)-px);
-                bullets.push({ x: px, y: py, vx: Math.cos(a)*12, vy: Math.sin(a)*12, size: 6+wp.piercer, type: 'piercer', life: 100, maxLife: 100 });
+            if (timers.piercer > Math.max(15, 90 - wp.piercer * 8) && enemies.length > 0) {
+                timers.piercer = 0; let rE = enemies[Math.floor(Math.random() * enemies.length)]; let a = Math.atan2((rE.y+rE.size/2)-py, (rE.x+rE.size/2)-px);
+                bullets.push({ x: px, y: py, vx: Math.cos(a)*14, vy: Math.sin(a)*14, size: 8 + wp.piercer * 5, type: 'piercer', life: 100, dmg: 2 + wp.piercer*1.5 });
             }
         }
-        // 4. カリウム爆弾
         if (wp.potassium > 0) {
             timers.potassium += fireBuff;
-            if (timers.potassium > Math.max(30, 150 - wp.potassium * 10) && enemies.length > 0) {
-                timers.potassium = 0;
-                let rndEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-                effects.push({ x: rndEnemy.x+8, y: rndEnemy.y+8, radius: 40 + (wp.potassium * 10), life: 20, type: 'explosion' });
+            if (timers.potassium > Math.max(20, 130 - wp.potassium * 10) && enemies.length > 0) {
+                timers.potassium = 0; let bCount = 1 + Math.floor(wp.potassium / 3);
+                for(let i=0; i<bCount; i++) { let rE = enemies[Math.floor(Math.random() * enemies.length)]; effects.push({ x: rE.x+rE.size/2, y: rE.y+rE.size/2, radius: 40 + (wp.potassium * 20), life: 25, type: 'explosion', dmg: 3 + wp.potassium*2.5 }); }
             }
         }
-        // 6. 透析クロスレイ
         if (wp.dialyzer > 0) {
-            timers.dialyzer += fireBuff;
-            if (timers.dialyzer > Math.max(15, 90 - wp.dialyzer * 8)) {
-                timers.dialyzer = 0;
-                let dirs = [0, Math.PI/2, Math.PI, Math.PI*1.5];
-                dirs.forEach(d => bullets.push({ x: px, y: py, vx: Math.cos(d)*7, vy: Math.sin(d)*7, size: 5+wp.dialyzer, type: 'dialyzer', life: 100, maxLife: 100 }));
+            timers.dialyzer += fireBuff; globalDialyzerAngle += 0.05 + (wp.dialyzer * 0.01);
+            if (timers.dialyzer > Math.max(10, 80 - wp.dialyzer * 5)) {
+                timers.dialyzer = 0; let ways = 4 + Math.floor(wp.dialyzer / 2) * 2;
+                for(let i=0; i<ways; i++) { let d = globalDialyzerAngle + (Math.PI * 2 / ways) * i; bullets.push({ x: px, y: py, vx: Math.cos(d)*10, vy: Math.sin(d)*10, size: 5 + wp.dialyzer*2, type: 'dialyzer', life: 100, dmg: 1.5 + wp.dialyzer }); }
             }
         }
-        // 7. レジントラップ
         if (wp.resin > 0) {
             timers.resin += fireBuff;
-            if (timers.resin > Math.max(30, 120 - wp.resin * 10)) {
-                timers.resin = 0;
-                bullets.push({ x: px, y: py, vx: 0, vy: 0, size: 10+wp.resin*2, type: 'resin', life: 200, maxLife: 200 }); // 動かず留まる
-            }
+            if (timers.resin > Math.max(20, 100 - wp.resin * 8)) { timers.resin = 0; bullets.push({ x: px, y: py, vx: 0, vy: 0, size: 15 + wp.resin * 6, type: 'resin', life: 250, dmg: 0.8 + wp.resin*0.3 }); }
         }
-        // 8. トルバプタン波
         if (wp.tolvaptan > 0) {
             timers.tolvaptan += fireBuff;
-            if (timers.tolvaptan > Math.max(20, 100 - wp.tolvaptan * 10) && nearest) {
-                timers.tolvaptan = 0;
-                let angles = [aimAngle, aimAngle+0.2, aimAngle-0.2];
-                if(wp.tolvaptan > 2) { angles.push(aimAngle+0.4, aimAngle-0.4); } // 広がる
-                angles.forEach(a => bullets.push({ x: px, y: py, vx: Math.cos(a)*6, vy: Math.sin(a)*6, size: 8, type: 'tolvaptan', life: 60, maxLife: 60 }));
+            if (timers.tolvaptan > Math.max(15, 90 - wp.tolvaptan * 8) && nearest) {
+                timers.tolvaptan = 0; let tCount = 3 + wp.tolvaptan * 2;
+                for (let i=0; i<tCount; i++) { let spread = (i - Math.floor(tCount/2)) * 0.25; bullets.push({ x: px, y: py, vx: Math.cos(aimAngle+spread)*7, vy: Math.sin(aimAngle+spread)*7, size: 10 + wp.tolvaptan, type: 'tolvaptan', life: 70, dmg: 1.2 + wp.tolvaptan*0.5 }); }
             }
         }
-        // 9. MRAブーメラン
         if (wp.mra > 0) {
             timers.mra += fireBuff;
-            if (timers.mra > Math.max(20, 100 - wp.mra * 10) && nearest) {
-                timers.mra = 0;
-                bullets.push({ x: px, y: py, vx: Math.cos(aimAngle)*9, vy: Math.sin(aimAngle)*9, size: 7+wp.mra, type: 'mra', life: 80, maxLife: 80 });
+            if (timers.mra > Math.max(15, 90 - wp.mra * 8) && nearest) {
+                timers.mra = 0; let mCount = 1 + Math.floor(wp.mra / 3);
+                for(let i=0; i<mCount; i++) { let rndSpread = (Math.random() - 0.5); bullets.push({ x: px, y: py, vx: Math.cos(aimAngle+rndSpread)*11, vy: Math.sin(aimAngle+rndSpread)*11, size: 12 + wp.mra * 4, type: 'mra', life: 100, dmg: 2 + wp.mra*1.5 }); }
             }
         }
 
-        // ================= 当たり判定 & 処理 =================
-        // 5. カルシウムオーラ（バレットではなく範囲判定）
-        let auraRadius = 0;
-        if (wp.calcium > 0) {
-            auraRadius = 50 + (wp.calcium * 15);
-        }
-
-        // 2. 重曹シールドの計算
+        let auraRadius = wp.calcium > 0 ? 60 + (wp.calcium * 20) : 0;
         let shields = [];
         if (wp.shield > 0) {
-            shieldAngle += 0.04 + (wp.shield * 0.005);
-            let shieldCount = Math.min(6, wp.shield + 1);
-            let shieldRadius = 45 + (wp.shield * 5);
-            let shieldSize = 8 + (wp.shield * 2);
-            for(let i=0; i<shieldCount; i++) {
-                let a = shieldAngle + (Math.PI * 2 / shieldCount) * i;
-                shields.push({ x: px + Math.cos(a)*shieldRadius, y: py + Math.sin(a)*shieldRadius, size: shieldSize });
-            }
+            shieldAngle += 0.05 + (wp.shield * 0.01);
+            let sCount = Math.min(12, wp.shield * 2 + 2); let sRad = 50 + (wp.shield * 8); let sSize = 10 + (wp.shield * 3);
+            for(let i=0; i<sCount; i++) shields.push({ x: px + Math.cos(shieldAngle + (Math.PI*2/sCount)*i)*sRad, y: py + Math.sin(shieldAngle + (Math.PI*2/sCount)*i)*sRad, size: sSize });
         }
 
-        // 弾の移動と寿命
-        for (let i = bullets.length - 1; i >= 0; i--) {
-            let b = bullets[i];
-            b.x += b.vx; b.y += b.vy;
-            b.life--;
-            
-            // MRAブーメランの反転ギミック
-            if (b.type === 'mra' && b.life === Math.floor(b.maxLife / 2)) {
-                b.vx *= -1; b.vy *= -1;
+        function damageEnemy(eIndex, dmg) {
+            let e = enemies[eIndex]; e.hp -= dmg;
+            if(e.hp <= 0) {
+                let gemSize = e.isBoss ? 20 : 5;
+                gems.push({ x: e.x + e.size/2, y: e.y + e.size/2, val: e.exp, size: gemSize });
+                enemies.splice(eIndex, 1); return true;
             }
+            return false;
+        }
 
-            if (b.life <= 0 || b.x < -50 || b.x > 750 || b.y < -50 || b.y > 550) { bullets.splice(i, 1); continue; }
-            
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i]; b.x += b.vx; b.y += b.vy; b.life--;
+            if (b.type === 'mra' && b.life === 50) { b.vx *= -1; b.vy *= -1; }
+            if (b.life <= 0 || b.x < -100 || b.x > 800 || b.y < -100 || b.y > 600) { bullets.splice(i, 1); continue; }
             let destroyed = false;
             for (let j = enemies.length - 1; j >= 0; j--) {
                 let e = enemies[j];
-                if (Math.hypot(b.x - (e.x+8), b.y - (e.y+8)) < b.size + 8) {
-                    gems.push({ x: e.x+8, y: e.y+8 }); enemies.splice(j, 1);
-                    // 貫通しない弾は消える
-                    if (b.type === 'shuriken' || b.type === 'tolvaptan') { destroyed = true; break; }
+                if (Math.hypot(b.x - (e.x+e.size/2), b.y - (e.y+e.size/2)) < b.size + e.size/2) {
+                    damageEnemy(j, b.dmg);
+                    if (b.type === 'shuriken' || b.type === 'tolvaptan') { destroyed = true; break; } 
                 }
             }
             if (destroyed) bullets.splice(i, 1);
         }
 
-        // オーラ、シールド、爆発の判定
         for (let i = enemies.length - 1; i >= 0; i--) {
-            let e = enemies[j = i]; let ex = e.x+8; let ey = e.y+8;
-            let hit = false;
-            // カルシウムオーラ
-            if (auraRadius > 0 && Math.hypot(ex - px, ey - py) < auraRadius) hit = true;
-            // 重曹シールド
-            for (let s of shields) { if (Math.hypot(ex - s.x, ey - s.y) < 8 + s.size) hit = true; }
-            // カリウム爆発エフェクト
-            for (let eff of effects) { if (eff.type === 'explosion' && Math.hypot(ex - eff.x, ey - eff.y) < eff.radius) hit = true; }
-            
-            if (hit) { gems.push({ x: ex, y: ey }); enemies.splice(i, 1); }
+            let e = enemies[i]; let ex = e.x+e.size/2; let ey = e.y+e.size/2; let dmgToTake = 0;
+            if (auraRadius > 0 && Math.hypot(ex - px, ey - py) < auraRadius) dmgToTake += 0.5 + wp.calcium * 0.2; 
+            for (let s of shields) { if (Math.hypot(ex - s.x, ey - s.y) < e.size/2 + s.size) dmgToTake += 2 + wp.shield; } 
+            for (let eff of effects) { if (eff.type === 'explosion' && Math.hypot(ex - eff.x, ey - eff.y) < eff.radius) dmgToTake += eff.dmg; }
+            if (dmgToTake > 0) damageEnemy(i, dmgToTake);
         }
 
-        // 敵移動
-        enemies.forEach(e => { let a = Math.atan2(py - (e.y+8), px - (e.x+8)); e.x += Math.cos(a) * e.speed; e.y += Math.sin(a) * e.speed; });
+        enemies.forEach(e => { 
+            e.timeOffset += 0.05;
+            if (e.moveType === 'random') {
+                if (!e.vx || Math.random() < 0.02) { let angle = Math.random() * Math.PI * 2; e.vx = Math.cos(angle) * e.speed; e.vy = Math.sin(angle) * e.speed; }
+                e.x += e.vx; e.y += e.vy;
+                if(e.x < -150) e.vx = Math.abs(e.vx); if(e.x > 850) e.vx = -Math.abs(e.vx); if(e.y < -150) e.vy = Math.abs(e.vy); if(e.y > 650) e.vy = -Math.abs(e.vy);
+            } 
+            else if (e.moveType === 'sine') {
+                let baseAngle = Math.atan2(py - (e.y+e.size/2), px - (e.x+e.size/2));
+                let waveAngle = baseAngle + Math.sin(e.timeOffset) * 1.5; 
+                e.x += Math.cos(waveAngle) * e.speed; e.y += Math.sin(waveAngle) * e.speed;
+            } 
+            else {
+                let a = Math.atan2(py - (e.y+e.size/2), px - (e.x+e.size/2)); e.x += Math.cos(a) * e.speed; e.y += Math.sin(a) * e.speed; 
+            }
+        });
 
-        // ジェム回収
         for (let i = gems.length - 1; i >= 0; i--) {
             let g = gems[i]; let d = Math.hypot(px - g.x, py - g.y);
-            if (d < 90 + (wp.epo * 10)) { // EPOで回収範囲も少し広がる
-                let a = Math.atan2(py - g.y, px - g.x); g.x += Math.cos(a)*7; g.y += Math.sin(a)*7;
+            if (d < 100 + (wp.epo * 15)) { 
+                let a = Math.atan2(py - g.y, px - g.x); g.x += Math.cos(a)*8; g.y += Math.sin(a)*8;
                 if (d < 20) { 
-                    player.exp++; gems.splice(i, 1);
+                    player.exp += g.val; gems.splice(i, 1);
                     if (player.exp >= player.nextExp) {
-                        player.level++; player.exp = 0; player.nextExp += Math.floor(player.level * 1.5);
+                        player.level++; 
+                        player.exp = 0; 
+                        player.nextExp += Math.floor(player.level * 2.5 + 5); 
                         triggerQuiz();
                     }
                 }
             }
         }
-
-        // エフェクト寿命
-        for (let i = effects.length - 1; i >= 0; i--) {
-            effects[i].life--;
-            if (effects[i].life <= 0) effects.splice(i, 1);
-        }
+        for (let i = effects.length - 1; i >= 0; i--) { effects[i].life--; if (effects[i].life <= 0) effects.splice(i, 1); }
     }
 
     function draw() {
         ctx.clearRect(0, 0, 700, 500);
         
-        // カルシウムオーラ描画（白半透明）
-        if (wp.calcium > 0) {
-            ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-            ctx.beginPath(); ctx.arc(player.x+12, player.y+12, 50 + (wp.calcium * 15), 0, Math.PI*2); ctx.fill();
-        }
+        if (wp.calcium > 0) { ctx.fillStyle = "rgba(255, 255, 255, 0.12)"; ctx.beginPath(); ctx.arc(player.x+12, player.y+12, 60 + (wp.calcium * 20), 0, Math.PI*2); ctx.fill(); }
+        effects.forEach(eff => { if(eff.type === 'explosion') { ctx.fillStyle = `rgba(231, 76, 60, ${eff.life / 25})`; ctx.beginPath(); ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI*2); ctx.fill(); } });
 
-        // エフェクト描画
-        effects.forEach(eff => {
-            if(eff.type === 'explosion') {
-                ctx.fillStyle = `rgba(231, 76, 60, ${eff.life / 20})`; // 赤から透明へ
-                ctx.beginPath(); ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI*2); ctx.fill();
-            }
-        });
-
-        // ジェム、敵
-        ctx.fillStyle = "#3498db"; gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, 6, 0, Math.PI*2); ctx.fill(); });
-        ctx.fillStyle = "#e74c3c"; enemies.forEach(e => ctx.fillRect(e.x, e.y, 16, 16));
+        ctx.fillStyle = "#3498db"; gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, g.size, 0, Math.PI*2); ctx.fill(); });
         
-        // 重曹シールド描画
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        enemies.forEach(e => { ctx.font = Math.floor(e.size) + "px Arial"; ctx.fillText(e.emoji, e.x + e.size/2, e.y + e.size/2); });
+        
         ctx.fillStyle = "rgba(46, 204, 113, 0.8)";
         if (wp.shield > 0) {
-            let count = Math.min(6, wp.shield + 1); let radius = 45 + (wp.shield * 5); let size = 8 + (wp.shield * 2);
-            for(let i=0; i<count; i++) {
-                let a = shieldAngle + (Math.PI * 2 / count) * i;
-                ctx.beginPath(); ctx.arc(player.x+12 + Math.cos(a)*radius, player.y+12 + Math.sin(a)*radius, size, 0, Math.PI*2); ctx.fill();
-            }
+            let count = Math.min(12, wp.shield * 2 + 2); let radius = 50 + (wp.shield * 8); let size = 10 + (wp.shield * 3);
+            for(let i=0; i<count; i++) { let a = shieldAngle + (Math.PI * 2 / count) * i; ctx.beginPath(); ctx.arc(player.x+12 + Math.cos(a)*radius, player.y+12 + Math.sin(a)*radius, size, 0, Math.PI*2); ctx.fill(); }
         }
 
-        // 弾描画 (種類で色分け)
         bullets.forEach(b => { 
-            if (b.type === 'shuriken') ctx.fillStyle = "#f1c40f";
-            else if (b.type === 'piercer') ctx.fillStyle = "#00a8ff";
-            else if (b.type === 'dialyzer') ctx.fillStyle = "#00d2d3";
-            else if (b.type === 'resin') ctx.fillStyle = "#2d3436";
-            else if (b.type === 'tolvaptan') ctx.fillStyle = "#48dbfb";
-            else if (b.type === 'mra') ctx.fillStyle = "#9b59b6";
+            if (b.type === 'shuriken') ctx.fillStyle = "#f1c40f"; else if (b.type === 'piercer') ctx.fillStyle = "#00a8ff"; else if (b.type === 'dialyzer') ctx.fillStyle = "#00d2d3"; else if (b.type === 'resin') ctx.fillStyle = "#2d3436"; else if (b.type === 'tolvaptan') ctx.fillStyle = "#48dbfb"; else if (b.type === 'mra') ctx.fillStyle = "#9b59b6";
             ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill(); 
         });
 
-        ctx.fillStyle = "white"; ctx.font = "28px Arial"; ctx.fillText("🥷", player.x, player.y + 24);
+        if (bossWarningTimer > 0) {
+            bossWarningTimer--;
+            ctx.fillStyle = "red"; ctx.font = "bold 40px Arial"; ctx.fillText("⚠️ 巨大ボス接近 ⚠️", 350, 100);
+            if (bossWarningTimer % 20 > 10) { ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"; ctx.lineWidth = 10; ctx.strokeRect(5, 5, 690, 490); }
+        }
+
+        ctx.font = "28px Arial"; ctx.fillText("🥷", player.x + 12, player.y + 12);
+        
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
         ctx.fillStyle = "white"; ctx.font = "bold 18px Arial"; ctx.fillText("Lv: " + player.level, 15, 30);
         ctx.fillStyle = "#555"; ctx.fillRect(80, 15, 200, 12);
         ctx.fillStyle = "#2ecc71"; ctx.fillRect(80, 15, 200 * (player.exp / player.nextExp), 12);
