@@ -1,14 +1,12 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 🌟 ページの設定（タイトルやアイコン）
 st.set_page_config(page_title="ヴァンサバ風・酸塩基アクション", page_icon="🥷", layout="wide")
 
 st.title("🥷 ヴァンサバ風・酸塩基サバイバル")
 st.write("迫り来る「尿毒素スライム（赤）」を避けながら、倒した敵が落とす「経験値（青）」を集めよう！")
 st.write("レベルアップ時にクイズが発生。正解すると手裏剣の連射速度がアップします！")
 
-# 🌟 ここからがJavaScriptとHTMLの世界
 html_code = """
 <!DOCTYPE html>
 <html>
@@ -17,7 +15,6 @@ html_code = """
 <style>
     body { margin: 0; display: flex; justify-content: center; background: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; }
     
-    /* スマホ画面に合わせて自動で伸び縮みする設定 */
     #game-wrapper { 
         position: relative; 
         width: 100%; 
@@ -26,35 +23,37 @@ html_code = """
         box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
         border-radius: 8px; 
         overflow: hidden; 
+        /* スマホの長押しでメニューが出るのを防ぐ */
+        -webkit-touch-callout: none;
+        user-select: none;
     }
     canvas { width: 100%; height: 100%; background-color: #2c3e50; display: block; }
     
-    /* スマホ用バーチャルパッド（十字キー）のデザイン */
-    #dpad {
+    /* 🌟 バーチャルジョイスティックのデザイン（外側の円と内側のグリグリ） */
+    #joystick-zone {
         position: absolute;
-        bottom: 15px;
-        left: 15px;
-        display: grid;
-        grid-template-columns: 50px 50px 50px;
-        grid-template-rows: 50px 50px;
-        gap: 5px;
+        bottom: 20px;
+        left: 20px;
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
         z-index: 5;
+        touch-action: none; /* ブラウザのスクロールを完全に無効化 */
     }
-    .dpad-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.5);
-        border-radius: 10px;
-        font-size: 24px;
-        display: flex; justify-content: center; align-items: center;
-        user-select: none;
-        touch-action: none;
-        color: white;
+    #joystick-knob {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        pointer-events: none; /* タッチ判定は外側のzoneに任せる */
     }
-    .dpad-btn:active { background: rgba(255, 255, 255, 0.8); }
-    #btn-up { grid-column: 2; grid-row: 1; }
-    #btn-left { grid-column: 1; grid-row: 2; }
-    #btn-down { grid-column: 2; grid-row: 2; }
-    #btn-right { grid-column: 3; grid-row: 2; }
 
     #quiz-overlay {
         display: none; 
@@ -80,11 +79,8 @@ html_code = """
 <div id="game-wrapper">
     <canvas id="gameCanvas" width="700" height="500"></canvas>
     
-    <div id="dpad">
-        <div id="btn-up" class="dpad-btn">🔼</div>
-        <div id="btn-left" class="dpad-btn">◀️</div>
-        <div id="btn-down" class="dpad-btn">🔽</div>
-        <div id="btn-right" class="dpad-btn">▶️</div>
+    <div id="joystick-zone">
+        <div id="joystick-knob"></div>
     </div>
 
     <div id="quiz-overlay">
@@ -112,20 +108,70 @@ html_code = """
     let frameCount = 0;
     let keys = {};
 
-    function bindVirtualKey(btnId, keyName) {
-        const btn = document.getElementById(btnId);
-        btn.addEventListener("touchstart", e => { e.preventDefault(); keys[keyName] = true; });
-        btn.addEventListener("touchend", e => { e.preventDefault(); keys[keyName] = false; });
-        btn.addEventListener("mousedown", e => { e.preventDefault(); keys[keyName] = true; });
-        btn.addEventListener("mouseup", e => { e.preventDefault(); keys[keyName] = false; });
-        btn.addEventListener("mouseleave", e => { e.preventDefault(); keys[keyName] = false; });
+    // 🌟 ジョイスティックの計算ロジック
+    const joyZone = document.getElementById("joystick-zone");
+    const joyKnob = document.getElementById("joystick-knob");
+    let isDragging = false;
+    let joyCenter = { x: 0, y: 0 };
+    const maxRadius = 40; // グリグリが動ける最大の半径
+    
+    // スティックの傾き（-1.0 ～ 1.0）を保存する変数
+    let joyVector = { x: 0, y: 0 };
+
+    function startJoy(e) {
+        e.preventDefault();
+        isDragging = true;
+        const rect = joyZone.getBoundingClientRect();
+        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        moveJoy(e);
     }
 
-    bindVirtualKey("btn-up", "ArrowUp");
-    bindVirtualKey("btn-down", "ArrowDown");
-    bindVirtualKey("btn-left", "ArrowLeft");
-    bindVirtualKey("btn-right", "ArrowRight");
+    function moveJoy(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        // タッチとマウスの両方に対応
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
+        // 中心からの距離を計算
+        let dx = clientX - joyCenter.x;
+        let dy = clientY - joyCenter.y;
+        let distance = Math.hypot(dx, dy);
+
+        // 外枠を越えないように制限
+        if (distance > maxRadius) {
+            dx = (dx / distance) * maxRadius;
+            dy = (dy / distance) * maxRadius;
+        }
+
+        // グリグリを動かす（見た目の更新）
+        joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+        // ゲーム用のベクトルに変換（-1.0 ～ 1.0）
+        joyVector.x = dx / maxRadius;
+        joyVector.y = dy / maxRadius;
+    }
+
+    function endJoy(e) {
+        e.preventDefault();
+        isDragging = false;
+        // 手を離したら真ん中に戻す
+        joyKnob.style.transform = `translate(-50%, -50%)`;
+        joyVector.x = 0;
+        joyVector.y = 0;
+    }
+
+    // イベントリスナーを登録
+    joyZone.addEventListener("touchstart", startJoy, {passive: false});
+    joyZone.addEventListener("touchmove", moveJoy, {passive: false});
+    joyZone.addEventListener("touchend", endJoy, {passive: false});
+    joyZone.addEventListener("mousedown", startJoy);
+    window.addEventListener("mousemove", moveJoy);
+    window.addEventListener("mouseup", endJoy);
+
+
+    // PC用のキーボード操作（そのまま残します）
     window.addEventListener("keydown", e => { 
         keys[e.key] = true; 
         if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault(); 
@@ -166,6 +212,7 @@ html_code = """
             quizBtns.appendChild(btn);
         });
         overlay.style.display = "block";
+        endJoy(new Event('touchend')); // クイズが出たらスティックを真ん中に戻す
     }
 
     function checkAnswer(selected, correct) {
@@ -183,10 +230,29 @@ html_code = """
     function update() {
         frameCount++;
 
-        if (keys["ArrowUp"]) player.y -= player.speed;
-        if (keys["ArrowDown"]) player.y += player.speed;
-        if (keys["ArrowLeft"]) player.x -= player.speed;
-        if (keys["ArrowRight"]) player.x += player.speed;
+        // 🌟 移動の計算（キーボードとジョイスティックを統合）
+        let moveX = 0;
+        let moveY = 0;
+
+        if (keys["ArrowUp"]) moveY -= 1;
+        if (keys["ArrowDown"]) moveY += 1;
+        if (keys["ArrowLeft"]) moveX -= 1;
+        if (keys["ArrowRight"]) moveX += 1;
+
+        // キーボード入力が優先。なければジョイスティックの傾きを使用
+        if (moveX !== 0 || moveY !== 0) {
+            // 斜め移動が速くならないように正規化
+            let dist = Math.hypot(moveX, moveY);
+            moveX = moveX / dist;
+            moveY = moveY / dist;
+        } else {
+            // ジョイスティックのアナログな傾き（少し倒せばゆっくり歩く）
+            moveX = joyVector.x;
+            moveY = joyVector.y;
+        }
+
+        player.x += moveX * player.speed;
+        player.y += moveY * player.speed;
         
         player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
         player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
@@ -273,5 +339,4 @@ html_code = """
 </html>
 """
 
-# 🌟 最後に、Streamlitの画面に上のHTMLを表示させる魔法
 components.html(html_code, height=600)
