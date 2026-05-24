@@ -3,9 +3,9 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ヴァンサバ風・酸塩基アクション", page_icon="🥷", layout="wide")
 
-st.title("🥷 ヴァンサバ風・酸塩基サバイバル")
-st.write("迫り来る「尿毒素スライム（赤）」を避けながら、倒した敵が落とす「経験値（青）」を集めよう！")
-st.write("レベルアップ時にクイズが発生。正解すると手裏剣の連射速度がアップします！")
+st.title("🥷 ヴァンサバ風・酸塩基サバイバル V4")
+st.write("キーボード（矢印キー）とスマホ（ジョイスティック）の両方で快適に操作できます！")
+st.write("クイズ正解後、ランダムに提示される3つの武器から好きなものを選択してビルドを組みましょう。")
 
 html_code = """
 <!DOCTYPE html>
@@ -13,81 +13,49 @@ html_code = """
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-    body { margin: 0; display: flex; justify-content: center; background: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    body { margin: 0; background: #f0f2f6; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; }
     
-    #game-wrapper { 
-        position: relative; 
-        width: 100%; 
-        max-width: 700px;
-        aspect-ratio: 7 / 5;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
-        border-radius: 8px; 
-        overflow: hidden; 
-        /* スマホの長押しでメニューが出るのを防ぐ */
-        -webkit-touch-callout: none;
-        user-select: none;
-    }
+    #game-container { display: flex; flex-direction: column; width: 100%; max-width: 700px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; -webkit-touch-callout: none; user-select: none; }
+    #canvas-wrapper { position: relative; width: 100%; aspect-ratio: 7 / 5; }
     canvas { width: 100%; height: 100%; background-color: #2c3e50; display: block; }
-    
-    /* 🌟 バーチャルジョイスティックのデザイン（外側の円と内側のグリグリ） */
-    #joystick-zone {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-radius: 50%;
-        z-index: 5;
-        touch-action: none; /* ブラウザのスクロールを完全に無効化 */
-    }
-    #joystick-knob {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 50px;
-        height: 50px;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        pointer-events: none; /* タッチ判定は外側のzoneに任せる */
-    }
 
-    #quiz-overlay {
-        display: none; 
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.7); z-index: 10;
-    }
-    #quiz-box {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        background: #fdfdfd; padding: 20px; border-radius: 12px;
-        text-align: center; width: 85%; border: 4px solid #f1c40f; box-sizing: border-box;
-    }
-    .quiz-title { color: #e74c3c; font-size: 20px; margin-top: 0; }
-    .quiz-question { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333; }
-    .quiz-btn {
-        display: block; width: 100%; margin: 8px 0; padding: 12px;
-        background: #3498db; color: white; border: none; border-radius: 8px;
-        font-size: 14px; cursor: pointer;
-    }
+    #controller-area { width: 100%; height: 180px; background: #e5e9f0; display: flex; justify-content: center; align-items: center; position: relative; border-top: 2px solid #ccc; }
+    #joystick-zone { width: 120px; height: 120px; background: rgba(0, 0, 0, 0.1); border: 3px solid rgba(0, 0, 0, 0.2); border-radius: 50%; position: relative; touch-action: none; }
+    #joystick-knob { position: absolute; top: 50%; left: 50%; width: 55px; height: 55px; background: #4a5568; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 4px 8px rgba(0,0,0,0.3); pointer-events: none; }
+
+    #quiz-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 20; }
+    #quiz-box { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: #fff; padding: 20px; border-radius: 12px; text-align: center; width: 90%; max-height: 90%; overflow-y: auto; border: 4px solid #f1c40f; box-sizing: border-box; }
+
+    .quiz-title { color: #e74c3c; font-size: 20px; margin: 0 0 10px 0; font-weight: bold; }
+    .data-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 4px; }
+    .data-val { font-family: monospace; font-size: 18px; color: #2c3e50; font-weight: bold; }
+
+    #quiz-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .quiz-btn { background: #3498db; color: white; border: none; border-radius: 8px; padding: 15px 5px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
+    .quiz-btn:active { background: #2980b9; transform: scale(0.95); }
+
+    /* 報酬選択用の1列ボタン */
+    #reward-buttons { display: flex; flex-direction: column; gap: 10px; }
+    .reward-btn { background: #f39c12; color: white; border: none; border-radius: 8px; padding: 12px; text-align: left; cursor: pointer; transition: 0.1s; }
+    .reward-btn b { font-size: 16px; display: block; margin-bottom: 4px; }
+    .reward-btn small { font-size: 12px; opacity: 0.9; }
+    .reward-btn:active { background: #e67e22; transform: scale(0.98); }
 </style>
 </head>
 <body>
 
-<div id="game-wrapper">
-    <canvas id="gameCanvas" width="700" height="500"></canvas>
-    
-    <div id="joystick-zone">
-        <div id="joystick-knob"></div>
+<div id="game-container">
+    <div id="canvas-wrapper">
+        <canvas id="gameCanvas" width="700" height="500"></canvas>
+        <div id="quiz-overlay">
+            <div id="quiz-box">
+                </div>
+        </div>
     </div>
-
-    <div id="quiz-overlay">
-        <div id="quiz-box">
-            <h2 class="quiz-title">🆙 レベルアップの試練！</h2>
-            <div id="quiz-text" class="quiz-question"></div>
-            <div id="quiz-buttons"></div>
+    
+    <div id="controller-area">
+        <div id="joystick-zone">
+            <div id="joystick-knob"></div>
         </div>
     </div>
 </div>
@@ -96,247 +64,367 @@ html_code = """
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const overlay = document.getElementById("quiz-overlay");
-    const quizText = document.getElementById("quiz-text");
-    const quizBtns = document.getElementById("quiz-buttons");
-
-    window.onerror = function(msg, url, line) {
-        ctx.fillStyle = "red"; ctx.font = "18px Arial";
-        ctx.fillText("エラー: " + msg, 20, 50); ctx.fillText("行: " + line, 20, 80);
-    };
+    const quizBox = document.getElementById("quiz-box");
 
     let isPaused = false;
     let frameCount = 0;
+    let player = { x: 350, y: 250, size: 24, speed: 3.5, level: 1, exp: 0, nextExp: 3 };
+    let enemies = []; let bullets = []; let gems = []; let effects = [];
+    let joyVector = { x: 0, y: 0 };
     let keys = {};
 
-    // 🌟 ジョイスティックの計算ロジック
-    const joyZone = document.getElementById("joystick-zone");
-    const joyKnob = document.getElementById("joystick-knob");
-    let isDragging = false;
-    let joyCenter = { x: 0, y: 0 };
-    const maxRadius = 40; // グリグリが動ける最大の半径
-    
-    // スティックの傾き（-1.0 ～ 1.0）を保存する変数
-    let joyVector = { x: 0, y: 0 };
+    // 🌟 10種類の武器データ庫
+    const weaponDB = {
+        shuriken:  { name: "🟡 クエン酸手裏剣", desc: "最も近い敵を自動で狙い撃つ基本弾" },
+        shield:    { name: "🟢 重曹シールド", desc: "自身の周囲を回転し、敵を弾き飛ばす" },
+        piercer:   { name: "🔵 フロセミド貫通弾", desc: "一直線に敵を貫通する水流を放つ" },
+        potassium: { name: "🔴 カリウム爆弾", desc: "ランダムな敵の位置で大爆発を起こす" },
+        calcium:   { name: "⚪ カルシウム・オーラ", desc: "自身の周囲に継続ダメージ領域を展開" },
+        dialyzer:  { name: "🌐 透析クロスレイ", desc: "上下左右の4方向へ同時にビームを放つ" },
+        resin:     { name: "⚫ レジン・トラップ", desc: "歩いた跡に敵を吸着する罠を設置する" },
+        tolvaptan: { name: "🌊 トルバプタン波", desc: "敵に向かって3方向に広がる波を放つ" },
+        mra:       { name: "🟣 MRAブーメラン", desc: "飛んでいき、一定時間後に手元に戻る" },
+        epo:       { name: "✨ エリスロポエチン", desc: "[強化] 自身の移動と全攻撃速度がアップ" }
+    };
 
-    function startJoy(e) {
-        e.preventDefault();
-        isDragging = true;
-        const rect = joyZone.getBoundingClientRect();
-        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        moveJoy(e);
-    }
+    // 現在の所持レベル（初期状態は手裏剣Lv1のみ）
+    let wp = { shuriken: 1, shield: 0, piercer: 0, potassium: 0, calcium: 0, dialyzer: 0, resin: 0, tolvaptan: 0, mra: 0, epo: 0 };
+    let timers = { shuriken: 0, piercer: 0, potassium: 0, dialyzer: 0, resin: 0, tolvaptan: 0, mra: 0 };
+    let shieldAngle = 0;
 
-    function moveJoy(e) {
-        if (!isDragging) return;
-        e.preventDefault();
-        
-        // タッチとマウスの両方に対応
-        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-        // 中心からの距離を計算
-        let dx = clientX - joyCenter.x;
-        let dy = clientY - joyCenter.y;
-        let distance = Math.hypot(dx, dy);
-
-        // 外枠を越えないように制限
-        if (distance > maxRadius) {
-            dx = (dx / distance) * maxRadius;
-            dy = (dy / distance) * maxRadius;
+    // --- クイズ生成 ---
+    function generateAcidBaseCase() {
+        const disorders = ["呼吸性アシドーシス", "代謝性アシドーシス", "呼吸性アルカローシス", "代謝性アルカローシス"];
+        const primary = disorders[Math.floor(Math.random() * disorders.length)];
+        let pH, PaCO2, HCO3;
+        switch(primary) {
+            case "呼吸性アシドーシス": pH=(7.10+Math.random()*0.20).toFixed(2); PaCO2=Math.floor(50+Math.random()*20); HCO3=Math.floor(24+Math.random()*4); break;
+            case "代謝性アシドーシス": pH=(7.10+Math.random()*0.20).toFixed(2); PaCO2=Math.floor(30+Math.random()*10); HCO3=Math.floor(10+Math.random()*10); break;
+            case "呼吸性アルカローシス": pH=(7.50+Math.random()*0.15).toFixed(2); PaCO2=Math.floor(20+Math.random()*10); HCO3=Math.floor(20+Math.random()*4); break;
+            case "代謝性アルカローシス": pH=(7.50+Math.random()*0.15).toFixed(2); PaCO2=Math.floor(40+Math.random()*10); HCO3=Math.floor(30+Math.random()*10); break;
         }
-
-        // グリグリを動かす（見た目の更新）
-        joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
-        // ゲーム用のベクトルに変換（-1.0 ～ 1.0）
-        joyVector.x = dx / maxRadius;
-        joyVector.y = dy / maxRadius;
-    }
-
-    function endJoy(e) {
-        e.preventDefault();
-        isDragging = false;
-        // 手を離したら真ん中に戻す
-        joyKnob.style.transform = `translate(-50%, -50%)`;
-        joyVector.x = 0;
-        joyVector.y = 0;
-    }
-
-    // イベントリスナーを登録
-    joyZone.addEventListener("touchstart", startJoy, {passive: false});
-    joyZone.addEventListener("touchmove", moveJoy, {passive: false});
-    joyZone.addEventListener("touchend", endJoy, {passive: false});
-    joyZone.addEventListener("mousedown", startJoy);
-    window.addEventListener("mousemove", moveJoy);
-    window.addEventListener("mouseup", endJoy);
-
-
-    // PC用のキーボード操作（そのまま残します）
-    window.addEventListener("keydown", e => { 
-        keys[e.key] = true; 
-        if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault(); 
-    });
-    window.addEventListener("keyup", e => keys[e.key] = false);
-
-    let player = { x: 350, y: 250, size: 24, speed: 3.5, level: 1, exp: 0, nextExp: 3, fireRate: 60, fireTimer: 0, bulletSpeed: 8 };
-    let enemies = []; let bullets = []; let gems = [];
-
-    const questions = [
-        { q: "pH 7.25<br>PaCO2 60<br>HCO3- 26", options: ["呼吸性アシドーシス", "代謝性アシドーシス", "呼吸性アルカローシス"], ans: "呼吸性アシドーシス" },
-        { q: "pH 7.50<br>PaCO2 40<br>HCO3- 32", options: ["代謝性アルカローシス", "呼吸性アルカローシス", "代謝性アシドーシス"], ans: "代謝性アルカローシス" },
-        { q: "pH 7.20<br>PaCO2 40<br>HCO3- 15", options: ["代謝性アシドーシス", "呼吸性アシドーシス", "代謝性アルカローシス"], ans: "代謝性アシドーシス" },
-        { q: "pH 7.55<br>PaCO2 25<br>HCO3- 22", options: ["呼吸性アルカローシス", "代謝性アルカローシス", "呼吸性アシドーシス"], ans: "呼吸性アルカローシス" }
-    ];
-
-    function spawnEnemy() {
-        let ex, ey;
-        if (Math.random() < 0.5) {
-            ex = Math.random() < 0.5 ? -20 : canvas.width + 20;
-            ey = Math.random() * canvas.height;
-        } else {
-            ex = Math.random() * canvas.width;
-            ey = Math.random() < 0.5 ? -20 : canvas.height + 20;
-        }
-        enemies.push({ x: ex, y: ey, size: 16, speed: 1 + Math.random() * 0.5 + (player.level * 0.1), hp: 1 });
+        return { pH: pH, PaCO2: PaCO2, HCO3: HCO3, ans: primary, options: disorders };
     }
 
     function triggerQuiz() {
         isPaused = true;
-        let qData = questions[Math.floor(Math.random() * questions.length)];
-        quizText.innerHTML = qData.q + "<br><br>最も疑われる異常は？";
-        quizBtns.innerHTML = "";
-        qData.options.forEach(opt => {
-            let btn = document.createElement("button");
-            btn.className = "quiz-btn"; btn.innerText = opt;
-            btn.onclick = () => checkAnswer(opt, qData.ans);
-            quizBtns.appendChild(btn);
+        endJoy(); // ジョイスティックリセット
+        const q = generateAcidBaseCase();
+        
+        let html = `
+            <div class="quiz-title">🆙 レベルアップ！診断せよ</div>
+            <div class="data-card">
+                <div class="data-val">pH : ${q.pH}</div>
+                <div class="data-val">PaCO2 : ${q.PaCO2} mmHg</div>
+                <div class="data-val">HCO3- : ${q.HCO3} mEq/L</div>
+            </div>
+            <div id="quiz-buttons">
+        `;
+        q.options.forEach(opt => {
+            html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${q.ans}')">${opt}</button>`;
         });
+        html += `</div>`;
+        quizBox.innerHTML = html;
         overlay.style.display = "block";
-        endJoy(new Event('touchend')); // クイズが出たらスティックを真ん中に戻す
     }
 
     function checkAnswer(selected, correct) {
-        overlay.style.display = "none";
         if (selected === correct) {
-            player.fireRate = Math.max(10, player.fireRate - 10);
-            alert("正解！\\n手裏剣の連射速度がアップしました！");
+            showRewardSelection(); // 正解なら武器選択画面へ！
         } else {
-            alert("不正解...\\n次は頑張りましょう！");
+            alert("誤診です...\\nボーナス獲得ならず。生き延びてください！");
+            overlay.style.display = "none";
+            isPaused = false;
+            loop();
         }
-        isPaused = false;
-        loop(); 
     }
 
+    // 🌟 3択の武器提示システム
+    function showRewardSelection() {
+        let available = Object.keys(weaponDB);
+        available.sort(() => 0.5 - Math.random());
+        let choices = available.slice(0, 3); // ランダムに3つ選出
+        
+        let html = `<div class="quiz-title">🎁 報酬を選択（3択）</div><div id="reward-buttons">`;
+        choices.forEach(key => {
+            let w = weaponDB[key];
+            let currentLv = wp[key];
+            html += `<button class="reward-btn" onclick="selectReward('${key}')">
+                        <b>${w.name} (Lv ${currentLv} → ${currentLv + 1})</b>
+                        <small>${w.desc}</small>
+                     </button>`;
+        });
+        html += `</div>`;
+        quizBox.innerHTML = html;
+    }
+
+    function selectReward(weaponKey) {
+        wp[weaponKey]++;
+        overlay.style.display = "none";
+        isPaused = false;
+        loop();
+    }
+
+    // --- コントローラー入力 ---
+    const joyZone = document.getElementById("joystick-zone"); const joyKnob = document.getElementById("joystick-knob");
+    let isDragging = false; let joyCenter = { x: 0, y: 0 }; const maxRadius = 45;
+
+    function startJoy(e) { e.preventDefault(); isDragging = true; const rect = joyZone.getBoundingClientRect(); joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
+    function moveJoy(e) {
+        if (!isDragging) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        let dx = clientX - joyCenter.x; let dy = clientY - joyCenter.y; let dist = Math.hypot(dx, dy);
+        if (dist > maxRadius) { dx *= maxRadius / dist; dy *= maxRadius / dist; }
+        joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        joyVector = { x: dx / maxRadius, y: dy / maxRadius };
+    }
+    function endJoy() { isDragging = false; joyKnob.style.transform = `translate(-50%, -50%)`; joyVector = { x: 0, y: 0 }; }
+    joyZone.addEventListener("touchstart", startJoy, {passive:false}); window.addEventListener("touchmove", moveJoy, {passive:false}); window.addEventListener("touchend", endJoy);
+    joyZone.addEventListener("mousedown", startJoy); window.addEventListener("mousemove", moveJoy); window.addEventListener("mouseup", endJoy);
+
+    window.addEventListener("keydown", e => { keys[e.key] = true; if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault(); });
+    window.addEventListener("keyup", e => keys[e.key] = false);
+
+    // --- ゲームループ ---
     function update() {
         frameCount++;
-
-        // 🌟 移動の計算（キーボードとジョイスティックを統合）
-        let moveX = 0;
-        let moveY = 0;
-
+        
+        // 🌟 PCキーボードとスマホジョイスティックの両立修正！
+        let moveX = 0; let moveY = 0;
         if (keys["ArrowUp"]) moveY -= 1;
         if (keys["ArrowDown"]) moveY += 1;
         if (keys["ArrowLeft"]) moveX -= 1;
         if (keys["ArrowRight"]) moveX += 1;
-
-        // キーボード入力が優先。なければジョイスティックの傾きを使用
         if (moveX !== 0 || moveY !== 0) {
-            // 斜め移動が速くならないように正規化
-            let dist = Math.hypot(moveX, moveY);
-            moveX = moveX / dist;
-            moveY = moveY / dist;
+            let dist = Math.hypot(moveX, moveY); moveX = moveX / dist; moveY = moveY / dist;
         } else {
-            // ジョイスティックのアナログな傾き（少し倒せばゆっくり歩く）
-            moveX = joyVector.x;
-            moveY = joyVector.y;
+            moveX = joyVector.x; moveY = joyVector.y;
         }
 
-        player.x += moveX * player.speed;
-        player.y += moveY * player.speed;
-        
+        // EPOによる移動速度バフ
+        let speedBuff = 1 + (wp.epo * 0.15);
+        let fireBuff = 1 + (wp.epo * 0.1);
+
+        player.x += moveX * player.speed * speedBuff; 
+        player.y += moveY * player.speed * speedBuff;
         player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
         player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
 
-        let spawnRate = Math.max(10, 50 - player.level * 2);
-        if (frameCount % spawnRate === 0) spawnEnemy();
+        let px = player.x + 12; let py = player.y + 12;
 
-        player.fireTimer++;
-        if (player.fireTimer >= player.fireRate && enemies.length > 0) {
-            player.fireTimer = 0;
-            let nearest = enemies[0];
-            let minDist = Math.hypot(nearest.x - player.x, nearest.y - player.y);
-            for(let i = 1; i < enemies.length; i++) {
-                let d = Math.hypot(enemies[i].x - player.x, enemies[i].y - player.y);
-                if(d < minDist) { minDist = d; nearest = enemies[i]; }
-            }
-            let angle = Math.atan2(nearest.y - player.y, nearest.x - player.x);
-            bullets.push({ 
-                x: player.x + player.size/2, y: player.y + player.size/2, 
-                vx: Math.cos(angle) * player.bulletSpeed, vy: Math.sin(angle) * player.bulletSpeed, size: 6 
-            });
+        if (frameCount % Math.max(8, 45 - player.level * 2) === 0) {
+            let ex = Math.random() < 0.5 ? -20 : 720; let ey = Math.random() * 500;
+            enemies.push({ x: ex, y: ey, size: 16, speed: 1.2 + player.level * 0.1 });
         }
 
-        for (let i = bullets.length - 1; i >= 0; i--) {
-            let b = bullets[i]; b.x += b.vx; b.y += b.vy;
-            if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) { bullets.splice(i, 1); continue; }
-            for (let j = enemies.length - 1; j >= 0; j--) {
-                let e = enemies[j];
-                if (Math.hypot(b.x - e.x, b.y - e.y) < b.size + e.size) {
-                    gems.push({ x: e.x, y: e.y, size: 8 });
-                    enemies.splice(j, 1); bullets.splice(i, 1); break;
+        // ================= 武器の発射ロジック =================
+        let nearest = enemies.length > 0 ? enemies.reduce((a, b) => Math.hypot((a.x+8)-px, (a.y+8)-py) < Math.hypot((b.x+8)-px, (b.y+8)-py) ? a : b) : null;
+        let aimAngle = nearest ? Math.atan2((nearest.y+8)-py, (nearest.x+8)-px) : 0;
+
+        // 1. クエン酸手裏剣
+        if (wp.shuriken > 0) {
+            timers.shuriken += fireBuff;
+            if (timers.shuriken > Math.max(10, 60 - wp.shuriken * 5) && nearest) {
+                timers.shuriken = 0;
+                bullets.push({ x: px, y: py, vx: Math.cos(aimAngle)*8, vy: Math.sin(aimAngle)*8, size: 5, type: 'shuriken', life: 100, maxLife: 100 });
+                if(wp.shuriken >= 3) { // 3WAY
+                    bullets.push({ x: px, y: py, vx: Math.cos(aimAngle+0.3)*8, vy: Math.sin(aimAngle+0.3)*8, size: 5, type: 'shuriken', life: 100, maxLife: 100 });
+                    bullets.push({ x: px, y: py, vx: Math.cos(aimAngle-0.3)*8, vy: Math.sin(aimAngle-0.3)*8, size: 5, type: 'shuriken', life: 100, maxLife: 100 });
                 }
             }
         }
+        // 3. フロセミド貫通弾
+        if (wp.piercer > 0) {
+            timers.piercer += fireBuff;
+            if (timers.piercer > Math.max(20, 100 - wp.piercer * 10) && enemies.length > 0) {
+                timers.piercer = 0;
+                let rndEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                let a = Math.atan2((rndEnemy.y+8)-py, (rndEnemy.x+8)-px);
+                bullets.push({ x: px, y: py, vx: Math.cos(a)*12, vy: Math.sin(a)*12, size: 6+wp.piercer, type: 'piercer', life: 100, maxLife: 100 });
+            }
+        }
+        // 4. カリウム爆弾
+        if (wp.potassium > 0) {
+            timers.potassium += fireBuff;
+            if (timers.potassium > Math.max(30, 150 - wp.potassium * 10) && enemies.length > 0) {
+                timers.potassium = 0;
+                let rndEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                effects.push({ x: rndEnemy.x+8, y: rndEnemy.y+8, radius: 40 + (wp.potassium * 10), life: 20, type: 'explosion' });
+            }
+        }
+        // 6. 透析クロスレイ
+        if (wp.dialyzer > 0) {
+            timers.dialyzer += fireBuff;
+            if (timers.dialyzer > Math.max(15, 90 - wp.dialyzer * 8)) {
+                timers.dialyzer = 0;
+                let dirs = [0, Math.PI/2, Math.PI, Math.PI*1.5];
+                dirs.forEach(d => bullets.push({ x: px, y: py, vx: Math.cos(d)*7, vy: Math.sin(d)*7, size: 5+wp.dialyzer, type: 'dialyzer', life: 100, maxLife: 100 }));
+            }
+        }
+        // 7. レジントラップ
+        if (wp.resin > 0) {
+            timers.resin += fireBuff;
+            if (timers.resin > Math.max(30, 120 - wp.resin * 10)) {
+                timers.resin = 0;
+                bullets.push({ x: px, y: py, vx: 0, vy: 0, size: 10+wp.resin*2, type: 'resin', life: 200, maxLife: 200 }); // 動かず留まる
+            }
+        }
+        // 8. トルバプタン波
+        if (wp.tolvaptan > 0) {
+            timers.tolvaptan += fireBuff;
+            if (timers.tolvaptan > Math.max(20, 100 - wp.tolvaptan * 10) && nearest) {
+                timers.tolvaptan = 0;
+                let angles = [aimAngle, aimAngle+0.2, aimAngle-0.2];
+                if(wp.tolvaptan > 2) { angles.push(aimAngle+0.4, aimAngle-0.4); } // 広がる
+                angles.forEach(a => bullets.push({ x: px, y: py, vx: Math.cos(a)*6, vy: Math.sin(a)*6, size: 8, type: 'tolvaptan', life: 60, maxLife: 60 }));
+            }
+        }
+        // 9. MRAブーメラン
+        if (wp.mra > 0) {
+            timers.mra += fireBuff;
+            if (timers.mra > Math.max(20, 100 - wp.mra * 10) && nearest) {
+                timers.mra = 0;
+                bullets.push({ x: px, y: py, vx: Math.cos(aimAngle)*9, vy: Math.sin(aimAngle)*9, size: 7+wp.mra, type: 'mra', life: 80, maxLife: 80 });
+            }
+        }
 
-        enemies.forEach(e => {
-            let angle = Math.atan2(player.y - e.y, player.x - e.x);
-            e.x += Math.cos(angle) * e.speed; e.y += Math.sin(angle) * e.speed;
-        });
+        // ================= 当たり判定 & 処理 =================
+        // 5. カルシウムオーラ（バレットではなく範囲判定）
+        let auraRadius = 0;
+        if (wp.calcium > 0) {
+            auraRadius = 50 + (wp.calcium * 15);
+        }
 
+        // 2. 重曹シールドの計算
+        let shields = [];
+        if (wp.shield > 0) {
+            shieldAngle += 0.04 + (wp.shield * 0.005);
+            let shieldCount = Math.min(6, wp.shield + 1);
+            let shieldRadius = 45 + (wp.shield * 5);
+            let shieldSize = 8 + (wp.shield * 2);
+            for(let i=0; i<shieldCount; i++) {
+                let a = shieldAngle + (Math.PI * 2 / shieldCount) * i;
+                shields.push({ x: px + Math.cos(a)*shieldRadius, y: py + Math.sin(a)*shieldRadius, size: shieldSize });
+            }
+        }
+
+        // 弾の移動と寿命
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.x += b.vx; b.y += b.vy;
+            b.life--;
+            
+            // MRAブーメランの反転ギミック
+            if (b.type === 'mra' && b.life === Math.floor(b.maxLife / 2)) {
+                b.vx *= -1; b.vy *= -1;
+            }
+
+            if (b.life <= 0 || b.x < -50 || b.x > 750 || b.y < -50 || b.y > 550) { bullets.splice(i, 1); continue; }
+            
+            let destroyed = false;
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                let e = enemies[j];
+                if (Math.hypot(b.x - (e.x+8), b.y - (e.y+8)) < b.size + 8) {
+                    gems.push({ x: e.x+8, y: e.y+8 }); enemies.splice(j, 1);
+                    // 貫通しない弾は消える
+                    if (b.type === 'shuriken' || b.type === 'tolvaptan') { destroyed = true; break; }
+                }
+            }
+            if (destroyed) bullets.splice(i, 1);
+        }
+
+        // オーラ、シールド、爆発の判定
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let e = enemies[j = i]; let ex = e.x+8; let ey = e.y+8;
+            let hit = false;
+            // カルシウムオーラ
+            if (auraRadius > 0 && Math.hypot(ex - px, ey - py) < auraRadius) hit = true;
+            // 重曹シールド
+            for (let s of shields) { if (Math.hypot(ex - s.x, ey - s.y) < 8 + s.size) hit = true; }
+            // カリウム爆発エフェクト
+            for (let eff of effects) { if (eff.type === 'explosion' && Math.hypot(ex - eff.x, ey - eff.y) < eff.radius) hit = true; }
+            
+            if (hit) { gems.push({ x: ex, y: ey }); enemies.splice(i, 1); }
+        }
+
+        // 敵移動
+        enemies.forEach(e => { let a = Math.atan2(py - (e.y+8), px - (e.x+8)); e.x += Math.cos(a) * e.speed; e.y += Math.sin(a) * e.speed; });
+
+        // ジェム回収
         for (let i = gems.length - 1; i >= 0; i--) {
-            let g = gems[i];
-            let dist = Math.hypot(player.x + player.size/2 - g.x, player.y + player.size/2 - g.y);
-            if (dist < 80) { 
-                let angle = Math.atan2(player.y + player.size/2 - g.y, player.x + player.size/2 - g.x);
-                g.x += Math.cos(angle) * 6; g.y += Math.sin(angle) * 6;
-                if (dist < player.size) { 
+            let g = gems[i]; let d = Math.hypot(px - g.x, py - g.y);
+            if (d < 90 + (wp.epo * 10)) { // EPOで回収範囲も少し広がる
+                let a = Math.atan2(py - g.y, px - g.x); g.x += Math.cos(a)*7; g.y += Math.sin(a)*7;
+                if (d < 20) { 
                     player.exp++; gems.splice(i, 1);
                     if (player.exp >= player.nextExp) {
-                        player.level++; player.exp = 0; player.nextExp += Math.floor(player.level * 2); 
-                        triggerQuiz(); 
+                        player.level++; player.exp = 0; player.nextExp += Math.floor(player.level * 1.5);
+                        triggerQuiz();
                     }
                 }
             }
         }
+
+        // エフェクト寿命
+        for (let i = effects.length - 1; i >= 0; i--) {
+            effects[i].life--;
+            if (effects[i].life <= 0) effects.splice(i, 1);
+        }
     }
 
     function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, 700, 500);
         
-        ctx.fillStyle = "#3498db";
-        gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, g.size, 0, Math.PI*2); ctx.fill(); });
+        // カルシウムオーラ描画（白半透明）
+        if (wp.calcium > 0) {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+            ctx.beginPath(); ctx.arc(player.x+12, player.y+12, 50 + (wp.calcium * 15), 0, Math.PI*2); ctx.fill();
+        }
+
+        // エフェクト描画
+        effects.forEach(eff => {
+            if(eff.type === 'explosion') {
+                ctx.fillStyle = `rgba(231, 76, 60, ${eff.life / 20})`; // 赤から透明へ
+                ctx.beginPath(); ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI*2); ctx.fill();
+            }
+        });
+
+        // ジェム、敵
+        ctx.fillStyle = "#3498db"; gems.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, 6, 0, Math.PI*2); ctx.fill(); });
+        ctx.fillStyle = "#e74c3c"; enemies.forEach(e => ctx.fillRect(e.x, e.y, 16, 16));
         
-        ctx.fillStyle = "#e74c3c";
-        enemies.forEach(e => ctx.fillRect(e.x, e.y, e.size, e.size));
-        
-        ctx.fillStyle = "#f1c40f";
-        bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill(); });
-        
-        ctx.fillStyle = "white"; ctx.font = "28px Arial";
-        ctx.fillText("🥷", player.x, player.y + 24);
-        
-        ctx.fillStyle = "white"; ctx.font = "bold 18px Arial";
-        ctx.fillText("Lv: " + player.level, 15, 30);
-        
-        ctx.fillStyle = "#555"; ctx.fillRect(80, 15, 200, 15);
-        ctx.fillStyle = "#2ecc71"; ctx.fillRect(80, 15, 200 * (player.exp / player.nextExp), 15);
+        // 重曹シールド描画
+        ctx.fillStyle = "rgba(46, 204, 113, 0.8)";
+        if (wp.shield > 0) {
+            let count = Math.min(6, wp.shield + 1); let radius = 45 + (wp.shield * 5); let size = 8 + (wp.shield * 2);
+            for(let i=0; i<count; i++) {
+                let a = shieldAngle + (Math.PI * 2 / count) * i;
+                ctx.beginPath(); ctx.arc(player.x+12 + Math.cos(a)*radius, player.y+12 + Math.sin(a)*radius, size, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        // 弾描画 (種類で色分け)
+        bullets.forEach(b => { 
+            if (b.type === 'shuriken') ctx.fillStyle = "#f1c40f";
+            else if (b.type === 'piercer') ctx.fillStyle = "#00a8ff";
+            else if (b.type === 'dialyzer') ctx.fillStyle = "#00d2d3";
+            else if (b.type === 'resin') ctx.fillStyle = "#2d3436";
+            else if (b.type === 'tolvaptan') ctx.fillStyle = "#48dbfb";
+            else if (b.type === 'mra') ctx.fillStyle = "#9b59b6";
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill(); 
+        });
+
+        ctx.fillStyle = "white"; ctx.font = "28px Arial"; ctx.fillText("🥷", player.x, player.y + 24);
+        ctx.fillStyle = "white"; ctx.font = "bold 18px Arial"; ctx.fillText("Lv: " + player.level, 15, 30);
+        ctx.fillStyle = "#555"; ctx.fillRect(80, 15, 200, 12);
+        ctx.fillStyle = "#2ecc71"; ctx.fillRect(80, 15, 200 * (player.exp / player.nextExp), 12);
     }
 
     function loop() { if (!isPaused) { update(); draw(); requestAnimationFrame(loop); } }
-    window.onload = function() { loop(); };
+    window.onload = loop;
 </script>
 </body>
 </html>
 """
 
-components.html(html_code, height=600)
+components.html(html_code, height=850)
