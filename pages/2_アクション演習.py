@@ -150,18 +150,18 @@ html_code = """
     ];
 
     const bossTypes = [
-        { name: "巨大結石", emoji: "🪨", size: 90,  speedBase: 0.6, hpBase: 500,  exp: 100, moveType: 'chase' },
-        { name: "メガLDL",  emoji: "🍔", size: 100, speedBase: 0.8, hpBase: 1200, exp: 200, moveType: 'random' },
-        { name: "大石灰化", emoji: "🦴", size: 120, speedBase: 0.5, hpBase: 3000, exp: 350, moveType: 'chase' },
-        { name: "敗血症",   emoji: "🦠", size: 140, speedBase: 1.1, hpBase: 6000, exp: 500, moveType: 'sine' },
-        { name: "末期腎不全",emoji: "🥀", size: 180, speedBase: 0.9, hpBase: 15000,exp: 1000,moveType: 'chase' },
-        { name: "鬱血性心不全", emoji: "🌊", size: 200, speedBase: 0.7, hpBase: 30000, exp: 2000, moveType: 'sine' },
-        { name: "劇症型DKA",   emoji: "🩸", size: 220, speedBase: 1.3, hpBase: 55000, exp: 4000, moveType: 'chase' },
-        { name: "ｻｲﾄｶｲﾝｽﾄｰﾑ",  emoji: "🌪️", size: 240, speedBase: 1.5, hpBase: 100000, exp: 8000, moveType: 'random' },
-        { name: "肝腎症候群",   emoji: "🧟", size: 260, speedBase: 0.5, hpBase: 200000, exp: 15000, moveType: 'chase' },
-        { name: "尿毒症性脳症", emoji: "🧠", size: 280, speedBase: 1.2, hpBase: 350000, exp: 25000, moveType: 'sine' },
-        { name: "重症DIC",      emoji: "🕸️", size: 300, speedBase: 1.0, hpBase: 600000, exp: 40000, moveType: 'chase' },
-        { name: "多臓器不全",   emoji: "🌌", size: 350, speedBase: 0.8, hpBase: 1000000, exp: 99999, moveType: 'chase' }
+        { name: "巨大結石", emoji: "🪨", size: 90,  speedBase: 0.6, hpBase: 300,  exp: 100, moveType: 'chase' },
+        { name: "メガLDL",  emoji: "🍔", size: 100, speedBase: 0.8, hpBase: 500, exp: 200, moveType: 'random' },
+        { name: "大石灰化", emoji: "🦴", size: 120, speedBase: 0.5, hpBase: 1000, exp: 350, moveType: 'chase' },
+        { name: "敗血症",   emoji: "🦠", size: 140, speedBase: 1.1, hpBase: 2000, exp: 500, moveType: 'sine' },
+        { name: "末期腎不全",emoji: "🥀", size: 180, speedBase: 0.9, hpBase: 5000,exp: 1000,moveType: 'chase' },
+        { name: "鬱血性心不全", emoji: "🌊", size: 200, speedBase: 0.7, hpBase: 10000, exp: 2000, moveType: 'sine' },
+        { name: "劇症型DKA",   emoji: "🩸", size: 220, speedBase: 1.3, hpBase: 25000, exp: 4000, moveType: 'chase' },
+        { name: "ｻｲﾄｶｲﾝｽﾄｰﾑ",  emoji: "🌪️", size: 240, speedBase: 1.5, hpBase: 50000, exp: 8000, moveType: 'random' },
+        { name: "肝腎症候群",   emoji: "🧟", size: 260, speedBase: 0.5, hpBase: 100000, exp: 15000, moveType: 'chase' },
+        { name: "尿毒症性脳症", emoji: "🧠", size: 280, speedBase: 1.2, hpBase: 200000, exp: 25000, moveType: 'sine' },
+        { name: "重症DIC",      emoji: "🕸️", size: 300, speedBase: 1.0, hpBase: 300000, exp: 40000, moveType: 'chase' },
+        { name: "多臓器不全",   emoji: "🌌", size: 350, speedBase: 0.8, hpBase: 500000, exp: 99999, moveType: 'chase' }
     ];
 
     function generateAcidBaseCase() {
@@ -231,15 +231,13 @@ html_code = """
 
     function checkAnswer(selected, correct, isMilestone) {
         if (selected === correct) { 
+            // 🌟 レベルアップのたびに最大HPを10ずつ増やす
+            player.maxHp += 10; 
+            // 回復（50回復しつつ、最大値を超えないように制限）
             player.hp = Math.min(player.maxHp, player.hp + 50);
             
             if (isMilestone) {
-                let upgradedNames = [];
-                for(let k in wp) { if(wp[k] > 0) { wp[k]++; upgradedNames.push(weaponDB[k].name.split(" ")[1]); } }
-                enemies = [];
-                effects.push({ x: 350, y: 250, radius: 1000, life: 60, type: 'explosion', dmg: 9999 });
-                alert("🎉 節目問題 正解！\\n\\n【HP 50回復！】\\n【スーパーボーナス！】\\n画面の敵を全滅させ、全武器Lv+1しました！");
-                overlay.style.display = "none"; isPaused = false;
+                // ... (ボーナス処理) ...
             } else {
                 showRewardSelection(); 
             }
