@@ -88,8 +88,8 @@ html_code = """
                 <b>【基本ルール】</b><br>
                 pH 7.35未満＝アシドーシス、7.45超＝アルカローシス<br>
                 PaCO2(40)とHCO3(24)の向きに注目！<br>
-                ・<b>呼吸性</b>：pHとPaCO2が逆向き<br>
-                ・<b>代謝性</b>：pHとHCO3が同じ向き
+                ・<b>呼吸性</b>：pHとPaCO2が逆向き  (PH↑かつPaCO2↓ or PH↓かつPaCO2↑)<br>
+                ・<b>代謝性</b>：pHとHCO3が同じ向き (PH↑かつHCO3↑ or PH↓かつHCO3↓)
             </div>
         </details>
     </div>
