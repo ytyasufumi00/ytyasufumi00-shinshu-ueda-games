@@ -103,7 +103,14 @@ html_code = """
         { name: "メガLDL",  emoji: "🍔", size: 100, speedBase: 0.8, hpBase: 1200, exp: 200, moveType: 'random' },
         { name: "大石灰化", emoji: "🦴", size: 120, speedBase: 0.5, hpBase: 3000, exp: 350, moveType: 'chase' },
         { name: "敗血症",   emoji: "🦠", size: 140, speedBase: 1.1, hpBase: 6000, exp: 500, moveType: 'sine' },
-        { name: "末期腎不全",emoji: "🥀", size: 180, speedBase: 0.9, hpBase: 15000,exp: 1000,moveType: 'chase' }
+        { name: "末期腎不全",emoji: "🥀", size: 180, speedBase: 0.9, hpBase: 15000,exp: 1000,moveType: 'chase' },
+        { name: "鬱血性心不全", emoji: "🌊", size: 200, speedBase: 0.7, hpBase: 30000, exp: 2000, moveType: 'sine' }, // 波打ちながら迫る体液貯留
+        { name: "劇症型DKA",   emoji: "🩸", size: 220, speedBase: 1.3, hpBase: 55000, exp: 4000, moveType: 'chase' }, // 高速で迫る重症アシドーシス
+        { name: "ｻｲﾄｶｲﾝｽﾄｰﾑ",  emoji: "🌪️", size: 240, speedBase: 1.5, hpBase: 100000, exp: 8000, moveType: 'random' }, // 暴走して予測不能な動き
+        { name: "肝腎症候群",   emoji: "🧟", size: 260, speedBase: 0.5, hpBase: 200000, exp: 15000, moveType: 'chase' }, // 非常に遅いが異常に硬い
+        { name: "尿毒症性脳症", emoji: "🧠", size: 280, speedBase: 1.2, hpBase: 350000, exp: 25000, moveType: 'sine' }, // 蛇行する意識障害
+        { name: "重症DIC",      emoji: "🕸️", size: 300, speedBase: 1.0, hpBase: 600000, exp: 40000, moveType: 'chase' }, // 血管内凝固の網
+        { name: "多臓器不全",   emoji: "🌌", size: 350, speedBase: 0.8, hpBase: 1000000, exp: 99999, moveType: 'chase' } // 最終ボス（超巨大）
     ];
 
     // 🌟 節目問題（代償性変化）のデータベース
@@ -185,12 +192,27 @@ html_code = """
         }
     }
 
-    function showRewardSelection() {
+   function showRewardSelection() {
         let available = Object.keys(weaponDB).sort(() => 0.5 - Math.random()).slice(0, 3);
         let html = `<div class="quiz-title">🎁 極限強化を選択（3択）</div><div id="reward-buttons">`;
+        
         available.forEach(key => {
-            let w = weaponDB[key]; let currentLv = wp[key];
-            html += `<button class="reward-btn" onclick="selectReward('${key}')"><b>${w.name} <span style="color:#ffeaa7;">(Lv ${currentLv} → ${currentLv + 1})</span></b><small>${w.desc}</small></button>`;
+            let w = weaponDB[key]; 
+            let currentLv = wp[key];
+            let nextLv = currentLv + 1;
+            
+            // 🌟 Lv10へのクラスアップ時のみ、ド派手な特別ボタンにする
+            if (nextLv === 10) {
+                html += `<button class="reward-btn" style="background: #8e44ad; border-left: 6px solid #9b59b6; box-shadow: 0 0 10px #9b59b6;" onclick="selectReward('${key}')">
+                            <b style="color: #ff9ff3;">🔥【超覚醒】${w.name} (Lv MAX)</b>
+                            <small>限界突破！究極の形態に進化し画面を制圧します。</small>
+                         </button>`;
+            } else {
+                html += `<button class="reward-btn" onclick="selectReward('${key}')">
+                            <b>${w.name} <span style="color:#ffeaa7;">(Lv ${currentLv} → ${nextLv})</span></b>
+                            <small>${w.desc}</small>
+                         </button>`;
+            }
         });
         html += `</div>`; quizBox.innerHTML = html;
     }
@@ -225,19 +247,38 @@ html_code = """
         player.x = Math.max(0, Math.min(canvas.width - player.size, player.x)); player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
         let px = player.x + 12; let py = player.y + 12;
 
-        if (frameCount % 1800 === 0 && frameCount > 0) {
+        // 🌟 ボスの出現ロジック（約30秒 = 1800フレームごと）
+       if (frameCount % 1800 === 0 && frameCount > 0) {
             let bossIdx = Math.min(Math.floor(frameCount / 1800) - 1, bossTypes.length - 1);
             let b = bossTypes[bossIdx];
+
+            // 1. まずHPを計算する
+            let bossHp = b.hpBase + (player.level * 25);
+            if (player.level >= 15) {
+                let levelDiff = player.level - 14;
+                bossHp = Math.floor(bossHp * Math.pow(1.2, levelDiff));
+            }
+
+            // 2. 計算した bossHp を使う
             enemies.push({ 
                 x: Math.random() < 0.5 ? -150 : 850, y: 250, 
                 size: b.size, emoji: b.emoji, exp: b.exp,
-                speed: b.speedBase + (player.level * 0.01), hp: b.hpBase + (player.level * 25), 
-                moveType: b.moveType, timeOffset: 0, isBoss: true
+                speed: b.speedBase + (player.level * 0.01), 
+                hp: bossHp, // 👈 計算済みの変数を入れる
+                moveType: b.moveType, 
+                timeOffset: 0, 
+                isBoss: true
             });
             bossWarningTimer = 180; 
         }
 
-        let spawnInterval = Math.max(2, 35 - Math.floor(player.level * 1.2)); 
+      let spawnInterval;
+if (player.level <= 5) {
+    spawnInterval = 60; // 雑魚スポーン頻度60フレームに1回出現
+} else {
+    // レベル6以降は徐々に加速していく（元の式を調整）
+    spawnInterval = Math.max(2, 40 - Math.floor(player.level * 1.2));
+}
         if (frameCount % spawnInterval === 0) {
             let spawnCount = 1 + Math.floor(player.level / 3);
             for(let i=0; i<spawnCount; i++){
@@ -245,9 +286,19 @@ html_code = """
                 let availableTypes = enemyTypes.filter(t => player.level >= t.reqLv);
                 let type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
                 
+                // 🌟 ここでHPを計算！（Lv10から急激に硬くなる）
+                let calculatedHp = type.hpBase + Math.floor(player.level / 3);
+               if (player.level >= 10) {
+    // 1.15乗などの指数をかけると、Lvが上がるほど跳ね上がります
+    // 係数(1.5)や指数(1.2)の数値を調整して「硬さ」を微調整してください
+    let levelDiff = player.level - 9; 
+    calculatedHp = Math.floor(calculatedHp * Math.pow(1.2, levelDiff));
+                }
+
                 enemies.push({ 
                     x: ex, y: ey, size: type.size, emoji: type.emoji, exp: type.exp,
-                    speed: type.speedBase + (player.level * 0.015), hp: type.hpBase + Math.floor(player.level / 3),
+                    speed: type.speedBase + (player.level * 0.015), 
+                    hp: calculatedHp, // 👈 計算したHPをセット
                     moveType: type.moveType, timeOffset: Math.random() * 100, isBoss: false
                 });
             }
@@ -277,11 +328,32 @@ html_code = """
                 for(let i=0; i<bCount; i++) { let rE = enemies[Math.floor(Math.random() * enemies.length)]; effects.push({ x: rE.x+rE.size/2, y: rE.y+rE.size/2, radius: 40 + (wp.potassium * 20), life: 25, type: 'explosion', dmg: 3 + wp.potassium*2.5 }); }
             }
         }
-        if (wp.dialyzer > 0) {
-            timers.dialyzer += fireBuff; globalDialyzerAngle += 0.05 + (wp.dialyzer * 0.01);
-            if (timers.dialyzer > Math.max(10, 80 - wp.dialyzer * 5)) {
-                timers.dialyzer = 0; let ways = 4 + Math.floor(wp.dialyzer / 2) * 2;
-                for(let i=0; i<ways; i++) { let d = globalDialyzerAngle + (Math.PI * 2 / ways) * i; bullets.push({ x: px, y: py, vx: Math.cos(d)*10, vy: Math.sin(d)*10, size: 5 + wp.dialyzer*2, type: 'dialyzer', life: 100, dmg: 1.5 + wp.dialyzer }); }
+       if (wp.dialyzer > 0) {
+            timers.dialyzer += fireBuff; 
+            
+            // 🌟 クラスアップ：Lv10で超覚醒「CHDF（持続的血液濾過透析）モード」
+            if (wp.dialyzer >= 10) {
+                globalDialyzerAngle += 0.12; // 回転速度が激増
+                if (timers.dialyzer > 2) { // ほぼ常時発射（隙間なくレーザーの柱になる）
+                    timers.dialyzer = 0; 
+                    let ways = 12; // 12方向に常時照射
+                    for(let i=0; i<ways; i++) { 
+                        let d = globalDialyzerAngle + (Math.PI * 2 / ways) * i; 
+                        // サイズが25の極太レーザー弾を放ち、ダメージも超絶アップ
+                        bullets.push({ x: px, y: py, vx: Math.cos(d)*15, vy: Math.sin(d)*15, size: 25, type: 'dialyzer', life: 120, dmg: 40 }); 
+                    }
+                }
+            } 
+            // 通常時（Lv1〜9）
+            else {
+                globalDialyzerAngle += 0.05 + (wp.dialyzer * 0.01);
+                if (timers.dialyzer > Math.max(10, 80 - wp.dialyzer * 5)) {
+                    timers.dialyzer = 0; let ways = 4 + Math.floor(wp.dialyzer / 2) * 2;
+                    for(let i=0; i<ways; i++) { 
+                        let d = globalDialyzerAngle + (Math.PI * 2 / ways) * i; 
+                        bullets.push({ x: px, y: py, vx: Math.cos(d)*10, vy: Math.sin(d)*10, size: 5 + wp.dialyzer*2, type: 'dialyzer', life: 100, dmg: 1.5 + wp.dialyzer }); 
+                    }
+                }
             }
         }
         if (wp.resin > 0) {
@@ -370,7 +442,7 @@ html_code = """
                     if (player.exp >= player.nextExp) {
                         player.level++; 
                         player.exp = 0; 
-                        player.nextExp += Math.floor(player.level * 2.5 + 5); 
+                        player.nextExp += Math.floor(5 * Math.pow(player.level, 1.2)); 
                         triggerQuiz();
                     }
                 }
