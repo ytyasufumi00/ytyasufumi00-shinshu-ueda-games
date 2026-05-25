@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ヴァンサバ風・酸塩基アクション", page_icon="🥷", layout="wide")
 
-st.title("🥷 ヴァンサバ風・酸塩基サバイバル V12（難易度選択版）")
+st.title("🥷 信州上田ヴァンサバ風・酸塩基サバイバル V12（難易度選択版）")
 st.write("最初に難易度を選択できます。Lv5ごとの節目は通常問題ですが、正解すると超絶ボーナスが発動します！")
 
 html_code = """
