@@ -231,13 +231,15 @@ html_code = """
 
     function checkAnswer(selected, correct, isMilestone) {
         if (selected === correct) { 
-            // 🌟 レベルアップのたびに最大HPを10ずつ増やす
-            player.maxHp += 10; 
-            // 回復（50回復しつつ、最大値を超えないように制限）
             player.hp = Math.min(player.maxHp, player.hp + 50);
             
             if (isMilestone) {
-                // ... (ボーナス処理) ...
+                let upgradedNames = [];
+                for(let k in wp) { if(wp[k] > 0) { wp[k]++; upgradedNames.push(weaponDB[k].name.split(" ")[1]); } }
+                enemies = [];
+                effects.push({ x: 350, y: 250, radius: 1000, life: 60, type: 'explosion', dmg: 9999 });
+                alert("🎉 節目問題 正解！\\n\\n【HP 50回復！】\\n【スーパーボーナス！】\\n画面の敵を全滅させ、全武器Lv+1しました！");
+                overlay.style.display = "none"; isPaused = false;
             } else {
                 showRewardSelection(); 
             }
