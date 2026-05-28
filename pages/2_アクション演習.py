@@ -163,7 +163,23 @@ html_code = """
         { name: "重症DIC",      emoji: "🕸️", size: 300, speedBase: 1.0, hpBase: 300000, exp: 40000, moveType: 'chase' },
         { name: "多臓器不全",   emoji: "🌌", size: 350, speedBase: 0.8, hpBase: 500000, exp: 99999, moveType: 'chase' }
     ];
-
+// 🌟 節目問題（代償性変化）のデータベース
+    const compQuestions = [
+        { q: "代謝性アシドーシスの予想代償（PaCO2）の式は？", options: ["1.5 × HCO3 + 8", "0.7 × HCO3 + 20", "HCO3 + 15", "0.4 × HCO3"], ans: "1.5 × HCO3 + 8" },
+        { q: "代謝性アルカローシスの予想代償（PaCO2）の式は？", options: ["0.7 × HCO3 + 20", "0.9 × HCO3 + 9", "0.4 × HCO3", "1.5 × HCO3 + 8"], ans: "0.9 × HCO3 + 9" },
+        { q: "呼吸性アシドーシス（慢性）のHCO3上昇の目安は？", options: ["PaCO2 10上昇につきHCO3 3.5上昇", "PaCO2 10上昇につきHCO3 1上昇", "PaCO2 10上昇につきHCO3 5上昇", "代償しない"], ans: "PaCO2 10上昇につきHCO3 3.5上昇" },
+        { q: "呼吸性アルカローシス（急性）のHCO3低下の目安は？", options: ["PaCO2 10低下につきHCO3 2低下", "PaCO2 10低下につきHCO3 5低下", "PaCO2 10低下につきHCO3 1低下", "代償しない"], ans: "PaCO2 10低下につきHCO3 2低下" },
+        { q: "呼吸性アシドーシス（急性）のHCO3上昇の目安は？", options: ["PaCO2 10上昇につきHCO3 1上昇", "PaCO2 10上昇につきHCO3 3.5上昇", "PaCO2 10上昇につきHCO3 5上昇", "代償しない"], ans: "PaCO2 10上昇につきHCO3 1上昇" },
+        { q: "呼吸性アルカローシス（慢性）のHCO3低下の目安は？", options: ["PaCO2 10低下につきHCO3 4〜5低下", "PaCO2 10低下につきHCO3 2低下", "PaCO2 10低下につきHCO3 1低下", "PaCO2 10低下につきHCO3 10低下"], ans: "PaCO2 10低下につきHCO3 4〜5低下" },
+        { q: "血清アニオンギャップ（AG）の基本計算式は？", options: ["Na - (Cl + HCO3)", "Na + K - Cl", "Cl + HCO3 - Na", "Na - Cl"], ans: "Na - (Cl + HCO3)" },
+        { q: "低アルブミン血症における補正AGの計算式は？", options: ["実測AG + 2.5 × (4.0 - Alb)", "実測AG - 2.5 × (4.0 - Alb)", "実測AG + 4.0 × (2.5 - Alb)", "補正は必要ない"], ans: "実測AG + 2.5 × (4.0 - Alb)" },
+        { q: "ΔAG / ΔHCO3（Δ比）が 1.0 〜 2.0 の場合の解釈は？", options: ["単純な高AG代謝性アシドーシス", "正常AG代謝性アシドーシスの合併", "代謝性アルカローシスの合併", "呼吸性アシドーシスの合併"], ans: "単純な高AG代謝性アシドーシス" },
+        { q: "ΔAG / ΔHCO3（Δ比）が 0.4 未満の場合に疑う病態は？", options: ["正常AG代謝性アシドーシス（高Cl性）", "単純な高AG代謝性アシドーシス", "代謝性アルカローシス", "乳酸アシドーシス"], ans: "正常AG代謝性アシドーシス（高Cl性）" },
+        { q: "ΔAG / ΔHCO3（Δ比）が 2.0 以上の場合に疑う病態は？", options: ["代謝性アルカローシスの合併", "正常AG代謝性アシドーシスの合併", "単純な高AG代謝性アシドーシス", "呼吸性アルカローシス"], ans: "代謝性アルカローシスの合併" },
+        { q: "尿アニオンギャップ（UAG）の計算式は？", options: ["尿Na + 尿K - 尿Cl", "尿Na - 尿Cl", "尿Cl - (尿Na + 尿K)", "尿Na + 尿Cl - 尿K"], ans: "尿Na + 尿K - 尿Cl" },
+        { q: "高血糖による血清Na低下の補正（血糖値100mg/dL上昇毎）の目安は？", options: ["約1.6 mEq/L低下", "約5.0 mEq/L低下", "約0.5 mEq/L低下", "変動しない"], ans: "約1.6 mEq/L低下" },
+        { q: "高AG代謝性アシドーシスの語呂合わせ「MUDPILES」の『U』は？", options: ["Uremia（尿毒症）", "Uric acid（尿酸）", "Urea（尿素）", "Urinary tract infection"], ans: "Uremia（尿毒症）" }
+    ];
     function generateAcidBaseCase() {
         const disorders = ["呼吸性アシドーシス", "代謝性アシドーシス", "呼吸性アルカローシス", "代謝性アルカローシス"];
         const primary = disorders[Math.floor(Math.random() * disorders.length)];
@@ -205,27 +221,38 @@ html_code = """
         isPaused = true;
     }
 
-    function triggerQuiz() {
+   function triggerQuiz() {
         isPaused = true; endJoy(); 
         let isMilestone = (player.level % 5 === 0); 
         let html = '';
 
-        // 🌟 節目の問題も通常問題（一次性異常）に戻しました
-        const q = generateAcidBaseCase();
-        
-        if (isMilestone) {
+        if (isMilestone && difficulty === 'hard') {
+            // 🔴 HARDモードの節目：二次性変化（代償）の計算問題
+            let cq = compQuestions[Math.floor(Math.random() * compQuestions.length)];
+            let shuffled = [...cq.options].sort(() => 0.5 - Math.random());
+            html = `<div class="quiz-title" style="color:#9b59b6;">🌟 節目Lv${player.level}の試練（HARD限定） 🌟</div>
+                    <div class="data-card"><div class="data-val" style="font-size:16px;">${cq.q}</div></div><div id="quiz-buttons">`;
+            shuffled.forEach(opt => { 
+                html += `<button class="quiz-btn bonus-btn" onclick="checkAnswer('${opt}', '${cq.ans}', true)">${opt}</button>`; 
+            });
+        } else if (isMilestone && difficulty === 'easy') {
+            // 🟢 EASYモードの節目：通常問題（一次性異常）
+            const q = generateAcidBaseCase();
             html = `<div class="quiz-title" style="color:#9b59b6;">🌟 節目Lv${player.level}の試練（超ボーナス） 🌟</div>
                     <div class="data-card"><div class="data-val">pH : ${q.pH}</div><div class="data-val">PaCO2 : ${q.PaCO2} mmHg</div><div class="data-val">HCO3- : ${q.HCO3} mEq/L</div></div><div id="quiz-buttons">`;
             q.options.forEach(opt => { 
                 html += `<button class="quiz-btn bonus-btn" onclick="checkAnswer('${opt}', '${q.ans}', true)">${opt}</button>`; 
             });
         } else {
+            // 🆙 通常のレベルアップ（EASY/HARD共通）
+            const q = generateAcidBaseCase();
             html = `<div class="quiz-title">🆙 レベルアップ！診断せよ</div>
                     <div class="data-card"><div class="data-val">pH : ${q.pH}</div><div class="data-val">PaCO2 : ${q.PaCO2} mmHg</div><div class="data-val">HCO3- : ${q.HCO3} mEq/L</div></div><div id="quiz-buttons">`;
             q.options.forEach(opt => { 
                 html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${q.ans}', false)">${opt}</button>`; 
             });
         }
+        
         html += `</div>`; quizBox.innerHTML = html; overlay.style.display = "block";
     }
 
