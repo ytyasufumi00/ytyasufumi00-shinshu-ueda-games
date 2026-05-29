@@ -18,6 +18,7 @@ st.markdown("### 🎮 現在遊べるゲーム")
 # 👇 中央画面から直接ゲームへ飛ぶ魔法のリンクボタン
 st.page_link("pages/1_酸塩基合戦.py", label="第1弾：酸塩基合戦 に出陣する！", icon="⚔️")
 st.page_link("pages/2_アクション演習.py", label="第2弾：アクション演習（忍者の修行）", icon="🥷")
+st.page_link("pages/3_ナースダッシュ.py", label="第3弾：マリオ風アクション", icon="🥷")
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 st.markdown("---")
 st.write("（※ 今後、新しいゲームが続々と追加される予定です...！）")
