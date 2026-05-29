@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ナースダッシュ！", page_icon="💉", layout="wide")
-st.title("🏃‍♀️ ナースダッシュ！ 救命クイズラン V12")
+st.title("🏃‍♀️ ナースダッシュ！ 救命クイズラン V13")
 st.write("ライフ（❤️）に気をつけて！クイズ正解や回復アイテム（💖）で回復し、高評価の称号を目指そう！")
 
 html_code = """
@@ -15,24 +15,39 @@ html_code = """
     #game-container { position: relative; width: 100%; max-width: 700px; aspect-ratio: 7 / 4; background: #87CEEB; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     canvas { width: 100%; height: 100%; display: block; }
     
-    #quiz-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 20; }
+    /* 🌟 クイズオーバーレイを全画面化（別ウィンドウ風） */
+    #quiz-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f6; z-index: 30; box-sizing: border-box; padding: 10px; }
     
-    /* 🌟 クイズボックスのスマホ最適化（コンパクト化＆スクロール対応） */
     #quiz-box { 
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-        background: #fff; padding: 12px; border-radius: 10px; text-align: center; 
-        width: 95%; max-width: 500px; max-height: 95%; overflow-y: auto; 
-        border: 4px solid #e74c3c; touch-action: pan-y; box-sizing: border-box;
+        width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
     }
-    .quiz-title { color: #e74c3c; font-size: 18px; margin-bottom: 8px; font-weight: bold; }
-    .quiz-text { font-size: 14px; color: #2c3e50; margin-bottom: 12px; text-align: left; line-height: 1.3; font-weight: bold; }
+    
+    .quiz-title { color: #e74c3c; font-size: 20px; font-weight: bold; text-align: center; flex-shrink: 0; margin-bottom: 5px; }
+    
+    /* 問題文を白いカード風にして見やすく */
+    .quiz-text { 
+        background: #fff; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-size: 15px; color: #2c3e50; font-weight: bold; line-height: 1.4; 
+        flex-grow: 1; overflow-y: auto; margin-bottom: 10px;
+    }
+    
+    /* 🌟 ボタンを2列（Grid）にして縦スペースを節約 */
+    .quiz-btn-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 常に2列 */
+        gap: 8px;
+        flex-shrink: 0; /* ボタンの高さは潰さない */
+    }
+    
     .quiz-btn { 
-        display: block; width: 100%; background: #3498db; color: white; border: none; 
-        border-radius: 6px; padding: 10px 8px; font-size: 14px; font-weight: bold; 
-        margin-bottom: 6px; cursor: pointer; transition: 0.1s; box-sizing: border-box;
+        background: #3498db; color: white; border: none; border-radius: 8px; 
+        padding: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.1s;
+        min-height: 65px; /* タップしやすい高さを確保 */
+        display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2;
     }
-    .quiz-btn:active { background: #2980b9; transform: scale(0.98); }
-    .game-over-btn { background: #e74c3c; margin-top: 10px; } .game-over-btn:active { background: #c0392b; }
+    .quiz-btn:active { background: #2980b9; transform: scale(0.95); }
+    .game-over-btn { background: #e74c3c; grid-column: 1 / -1; min-height: 50px; } 
+    .game-over-btn:active { background: #c0392b; }
 </style>
 </head>
 <body>
@@ -83,9 +98,9 @@ html_code = """
     ];
 
     const nurseQuizzes = [
-        { q: "シャント音の聴取において、狭窄を疑う所見はどれ？", options: ["低調な連続性雑音（ザー）", "高調なピッチ音（ヒュー）", "拍動のみで音が聞こえない"], ans: "高調なピッチ音（ヒュー）" },
-        { q: "透析中に患者が「目の前が暗くなる」と訴え、血圧が低下。最初の対応として適切なのは？", options: ["下肢を挙上する（トレンデレンブルグ位）", "頭部を挙上する（ファーラー位）", "除水速度を上げる"], ans: "下肢を挙上する（トレンデレンブルグ位）" },
-        { q: "カリウム値が 6.5 mEq/L の患者。心電図で最初に見られる典型的な変化は？", options: ["テント状T波", "ST低下", "U波の出現"], ans: "テント状T波" },
+        { q: "シャント音の聴取において、狭窄を疑う所見はどれ？", options: ["低調な連続性雑音", "高調なピッチ音", "拍動のみで音が聞こえない"], ans: "高調なピッチ音" },
+        { q: "透析中に患者が「目の前が暗くなる」と訴え血圧低下。最初の対応は？", options: ["下肢を挙上する", "頭部を挙上する", "除水速度を上げる", "そのまま観察する"], ans: "下肢を挙上する" },
+        { q: "カリウム 6.5 mEq/L の患者。心電図で最初に見られる典型的な変化は？", options: ["テント状T波", "ST低下", "U波の出現", "心室細動"], ans: "テント状T波" },
         { q: "除水エラーを防ぐための最も基本で効果的な対策は？", options: ["ダブルチェックと指差呼称", "設定値を暗記する", "アラームが鳴るまで待つ"], ans: "ダブルチェックと指差呼称" }
     ];
 
@@ -100,7 +115,6 @@ html_code = """
 
     function spawnEntities(phase, scrollSpeed) {
         if (isGameClear || isGameOver || boss) return; 
-
         let spawnInterval = Math.max(35, 100 - (phase * 8)); 
 
         if (frameCount % spawnInterval === 0) {
@@ -117,7 +131,6 @@ html_code = """
                 case 8: pool = [ {e: "🧟‍♂️", t: "fast", h: 40}, {e: "🚑", t: "fast", h: 40}, {e: "💀", t: "waveAir", h: 100} ]; break;
                 default: pool = [ {e: "🧟‍♂️", t: "fast", h: 40}, {e: "👻", t: "chase", h: 120}, {e: "🦅", t: "fastAir", h: 160} ]; break;
             }
-
             let pick = pool[Math.floor(Math.random() * pool.length)];
             obstacles.push({ x: 800, y: groundY - pick.h, size: 30, emoji: pick.e, type: pick.t, baseY: groundY - pick.h, tick: 0 });
         }
@@ -125,21 +138,28 @@ html_code = """
         if (frameCount % 350 === 0) questionBlocks.push({ x: 800, y: groundY - 140, size: 40, emoji: "❓" });
         if (frameCount % 45 === 0 && Math.random() < 0.7) coins.push({ x: 800, y: groundY - 40 - Math.random() * 100, size: 25, emoji: "🪙" });
         if (frameCount % 180 === 0 && Math.random() < 0.7) gems.push({ x: 800, y: groundY - 200 - Math.random() * 60, size: 28, emoji: "💎" });
-        
-        if (frameCount % 450 === 0 && Math.random() < 0.5) {
-            hearts.push({ x: 800, y: groundY - 50 - Math.random() * 100, size: 28, emoji: "💖" });
-        }
+        if (frameCount % 450 === 0 && Math.random() < 0.5) hearts.push({ x: 800, y: groundY - 50 - Math.random() * 100, size: 28, emoji: "💖" });
 
         if (player.isGrounded && frameCount % 8 === 0) effects.push({ x: player.x, y: groundY - 10, text: "💨", life: 15, vx: -3, vy: -0.2 });
     }
 
+    // 🌟 HTMLの組み立て（Gridコンテナにボタンを格納）
     function triggerQuiz() {
         isPaused = true;
         let cq = nurseQuizzes[Math.floor(Math.random() * nurseQuizzes.length)];
         let shuffled = [...cq.options].sort(() => 0.5 - Math.random());
-        let html = `<div class="quiz-title">🚨 ナース・アセスメント</div><div class="quiz-text">${cq.q}</div>`;
-        shuffled.forEach(opt => { html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${cq.ans}')">${opt}</button>`; });
-        quizBox.innerHTML = html; overlay.style.display = "block";
+        
+        let html = `<div class="quiz-title">🚨 ナース・アセスメント</div>
+                    <div class="quiz-text">${cq.q}</div>
+                    <div class="quiz-btn-container">`;
+        
+        shuffled.forEach(opt => { 
+            html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${cq.ans}')">${opt}</button>`; 
+        });
+        
+        html += `</div>`;
+        quizBox.innerHTML = html; 
+        overlay.style.display = "block";
     }
 
     window.checkAnswer = function(selected, correct) {
@@ -159,18 +179,20 @@ html_code = """
         isPaused = true;
         let title = ""; let comment = "";
         
-        if (score < 3000) { title = "🐥 ひよっこナース"; comment = "まずは業務に慣れるところから！日々の積み重ねが大事です。"; }
-        else if (score < 8000) { title = "💉 中堅ナース"; comment = "落ち着いてアセスメントできています！頼りになる存在です。"; }
-        else if (score < 15000) { title = "🌟 ベテランナース"; comment = "素晴らしい反射神経と判断力！病棟のリーダークラスです！"; }
-        else { title = "👑 ゴッドハンド・ナース"; comment = "神がかったアセスメント！もはや院内感染ボスの天敵です！"; }
+        if (score < 3000) { title = "🐥 ひよっこナース"; comment = "まずは業務に慣れるところから！"; }
+        else if (score < 8000) { title = "💉 中堅ナース"; comment = "落ち着いてアセスメントできています！"; }
+        else if (score < 15000) { title = "🌟 ベテランナース"; comment = "素晴らしい反射神経と判断力！"; }
+        else { title = "👑 ゴッドハンド・ナース"; comment = "もはや院内感染ボスの天敵です！"; }
 
-        let html = `<div class="quiz-title" style="color:#c0392b;">💀 勤務終了（ゲームオーバー）</div>
-                    <div class="quiz-text" style="text-align:center;">
-                        最終スコア：<span style="font-size:24px; color:#e74c3c;">${score}</span> 点<br><br>
-                        <b>獲得称号：【${title}】</b><br><br>
-                        <span style="font-size:14px; color:#555;">${comment}</span>
+        let html = `<div class="quiz-title" style="font-size:24px;">💀 勤務終了</div>
+                    <div class="quiz-text" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
+                        最終スコア：<span style="font-size:28px; color:#e74c3c; margin: 10px 0;">${score} 点</span>
+                        <b>獲得称号：【${title}】</b><br>
+                        <span style="font-size:14px; color:#555; margin-top:10px;">${comment}</span>
                     </div>
-                    <button class="quiz-btn game-over-btn" onclick="location.reload()">もう一度シフトに入る</button>`;
+                    <div class="quiz-btn-container" style="grid-template-columns: 1fr;">
+                        <button class="quiz-btn game-over-btn" onclick="location.reload()">もう一度シフトに入る</button>
+                    </div>`;
         quizBox.innerHTML = html;
         overlay.style.display = "block";
     }
