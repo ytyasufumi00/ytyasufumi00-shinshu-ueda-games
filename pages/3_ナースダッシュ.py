@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ナースダッシュ！", page_icon="💉", layout="wide")
-st.title("🏃‍♀️ ナースダッシュ！ 救命クイズラン V13")
-st.write("ライフ（❤️）に気をつけて！クイズ正解や回復アイテム（💖）で回復し、高評価の称号を目指そう！")
+st.title("🏃‍♀️ ナースダッシュ！ 救命クイズラン V14")
+st.write("画面が縦に広くなり、プレイしやすくなりました！")
 
 html_code = """
 <!DOCTYPE html>
@@ -12,47 +12,44 @@ html_code = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
     body { margin: 0; background: #f0f2f6; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; overscroll-behavior: none; touch-action: none; }
-    #game-container { position: relative; width: 100%; max-width: 700px; aspect-ratio: 7 / 4; background: #87CEEB; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    
+    /* 🌟 アスペクト比を 7/4 から 7/5 に変更し、縦幅を広げました */
+    #game-container { position: relative; width: 100%; max-width: 700px; aspect-ratio: 7 / 5; background: #87CEEB; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     canvas { width: 100%; height: 100%; display: block; }
     
-    /* 🌟 クイズオーバーレイを全画面化（別ウィンドウ風） */
     #quiz-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f6; z-index: 30; box-sizing: border-box; padding: 10px; }
     
     #quiz-box { 
         width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
     }
     
-    .quiz-title { color: #e74c3c; font-size: 20px; font-weight: bold; text-align: center; flex-shrink: 0; margin-bottom: 5px; }
+    .quiz-title { color: #e74c3c; font-size: 18px; font-weight: bold; text-align: center; flex-shrink: 0; margin-bottom: 5px; }
     
-    /* 問題文を白いカード風にして見やすく */
+    /* 🌟 問題文が絶対に潰れないように min-height とスクロールを強制 */
     .quiz-text { 
-        background: #fff; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        font-size: 15px; color: #2c3e50; font-weight: bold; line-height: 1.4; 
-        flex-grow: 1; overflow-y: auto; margin-bottom: 10px;
+        background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-size: 14px; color: #2c3e50; font-weight: bold; line-height: 1.4; 
+        flex-grow: 1; overflow-y: auto; margin-bottom: 8px;
     }
     
-    /* 🌟 ボタンを2列（Grid）にして縦スペースを節約 */
     .quiz-btn-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* 常に2列 */
-        gap: 8px;
-        flex-shrink: 0; /* ボタンの高さは潰さない */
+        display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0;
     }
     
+    /* 🌟 ボタンの高さを少しスリムにしてスペースを確保 */
     .quiz-btn { 
-        background: #3498db; color: white; border: none; border-radius: 8px; 
-        padding: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.1s;
-        min-height: 65px; /* タップしやすい高さを確保 */
-        display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2;
+        background: #3498db; color: white; border: none; border-radius: 6px; 
+        padding: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s;
+        min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2;
     }
     .quiz-btn:active { background: #2980b9; transform: scale(0.95); }
-    .game-over-btn { background: #e74c3c; grid-column: 1 / -1; min-height: 50px; } 
+    .game-over-btn { background: #e74c3c; grid-column: 1 / -1; min-height: 45px; } 
     .game-over-btn:active { background: #c0392b; }
 </style>
 </head>
 <body>
 <div id="game-container">
-    <canvas id="gameCanvas" width="700" height="400"></canvas>
+    <canvas id="gameCanvas" width="700" height="500"></canvas>
     <div id="quiz-overlay"><div id="quiz-box"></div></div>
 </div>
 
@@ -62,15 +59,9 @@ html_code = """
     const overlay = document.getElementById("quiz-overlay");
     const quizBox = document.getElementById("quiz-box");
 
-    let isPaused = false;
-    let isGameClear = false;
-    let isGameOver = false; 
-    let frameCount = 0;
-    let score = 0;
-    let baseScrollSpeed = 4.5;
-    
-    const BOSS_SPAWN_FRAME = 18000; 
-    let boss = null;
+    let isPaused = false; let isGameClear = false; let isGameOver = false; 
+    let frameCount = 0; let score = 0; let baseScrollSpeed = 4.5;
+    const BOSS_SPAWN_FRAME = 18000; let boss = null;
 
     let bgScrollCloud = 0; let bgScrollMountain = 0; let bgScrollCity = 0;
 
@@ -82,7 +73,9 @@ html_code = """
 
     let obstacles = []; let questionBlocks = []; let coins = []; let gems = []; let hearts = []; let effects = [];
     let gameMessage = { text: "🏥 勤務スタート！", subtext: "安全第一で進みましょう", life: 120, color: "#fff" };
-    const groundY = 350; 
+    
+    // 🌟 画面が縦に伸びたので、地面の高さを 350 → 430 に変更
+    const groundY = 430; 
 
     const phaseConfigs = [
         { name: "☀️ 日勤帯", sky: "#87CEEB", mtn: "#546de5", city: "#2d3436", gnd: "#8B4513", grass: "#228B22" }, 
@@ -137,13 +130,12 @@ html_code = """
         
         if (frameCount % 350 === 0) questionBlocks.push({ x: 800, y: groundY - 140, size: 40, emoji: "❓" });
         if (frameCount % 45 === 0 && Math.random() < 0.7) coins.push({ x: 800, y: groundY - 40 - Math.random() * 100, size: 25, emoji: "🪙" });
-        if (frameCount % 180 === 0 && Math.random() < 0.7) gems.push({ x: 800, y: groundY - 200 - Math.random() * 60, size: 28, emoji: "💎" });
+        if (frameCount % 180 === 0 && Math.random() < 0.7) gems.push({ x: 800, y: groundY - 200 - Math.random() * 80, size: 28, emoji: "💎" }); // ジェムの高さも調整
         if (frameCount % 450 === 0 && Math.random() < 0.5) hearts.push({ x: 800, y: groundY - 50 - Math.random() * 100, size: 28, emoji: "💖" });
 
         if (player.isGrounded && frameCount % 8 === 0) effects.push({ x: player.x, y: groundY - 10, text: "💨", life: 15, vx: -3, vy: -0.2 });
     }
 
-    // 🌟 HTMLの組み立て（Gridコンテナにボタンを格納）
     function triggerQuiz() {
         isPaused = true;
         let cq = nurseQuizzes[Math.floor(Math.random() * nurseQuizzes.length)];
@@ -175,8 +167,7 @@ html_code = """
     };
 
     function triggerGameOver() {
-        isGameOver = true;
-        isPaused = true;
+        isGameOver = true; isPaused = true;
         let title = ""; let comment = "";
         
         if (score < 3000) { title = "🐥 ひよっこナース"; comment = "まずは業務に慣れるところから！"; }
@@ -184,11 +175,11 @@ html_code = """
         else if (score < 15000) { title = "🌟 ベテランナース"; comment = "素晴らしい反射神経と判断力！"; }
         else { title = "👑 ゴッドハンド・ナース"; comment = "もはや院内感染ボスの天敵です！"; }
 
-        let html = `<div class="quiz-title" style="font-size:24px;">💀 勤務終了</div>
+        let html = `<div class="quiz-title" style="font-size:22px;">💀 勤務終了</div>
                     <div class="quiz-text" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
-                        最終スコア：<span style="font-size:28px; color:#e74c3c; margin: 10px 0;">${score} 点</span>
+                        最終スコア：<span style="font-size:26px; color:#e74c3c; margin: 8px 0;">${score} 点</span>
                         <b>獲得称号：【${title}】</b><br>
-                        <span style="font-size:14px; color:#555; margin-top:10px;">${comment}</span>
+                        <span style="font-size:14px; color:#555; margin-top:8px;">${comment}</span>
                     </div>
                     <div class="quiz-btn-container" style="grid-template-columns: 1fr;">
                         <button class="quiz-btn game-over-btn" onclick="location.reload()">もう一度シフトに入る</button>
@@ -199,8 +190,7 @@ html_code = """
 
     function takeDamage() {
         if (player.invincible > 0 || player.isHurt > 0) return;
-        player.lives--; 
-        player.invincible = 60; player.isHurt = 60;
+        player.lives--; player.invincible = 60; player.isHurt = 60;
         effects.push({ x: player.x, y: player.y, text: "💔", life: 45 });
         if (player.lives <= 0) triggerGameOver();
     }
@@ -218,9 +208,7 @@ html_code = """
 
         let currentScrollSpeed = (isGameClear || isGameOver) ? 0 : baseScrollSpeed + (currentPhase * 0.25);
 
-        bgScrollCloud = (bgScrollCloud + 0.3) % 700;
-        bgScrollMountain = (bgScrollMountain + 0.8) % 700;
-        bgScrollCity = (bgScrollCity + 2.0) % 700;
+        bgScrollCloud = (bgScrollCloud + 0.3) % 700; bgScrollMountain = (bgScrollMountain + 0.8) % 700; bgScrollCity = (bgScrollCity + 2.0) % 700;
 
         if (player.invincible > 0) { player.invincible--; player.maxJumps = 4; } else { player.maxJumps = 2; }
         if (player.isHurt > 0) player.isHurt--; 
@@ -241,21 +229,12 @@ html_code = """
 
         if (boss && !isGameClear && !isGameOver) {
             boss.x -= boss.speed; 
-            if (boss.x < -150) {
-                boss.x = 800; 
-                let rageBonus = (4 - boss.hp) * 1.5;
-                boss.speed = 2.5 + rageBonus + (Math.random() * 4.0); 
-            }
-
+            if (boss.x < -150) { boss.x = 800; let rageBonus = (4 - boss.hp) * 1.5; boss.speed = 2.5 + rageBonus + (Math.random() * 4.0); }
             let dist = Math.hypot((player.x + player.size/2) - (boss.x + boss.size/2), (player.y + player.size/2) - (boss.y + boss.size/2));
             if (dist < (player.size/2 + boss.size/2 - 15)) {
-                if (player.invincible > 0 && player.isHurt === 0) {
-                    bossHit(); 
-                } else if (player.vy > 0 && (player.y + player.size/2) < (boss.y + boss.size/2 - 10)) {
-                    player.vy = player.jumpPower * 1.3; player.jumpCount = 1; bossHit();
-                } else {
-                    takeDamage(); 
-                }
+                if (player.invincible > 0 && player.isHurt === 0) { bossHit(); } 
+                else if (player.vy > 0 && (player.y + player.size/2) < (boss.y + boss.size/2 - 10)) { player.vy = player.jumpPower * 1.3; player.jumpCount = 1; bossHit(); } 
+                else { takeDamage(); }
             }
         }
 
@@ -265,22 +244,16 @@ html_code = """
                 score += 5000; effects.push({ x: boss.x, y: boss.y, text: "💥撃破!!💥", life: 100 });
                 boss = null; isGameClear = true;
                 gameMessage = { text: "🎊 完 全 治 癒 🎊", subtext: "5分間防衛成功！見事なアセスメントです！", life: 9999, color: "#f1c40f" };
-            } else {
-                score += 1000; effects.push({ x: boss.x, y: boss.y, text: "💢", life: 30 });
-                player.vy = player.jumpPower * 1.2; 
-            }
+            } else { score += 1000; effects.push({ x: boss.x, y: boss.y, text: "💢", life: 30 }); player.vy = player.jumpPower * 1.2; }
         }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             let obs = obstacles[i];
-            
             if (obs.type === 'slow') { obs.x -= currentScrollSpeed * 0.6; } 
             else if (obs.type === 'fast' || obs.type === 'fastAir') { obs.x -= currentScrollSpeed * 1.6; } 
-            else if (obs.type === 'wave' || obs.type === 'waveAir') {
-                obs.tick += 0.08; obs.y = obs.baseY + Math.sin(obs.tick) * 50; obs.x -= currentScrollSpeed;
-            } else if (obs.type === 'chase') {
-                obs.y += (player.y - obs.y) * 0.02; obs.x -= currentScrollSpeed * 0.8;
-            } else { obs.x -= currentScrollSpeed; }
+            else if (obs.type === 'wave' || obs.type === 'waveAir') { obs.tick += 0.08; obs.y = obs.baseY + Math.sin(obs.tick) * 50; obs.x -= currentScrollSpeed; } 
+            else if (obs.type === 'chase') { obs.y += (player.y - obs.y) * 0.02; obs.x -= currentScrollSpeed * 0.8; } 
+            else { obs.x -= currentScrollSpeed; }
             
             let dist = Math.hypot((player.x + player.size/2) - (obs.x + obs.size/2), (player.y + player.size/2) - (obs.y + obs.size/2));
             if (dist < (player.size/2 + obs.size/2 - 5)) {
@@ -289,10 +262,7 @@ html_code = """
                 } else if (player.invincible === 0) {
                     if (player.vy > 0 && (player.y + player.size/2) < (obs.y + obs.size/2)) {
                         obstacles.splice(i, 1); score += 200; player.vy = player.jumpPower * 0.8; player.jumpCount = 1; effects.push({ x: obs.x, y: obs.y, text: "👟ﾎﾟｲﾝ!", life: 30 });
-                    } else {
-                        takeDamage(); 
-                        if(isGameOver) break; 
-                    }
+                    } else { takeDamage(); if(isGameOver) break; }
                 }
                 continue;
             }
@@ -300,40 +270,31 @@ html_code = """
         }
 
         for (let i = coins.length - 1; i >= 0; i--) {
-            let c = coins[i]; c.x -= currentScrollSpeed;
-            let dist = Math.hypot((player.x + player.size/2) - (c.x + c.size/2), (player.y + player.size/2) - (c.y + c.size/2));
+            let c = coins[i]; c.x -= currentScrollSpeed; let dist = Math.hypot((player.x + player.size/2) - (c.x + c.size/2), (player.y + player.size/2) - (c.y + c.size/2));
             if (dist < (player.size/2 + c.size/2)) { score += 50; effects.push({ x: c.x, y: c.y, text: "✨", life: 20 }); coins.splice(i, 1); continue; }
             if (c.x < -50) coins.splice(i, 1);
         }
 
         for (let i = gems.length - 1; i >= 0; i--) {
-            let g = gems[i]; g.x -= currentScrollSpeed;
-            let dist = Math.hypot((player.x + player.size/2) - (g.x + g.size/2), (player.y + player.size/2) - (g.y + g.size/2));
+            let g = gems[i]; g.x -= currentScrollSpeed; let dist = Math.hypot((player.x + player.size/2) - (g.x + g.size/2), (player.y + player.size/2) - (g.y + g.size/2));
             if (dist < (player.size/2 + g.size/2)) { score += 300; effects.push({ x: g.x, y: g.y, text: "💎+300!", life: 30 }); gems.splice(i, 1); continue; }
             if (g.x < -50) gems.splice(i, 1);
         }
         
         for (let i = hearts.length - 1; i >= 0; i--) {
-            let h = hearts[i]; h.x -= currentScrollSpeed;
-            let dist = Math.hypot((player.x + player.size/2) - (h.x + h.size/2), (player.y + player.size/2) - (h.y + h.size/2));
-            if (dist < (player.size/2 + h.size/2)) { 
-                player.lives = Math.min(player.maxLives, player.lives + 1);
-                effects.push({ x: h.x, y: h.y, text: "💖回復!", life: 30 }); 
-                hearts.splice(i, 1); continue; 
-            }
+            let h = hearts[i]; h.x -= currentScrollSpeed; let dist = Math.hypot((player.x + player.size/2) - (h.x + h.size/2), (player.y + player.size/2) - (h.y + h.size/2));
+            if (dist < (player.size/2 + h.size/2)) { player.lives = Math.min(player.maxLives, player.lives + 1); effects.push({ x: h.x, y: h.y, text: "💖回復!", life: 30 }); hearts.splice(i, 1); continue; }
             if (h.x < -50) hearts.splice(i, 1);
         }
 
         for (let i = questionBlocks.length - 1; i >= 0; i--) {
-            let qb = questionBlocks[i]; qb.x -= currentScrollSpeed;
-            let dist = Math.hypot((player.x + player.size/2) - (qb.x + qb.size/2), (player.y + player.size/2) - (qb.y + qb.size/2));
+            let qb = questionBlocks[i]; qb.x -= currentScrollSpeed; let dist = Math.hypot((player.x + player.size/2) - (qb.x + qb.size/2), (player.y + player.size/2) - (qb.y + qb.size/2));
             if (dist < (player.size/2 + qb.size/2)) { questionBlocks.splice(i, 1); triggerQuiz(); continue; }
             if (qb.x < -50) questionBlocks.splice(i, 1);
         }
         
         for (let i = effects.length - 1; i >= 0; i--) {
-            effects[i].life--; effects[i].x += (effects[i].vx || 0); effects[i].y += (effects[i].vy || -1); 
-            if (effects[i].life <= 0) effects.splice(i, 1);
+            effects[i].life--; effects[i].x += (effects[i].vx || 0); effects[i].y += (effects[i].vy || -1); if (effects[i].life <= 0) effects.splice(i, 1);
         }
     }
 
@@ -382,16 +343,10 @@ html_code = """
         ctx.font = "30px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
         obstacles.forEach(obs => ctx.fillText(obs.emoji, obs.x + obs.size/2, obs.y + obs.size/2));
         questionBlocks.forEach(qb => ctx.fillText(qb.emoji, qb.x + qb.size/2, qb.y + qb.size/2));
-        
-        ctx.font = "25px Arial";
-        coins.forEach(c => ctx.fillText(c.emoji, c.x + c.size/2, c.y + c.size/2));
-        
-        ctx.font = "28px Arial";
-        gems.forEach(g => ctx.fillText(g.emoji, g.x + g.size/2, g.y + g.size/2));
+        ctx.font = "25px Arial"; coins.forEach(c => ctx.fillText(c.emoji, c.x + c.size/2, c.y + c.size/2));
+        ctx.font = "28px Arial"; gems.forEach(g => ctx.fillText(g.emoji, g.x + g.size/2, g.y + g.size/2));
         hearts.forEach(h => ctx.fillText(h.emoji, h.x + h.size/2, h.y + h.size/2));
-
-        ctx.fillStyle = "#e74c3c"; ctx.font = "bold 20px Arial";
-        effects.forEach(eff => ctx.fillText(eff.text, eff.x + 20, eff.y));
+        ctx.fillStyle = "#e74c3c"; ctx.font = "bold 20px Arial"; effects.forEach(eff => ctx.fillText(eff.text, eff.x + 20, eff.y));
 
         if (!isGameOver && (player.invincible <= 0 || player.isHurt === 0 || Math.floor(frameCount / 5) % 2 === 0)) {
             ctx.save();
@@ -403,13 +358,11 @@ html_code = """
             ctx.fillStyle = "#ffdbac"; ctx.beginPath(); ctx.arc(0, -8, 12, 0, Math.PI*2); ctx.fill();
 
             if (player.isHurt > 0) {
-                ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.moveTo(-7, -13); ctx.lineTo(-3, -11); ctx.stroke(); ctx.beginPath(); ctx.moveTo(7, -13); ctx.lineTo(3, -11); ctx.stroke();
+                ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-7, -13); ctx.lineTo(-3, -11); ctx.stroke(); ctx.beginPath(); ctx.moveTo(7, -13); ctx.lineTo(3, -11); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(-6, -10.5); ctx.lineTo(-4, -9); ctx.lineTo(-6, -7.5); ctx.stroke(); ctx.beginPath(); ctx.moveTo(6, -10.5); ctx.lineTo(4, -9); ctx.lineTo(6, -7.5); ctx.stroke();
                 ctx.beginPath(); ctx.arc(0, -4, 3, 0, Math.PI, true); ctx.stroke();
             } else if (player.invincible > 0) {
-                ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-4, -12); ctx.lineTo(-2, -10); ctx.stroke(); ctx.beginPath(); ctx.moveTo(2, -10); ctx.lineTo(4, -12); ctx.lineTo(6, -10); ctx.stroke();
+                ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-4, -12); ctx.lineTo(-2, -10); ctx.stroke(); ctx.beginPath(); ctx.moveTo(2, -10); ctx.lineTo(4, -12); ctx.lineTo(6, -10); ctx.stroke();
                 ctx.fillStyle = "#ff9999"; ctx.beginPath(); ctx.arc(-7, -6, 2.5, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(7, -6, 2.5, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(0, -6, 4, 0, Math.PI, false); ctx.stroke();
             } else if (!player.isGrounded) {
@@ -426,37 +379,24 @@ html_code = """
                 let armSwing = Math.sin(frameCount * 0.4) * 5; ctx.fillRect(-14, 6, 4, 10 + armSwing); ctx.fillRect(10, 6, 4, 10 - armSwing);  
                 if (Math.floor(frameCount / 5) % 2 === 0) { ctx.fillRect(-6, 20, 5, 10); ctx.fillRect(4, 20, 5, 4); } else { ctx.fillRect(-6, 20, 5, 4); ctx.fillRect(4, 20, 5, 10); }
             } else {
-                ctx.fillRect(-14, -2, 4, 12); ctx.fillRect(10, -2, 4, 12);
-                ctx.fillRect(-8, 20, 6, 6); ctx.fillRect(2, 20, 6, 8); 
+                ctx.fillRect(-14, -2, 4, 12); ctx.fillRect(10, -2, 4, 12); ctx.fillRect(-8, 20, 6, 6); ctx.fillRect(2, 20, 6, 8); 
             }
             if (player.invincible > 0 && player.isHurt === 0) { ctx.strokeStyle = "#f1c40f"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI*2); ctx.stroke(); }
             ctx.restore(); 
         }
 
         ctx.fillStyle = "#333"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-        ctx.font = "bold 24px Arial";
-        ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.strokeText("SCORE: " + score, 20, 40);
-        ctx.fillText("SCORE: " + score, 20, 40);
+        ctx.font = "bold 24px Arial"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.strokeText("SCORE: " + score, 20, 40); ctx.fillText("SCORE: " + score, 20, 40);
         
-        let heartStr = "";
-        for(let i=0; i<player.maxLives; i++) {
-            heartStr += (i < player.lives) ? "❤️" : "🤍";
-        }
-        ctx.strokeText("LIVES: " + heartStr, 20, 75);
-        ctx.fillText("LIVES: " + heartStr, 20, 75);
+        let heartStr = ""; for(let i=0; i<player.maxLives; i++) { heartStr += (i < player.lives) ? "❤️" : "🤍"; }
+        ctx.strokeText("LIVES: " + heartStr, 20, 75); ctx.fillText("LIVES: " + heartStr, 20, 75);
 
-        ctx.font = "bold 16px Arial";
-        let jumpText = (player.invincible > 0 && player.isHurt === 0) ? "⚡ 4段ジャンプ解禁中！" : "2段ジャンプまで";
-        ctx.strokeText(jumpText, 20, canvas.height - 20);
-        ctx.fillStyle = (player.invincible > 0 && player.isHurt === 0) ? "#f1c40f" : "#333";
-        ctx.fillText(jumpText, 20, canvas.height - 20);
+        ctx.font = "bold 16px Arial"; let jumpText = (player.invincible > 0 && player.isHurt === 0) ? "⚡ 4段ジャンプ解禁中！" : "2段ジャンプまで";
+        ctx.strokeText(jumpText, 20, canvas.height - 20); ctx.fillStyle = (player.invincible > 0 && player.isHurt === 0) ? "#f1c40f" : "#333"; ctx.fillText(jumpText, 20, canvas.height - 20);
         
-        let seconds = Math.floor(frameCount / 60);
-        ctx.fillStyle = "#fff"; ctx.textAlign = "right";
-        ctx.strokeStyle = "#333"; ctx.lineWidth = 3;
+        let seconds = Math.floor(frameCount / 60); ctx.fillStyle = "#fff"; ctx.textAlign = "right"; ctx.strokeStyle = "#333"; ctx.lineWidth = 3;
         let timeStr = "TIME: " + Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0");
-        ctx.strokeText(timeStr, canvas.width - 20, 30);
-        ctx.fillText(timeStr, canvas.width - 20, 30);
+        ctx.strokeText(timeStr, canvas.width - 20, 30); ctx.fillText(timeStr, canvas.width - 20, 30);
 
         if (gameMessage.life > 0 && !isGameOver) {
             ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; ctx.fillRect(0, canvas.height / 2 - 60, canvas.width, 120);
@@ -472,4 +412,6 @@ html_code = """
 </body>
 </html>
 """
-components.html(html_code, height=500)
+
+# 🌟 コンポーネントの高さを 500 から 600 に拡張して、縦の余裕を持たせました
+components.html(html_code, height=600)
