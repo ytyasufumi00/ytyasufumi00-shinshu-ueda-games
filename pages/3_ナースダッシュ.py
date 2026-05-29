@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ナースダッシュ！", page_icon="💉", layout="wide")
-st.title("🏃‍♀️ ナースダッシュ！ 救命クイズラン V10")
-st.write("30秒ごとに背景と敵が激変！5分間生き残り、院内感染ボスを打ち倒せ！")
+st.title("🏃‍♀️ ナースダッシュ！ 救命クイズラン V12")
+st.write("ライフ（❤️）に気をつけて！クイズ正解や回復アイテム（💖）で回復し、高評価の称号を目指そう！")
 
 html_code = """
 <!DOCTYPE html>
@@ -14,12 +14,25 @@ html_code = """
     body { margin: 0; background: #f0f2f6; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; overscroll-behavior: none; touch-action: none; }
     #game-container { position: relative; width: 100%; max-width: 700px; aspect-ratio: 7 / 4; background: #87CEEB; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     canvas { width: 100%; height: 100%; display: block; }
+    
     #quiz-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 20; }
-    #quiz-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 12px; text-align: center; width: 90%; max-width: 500px; border: 4px solid #e74c3c; touch-action: pan-y; }
-    .quiz-title { color: #e74c3c; font-size: 22px; margin-bottom: 15px; font-weight: bold; }
-    .quiz-text { font-size: 16px; color: #2c3e50; margin-bottom: 20px; text-align: left; line-height: 1.5; font-weight: bold; }
-    .quiz-btn { display: block; width: 100%; background: #3498db; color: white; border: none; border-radius: 8px; padding: 15px; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; transition: 0.1s; }
+    
+    /* 🌟 クイズボックスのスマホ最適化（コンパクト化＆スクロール対応） */
+    #quiz-box { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        background: #fff; padding: 12px; border-radius: 10px; text-align: center; 
+        width: 95%; max-width: 500px; max-height: 95%; overflow-y: auto; 
+        border: 4px solid #e74c3c; touch-action: pan-y; box-sizing: border-box;
+    }
+    .quiz-title { color: #e74c3c; font-size: 18px; margin-bottom: 8px; font-weight: bold; }
+    .quiz-text { font-size: 14px; color: #2c3e50; margin-bottom: 12px; text-align: left; line-height: 1.3; font-weight: bold; }
+    .quiz-btn { 
+        display: block; width: 100%; background: #3498db; color: white; border: none; 
+        border-radius: 6px; padding: 10px 8px; font-size: 14px; font-weight: bold; 
+        margin-bottom: 6px; cursor: pointer; transition: 0.1s; box-sizing: border-box;
+    }
     .quiz-btn:active { background: #2980b9; transform: scale(0.98); }
+    .game-over-btn { background: #e74c3c; margin-top: 10px; } .game-over-btn:active { background: #c0392b; }
 </style>
 </head>
 <body>
@@ -36,11 +49,11 @@ html_code = """
 
     let isPaused = false;
     let isGameClear = false;
+    let isGameOver = false; 
     let frameCount = 0;
     let score = 0;
     let baseScrollSpeed = 4.5;
     
-    // 60fps × 300秒 = 18000フレーム (5分)
     const BOSS_SPAWN_FRAME = 18000; 
     let boss = null;
 
@@ -48,25 +61,25 @@ html_code = """
 
     let player = { 
         x: 100, y: 300, size: 40, vy: 0, gravity: 0.6, jumpPower: -10.5, 
-        isGrounded: false, invincible: 0, jumpCount: 0, maxJumps: 2, isHurt: 0 
+        isGrounded: false, invincible: 0, jumpCount: 0, maxJumps: 2, isHurt: 0,
+        lives: 3, maxLives: 5 
     };
 
-    let obstacles = []; let questionBlocks = []; let coins = []; let gems = []; let effects = [];
+    let obstacles = []; let questionBlocks = []; let coins = []; let gems = []; let hearts = []; let effects = [];
     let gameMessage = { text: "🏥 勤務スタート！", subtext: "安全第一で進みましょう", life: 120, color: "#fff" };
     const groundY = 350; 
 
-    // 🌟 30秒（1800フレーム）ごとのフェーズ設定（背景色とテーマ）
     const phaseConfigs = [
-        { name: "☀️ 日勤帯", sky: "#87CEEB", mtn: "#546de5", city: "#2d3436", gnd: "#8B4513", grass: "#228B22" }, // 0~30秒
-        { name: "🌇 夕勤帯", sky: "#ff9f43", mtn: "#ee5253", city: "#222f3e", gnd: "#833471", grass: "#006266" }, // 30~60秒
-        { name: "🌙 夜勤入り", sky: "#2c3e50", mtn: "#34495e", city: "#111111", gnd: "#3b2a2a", grass: "#192a56" }, // 60~90秒
-        { name: "🚑 救急搬送", sky: "#8e44ad", mtn: "#9b59b6", city: "#2c3e50", gnd: "#2d3436", grass: "#1e272e" }, // 90~120秒
-        { name: "🚨 深夜の急変", sky: "#c0392b", mtn: "#e74c3c", city: "#2d3436", gnd: "#2c3e50", grass: "#b33939" }, // 120~150秒
-        { name: "☣️ 謎の感染源", sky: "#1abc9c", mtn: "#16a085", city: "#111111", gnd: "#273c75", grass: "#192a56" }, // 150~180秒
-        { name: "🏥 カオス病棟", sky: "#f39c12", mtn: "#d35400", city: "#2c3e50", gnd: "#8B4513", grass: "#e1b12c" }, // 180~210秒
-        { name: "🌪️ 嵐の予感", sky: "#00a8ff", mtn: "#0097e6", city: "#2f3640", gnd: "#718093", grass: "#353b48" }, // 210~240秒
-        { name: "🔥 ボス前兆", sky: "#e84118", mtn: "#c23616", city: "#192a56", gnd: "#2f3640", grass: "#ff4757" }, // 240~270秒
-        { name: "👹 総力戦", sky: "#2f3542", mtn: "#57606f", city: "#000000", gnd: "#2f3542", grass: "#ff4757" }  // 270~300秒
+        { name: "☀️ 日勤帯", sky: "#87CEEB", mtn: "#546de5", city: "#2d3436", gnd: "#8B4513", grass: "#228B22" }, 
+        { name: "🌇 夕勤帯", sky: "#ff9f43", mtn: "#ee5253", city: "#222f3e", gnd: "#833471", grass: "#006266" }, 
+        { name: "🌙 夜勤入り", sky: "#2c3e50", mtn: "#34495e", city: "#111111", gnd: "#3b2a2a", grass: "#192a56" }, 
+        { name: "🚑 救急搬送", sky: "#8e44ad", mtn: "#9b59b6", city: "#2c3e50", gnd: "#2d3436", grass: "#1e272e" }, 
+        { name: "🚨 深夜の急変", sky: "#c0392b", mtn: "#e74c3c", city: "#2d3436", gnd: "#2c3e50", grass: "#b33939" }, 
+        { name: "☣️ 謎の感染源", sky: "#1abc9c", mtn: "#16a085", city: "#111111", gnd: "#273c75", grass: "#192a56" }, 
+        { name: "🏥 カオス病棟", sky: "#f39c12", mtn: "#d35400", city: "#2c3e50", gnd: "#8B4513", grass: "#e1b12c" }, 
+        { name: "🌪️ 嵐の予感", sky: "#00a8ff", mtn: "#0097e6", city: "#2f3640", gnd: "#718093", grass: "#353b48" }, 
+        { name: "🔥 ボス前兆", sky: "#e84118", mtn: "#c23616", city: "#192a56", gnd: "#2f3640", grass: "#ff4757" }, 
+        { name: "👹 総力戦", sky: "#2f3542", mtn: "#57606f", city: "#000000", gnd: "#2f3542", grass: "#ff4757" }  
     ];
 
     const nurseQuizzes = [
@@ -77,7 +90,7 @@ html_code = """
     ];
 
     function jump() {
-        if (!isPaused && !isGameClear && player.jumpCount < player.maxJumps) {
+        if (!isPaused && !isGameClear && !isGameOver && player.jumpCount < player.maxJumps) {
             player.vy = player.jumpPower; player.isGrounded = false; player.jumpCount++;
             if (player.jumpCount > 1) effects.push({ x: player.x, y: player.y + player.size, text: "💨", life: 15, vx: -2, vy: 1 });
         }
@@ -86,13 +99,12 @@ html_code = """
     window.addEventListener("touchstart", (e) => { if (overlay.style.display !== "block") e.preventDefault(); jump(); }, {passive: false});
 
     function spawnEntities(phase, scrollSpeed) {
-        if (isGameClear || boss) return; 
+        if (isGameClear || isGameOver || boss) return; 
 
-        let spawnInterval = Math.max(35, 100 - (phase * 8)); // 終盤ほど大量に湧く
+        let spawnInterval = Math.max(35, 100 - (phase * 8)); 
 
         if (frameCount % spawnInterval === 0) {
             let pool = [];
-            // 🌟 フェーズ（30秒ごと）による敵のバリエーション変化
             switch(phase) {
                 case 0: pool = [ {e: "🦠", t: "normal", h: 30}, {e: "🐌", t: "slow", h: 25} ]; break;
                 case 1: pool = [ {e: "💉", t: "normal", h: 30}, {e: "🦇", t: "wave", h: 100} ]; break;
@@ -112,9 +124,10 @@ html_code = """
         
         if (frameCount % 350 === 0) questionBlocks.push({ x: 800, y: groundY - 140, size: 40, emoji: "❓" });
         if (frameCount % 45 === 0 && Math.random() < 0.7) coins.push({ x: 800, y: groundY - 40 - Math.random() * 100, size: 25, emoji: "🪙" });
+        if (frameCount % 180 === 0 && Math.random() < 0.7) gems.push({ x: 800, y: groundY - 200 - Math.random() * 60, size: 28, emoji: "💎" });
         
-        if (frameCount % 180 === 0 && Math.random() < 0.7) {
-            gems.push({ x: 800, y: groundY - 200 - Math.random() * 60, size: 28, emoji: "💎" });
+        if (frameCount % 450 === 0 && Math.random() < 0.5) {
+            hearts.push({ x: 800, y: groundY - 50 - Math.random() * 100, size: 28, emoji: "💖" });
         }
 
         if (player.isGrounded && frameCount % 8 === 0) effects.push({ x: player.x, y: groundY - 10, text: "💨", life: 15, vx: -3, vy: -0.2 });
@@ -124,7 +137,7 @@ html_code = """
         isPaused = true;
         let cq = nurseQuizzes[Math.floor(Math.random() * nurseQuizzes.length)];
         let shuffled = [...cq.options].sort(() => 0.5 - Math.random());
-        let html = `<div class="quiz-title">🚨 ナース・アセスメント！</div><div class="quiz-text">${cq.q}</div>`;
+        let html = `<div class="quiz-title">🚨 ナース・アセスメント</div><div class="quiz-text">${cq.q}</div>`;
         shuffled.forEach(opt => { html += `<button class="quiz-btn" onclick="checkAnswer('${opt}', '${cq.ans}')">${opt}</button>`; });
         quizBox.innerHTML = html; overlay.style.display = "block";
     }
@@ -133,28 +146,55 @@ html_code = """
         overlay.style.display = "none"; isPaused = false; 
         if (selected === correct) {
             player.invincible = 300; player.isHurt = 0; score += 1000;
+            player.lives = Math.min(player.maxLives, player.lives + 1); 
             effects.push({ x: player.x, y: player.y, text: "✨", life: 60 });
-            gameMessage = { text: "🎉 大正解！", subtext: "ボーナス：5秒無敵 ＆ 4段ジャンプ解放！", life: 120, color: "#f1c40f" };
+            gameMessage = { text: "🎉 大正解！", subtext: "ライフ回復 ＆ 5秒無敵 ＆ 4段ジャンプ解放！", life: 120, color: "#f1c40f" };
         } else {
             gameMessage = { text: "💦 惜しい！", subtext: "正解は：「" + correct + "」でした", life: 150, color: "#e74c3c" };
         }
     };
 
+    function triggerGameOver() {
+        isGameOver = true;
+        isPaused = true;
+        let title = ""; let comment = "";
+        
+        if (score < 3000) { title = "🐥 ひよっこナース"; comment = "まずは業務に慣れるところから！日々の積み重ねが大事です。"; }
+        else if (score < 8000) { title = "💉 中堅ナース"; comment = "落ち着いてアセスメントできています！頼りになる存在です。"; }
+        else if (score < 15000) { title = "🌟 ベテランナース"; comment = "素晴らしい反射神経と判断力！病棟のリーダークラスです！"; }
+        else { title = "👑 ゴッドハンド・ナース"; comment = "神がかったアセスメント！もはや院内感染ボスの天敵です！"; }
+
+        let html = `<div class="quiz-title" style="color:#c0392b;">💀 勤務終了（ゲームオーバー）</div>
+                    <div class="quiz-text" style="text-align:center;">
+                        最終スコア：<span style="font-size:24px; color:#e74c3c;">${score}</span> 点<br><br>
+                        <b>獲得称号：【${title}】</b><br><br>
+                        <span style="font-size:14px; color:#555;">${comment}</span>
+                    </div>
+                    <button class="quiz-btn game-over-btn" onclick="location.reload()">もう一度シフトに入る</button>`;
+        quizBox.innerHTML = html;
+        overlay.style.display = "block";
+    }
+
+    function takeDamage() {
+        if (player.invincible > 0 || player.isHurt > 0) return;
+        player.lives--; 
+        player.invincible = 60; player.isHurt = 60;
+        effects.push({ x: player.x, y: player.y, text: "💔", life: 45 });
+        if (player.lives <= 0) triggerGameOver();
+    }
+
     function update() {
         if (isPaused) return;
-        
-        if (!isGameClear) { frameCount++; score++; }
+        if (!isGameClear && !isGameOver) { frameCount++; score++; }
 
-        // 🌟 30秒ごとのフェーズを計算
         let currentPhase = Math.floor(frameCount / 1800); 
         let currentConfig = phaseConfigs[Math.min(currentPhase, phaseConfigs.length - 1)];
 
-        // フェーズが切り替わった瞬間にメッセージを出す
-        if (frameCount > 0 && frameCount % 1800 === 0 && !boss && !isGameClear) {
+        if (frameCount > 0 && frameCount % 1800 === 0 && !boss && !isGameClear && !isGameOver) {
             gameMessage = { text: currentConfig.name, subtext: "敵のパターンが変化した！", life: 150, color: currentConfig.sky };
         }
 
-        let currentScrollSpeed = isGameClear ? 0 : baseScrollSpeed + (currentPhase * 0.25);
+        let currentScrollSpeed = (isGameClear || isGameOver) ? 0 : baseScrollSpeed + (currentPhase * 0.25);
 
         bgScrollCloud = (bgScrollCloud + 0.3) % 700;
         bgScrollMountain = (bgScrollMountain + 0.8) % 700;
@@ -166,7 +206,7 @@ html_code = """
 
         if (frameCount === BOSS_SPAWN_FRAME - 180) {
             gameMessage = { text: "⚠️ 警告 ⚠️", subtext: "巨大な院内感染ボスが接近中！", life: 180, color: "#e74c3c" };
-        } else if (frameCount === BOSS_SPAWN_FRAME && !boss && !isGameClear) {
+        } else if (frameCount === BOSS_SPAWN_FRAME && !boss && !isGameClear && !isGameOver) {
             boss = { x: 800, y: groundY - 90, size: 90, emoji: "👹", hp: 4, maxHp: 4, speed: 3.5 };
         }
 
@@ -177,12 +217,12 @@ html_code = """
 
         spawnEntities(currentPhase, currentScrollSpeed);
 
-        if (boss && !isGameClear) {
+        if (boss && !isGameClear && !isGameOver) {
             boss.x -= boss.speed; 
             if (boss.x < -150) {
                 boss.x = 800; 
                 let rageBonus = (4 - boss.hp) * 1.5;
-                boss.speed = 2.5 + rageBonus + (Math.random() * 4.0); // ループごとに緩急をつける
+                boss.speed = 2.5 + rageBonus + (Math.random() * 4.0); 
             }
 
             let dist = Math.hypot((player.x + player.size/2) - (boss.x + boss.size/2), (player.y + player.size/2) - (boss.y + boss.size/2));
@@ -192,8 +232,7 @@ html_code = """
                 } else if (player.vy > 0 && (player.y + player.size/2) < (boss.y + boss.size/2 - 10)) {
                     player.vy = player.jumpPower * 1.3; player.jumpCount = 1; bossHit();
                 } else {
-                    score = Math.max(0, score - 500); player.invincible = 60; player.isHurt = 60;
-                    effects.push({ x: player.x, y: player.y, text: "💦", life: 45 });
+                    takeDamage(); 
                 }
             }
         }
@@ -229,7 +268,8 @@ html_code = """
                     if (player.vy > 0 && (player.y + player.size/2) < (obs.y + obs.size/2)) {
                         obstacles.splice(i, 1); score += 200; player.vy = player.jumpPower * 0.8; player.jumpCount = 1; effects.push({ x: obs.x, y: obs.y, text: "👟ﾎﾟｲﾝ!", life: 30 });
                     } else {
-                        score = Math.max(0, score - 300); obstacles.splice(i, 1); player.invincible = 60; player.isHurt = 60; effects.push({ x: player.x, y: player.y, text: "💦", life: 45 });
+                        takeDamage(); 
+                        if(isGameOver) break; 
                     }
                 }
                 continue;
@@ -250,6 +290,17 @@ html_code = """
             if (dist < (player.size/2 + g.size/2)) { score += 300; effects.push({ x: g.x, y: g.y, text: "💎+300!", life: 30 }); gems.splice(i, 1); continue; }
             if (g.x < -50) gems.splice(i, 1);
         }
+        
+        for (let i = hearts.length - 1; i >= 0; i--) {
+            let h = hearts[i]; h.x -= currentScrollSpeed;
+            let dist = Math.hypot((player.x + player.size/2) - (h.x + h.size/2), (player.y + player.size/2) - (h.y + h.size/2));
+            if (dist < (player.size/2 + h.size/2)) { 
+                player.lives = Math.min(player.maxLives, player.lives + 1);
+                effects.push({ x: h.x, y: h.y, text: "💖回復!", life: 30 }); 
+                hearts.splice(i, 1); continue; 
+            }
+            if (h.x < -50) hearts.splice(i, 1);
+        }
 
         for (let i = questionBlocks.length - 1; i >= 0; i--) {
             let qb = questionBlocks[i]; qb.x -= currentScrollSpeed;
@@ -265,7 +316,6 @@ html_code = """
     }
 
     function drawBackground() {
-        // 🌟 今のフェーズの色を取得
         let currentPhase = Math.floor(frameCount / 1800);
         let conf = phaseConfigs[Math.min(currentPhase, phaseConfigs.length - 1)];
 
@@ -288,7 +338,7 @@ html_code = """
             let offsetX = (i * 700) - bgScrollCity;
             ctx.fillRect(offsetX + 30, groundY - 60, 50, 60); ctx.fillRect(offsetX + 100, groundY - 90, 40, 90); ctx.fillRect(offsetX + 160, groundY - 50, 60, 50);
             ctx.fillRect(offsetX + 260, groundY - 100, 80, 100); ctx.beginPath(); ctx.moveTo(offsetX + 240, groundY - 100); ctx.lineTo(offsetX + 300, groundY - 140); ctx.lineTo(offsetX + 360, groundY - 100); ctx.fill(); 
-            ctx.fillStyle = (currentPhase % 2 === 0) ? "#dfe6e9" : "#636e72"; ctx.fillRect(offsetX + 270, groundY - 90, 60, 40); // 建物の一部も暗く
+            ctx.fillStyle = (currentPhase % 2 === 0) ? "#dfe6e9" : "#636e72"; ctx.fillRect(offsetX + 270, groundY - 90, 60, 40); 
             ctx.fillStyle = conf.city; ctx.fillRect(offsetX + 285, groundY - 80, 12, 15); ctx.fillRect(offsetX + 305, groundY - 80, 12, 15); 
             ctx.fillRect(offsetX + 380, groundY - 70, 50, 70); ctx.fillRect(offsetX + 450, groundY - 110, 60, 110); ctx.fillRect(offsetX + 530, groundY - 40, 80, 40); ctx.fillRect(offsetX + 630, groundY - 80, 50, 80);
         }
@@ -300,7 +350,7 @@ html_code = """
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawBackground();
 
-        if (boss) {
+        if (boss && !isGameOver) {
             ctx.font = "90px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(boss.emoji, boss.x + boss.size/2, boss.y + boss.size/2);
             ctx.fillStyle = "#e74c3c"; ctx.fillRect(boss.x, boss.y - 15, boss.size, 8);
@@ -316,11 +366,12 @@ html_code = """
         
         ctx.font = "28px Arial";
         gems.forEach(g => ctx.fillText(g.emoji, g.x + g.size/2, g.y + g.size/2));
+        hearts.forEach(h => ctx.fillText(h.emoji, h.x + h.size/2, h.y + h.size/2));
 
         ctx.fillStyle = "#e74c3c"; ctx.font = "bold 20px Arial";
         effects.forEach(eff => ctx.fillText(eff.text, eff.x + 20, eff.y));
 
-        if (player.invincible <= 0 || player.isHurt === 0 || Math.floor(frameCount / 5) % 2 === 0) {
+        if (!isGameOver && (player.invincible <= 0 || player.isHurt === 0 || Math.floor(frameCount / 5) % 2 === 0)) {
             ctx.save();
             ctx.translate(player.x + player.size/2, player.y + player.size/2);
             if (player.isGrounded) { ctx.rotate(Math.sin(frameCount * 0.4) * 0.1); } else { ctx.rotate(0.15); }
@@ -362,10 +413,16 @@ html_code = """
 
         ctx.fillStyle = "#333"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
         ctx.font = "bold 24px Arial";
-        // 文字の枠線を白にして、背景が暗くなっても見やすくする
         ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.strokeText("SCORE: " + score, 20, 40);
         ctx.fillText("SCORE: " + score, 20, 40);
         
+        let heartStr = "";
+        for(let i=0; i<player.maxLives; i++) {
+            heartStr += (i < player.lives) ? "❤️" : "🤍";
+        }
+        ctx.strokeText("LIVES: " + heartStr, 20, 75);
+        ctx.fillText("LIVES: " + heartStr, 20, 75);
+
         ctx.font = "bold 16px Arial";
         let jumpText = (player.invincible > 0 && player.isHurt === 0) ? "⚡ 4段ジャンプ解禁中！" : "2段ジャンプまで";
         ctx.strokeText(jumpText, 20, canvas.height - 20);
@@ -379,7 +436,7 @@ html_code = """
         ctx.strokeText(timeStr, canvas.width - 20, 30);
         ctx.fillText(timeStr, canvas.width - 20, 30);
 
-        if (gameMessage.life > 0) {
+        if (gameMessage.life > 0 && !isGameOver) {
             ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; ctx.fillRect(0, canvas.height / 2 - 60, canvas.width, 120);
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.font = "bold 46px Arial"; ctx.fillStyle = gameMessage.color; ctx.fillText(gameMessage.text, canvas.width / 2, canvas.height / 2 - 15);
