@@ -21,7 +21,7 @@ html_code = """
     .btn-reset { position: absolute; top: 8px; right: 8px; z-index: 100; background: rgba(52, 73, 94, 0.8); color: white; border: 1px solid #bdc3c7; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
     .btn-reset:active { background: #2c3e50; }
     
-    #middle-panel { display: flex; padding: 10px 15px; background: #2c3e50; border-bottom: 4px solid #bdc3c7; height: 175px; position: relative; }
+    #middle-panel { display: flex; padding: 10px 15px; background: #2c3e50; border-bottom: 4px solid #bdc3c7; height: 200px; position: relative; }
     
     #anim-area { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background: #34495e; border-radius: 8px; margin-right: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); overflow: hidden; }
     .prep-controls { position: absolute; top: 4px; left: 4px; right: 4px; display: flex; flex-direction: row; gap: 4px; z-index: 20; }
@@ -58,8 +58,8 @@ html_code = """
     .nurse-bubble-item:first-child::before { content: ''; position: absolute; left: -10px; top: 10px; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid #fff; }
     
     #command-area { padding: 8px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
-    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; }
-    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 1px 1px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 1px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; align-content: start; }
+    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 5px 5px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 1px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
     .cmd-btn:active { transform: translateY(3px); box-shadow: 0 0 #1f618d; }
     .btn-shock { background: #e74c3c; box-shadow: 0 3px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
     .btn-drug { background: #8e44ad; box-shadow: 0 3px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
