@@ -49,8 +49,8 @@ html_code = """
     .hist-title-adr { color: #00a8ff; margin-top: 5px; margin-bottom: 1px; font-weight: bold; }
     .hist-text { color: #ffffff; margin-left: 4px; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
     
-    #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 95px; }
-    #nurseCanvas { width: 70px; height: 70px; margin-right: 8px; flex-shrink: 0; }
+    #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 110px; position: relative; z-index: 10; }
+    #nurseCanvas { width: 90px; height: 90px; margin-right: 8px; flex-shrink: 0; }
     
     /* 🌟 吹き出し領域を拡張し、同時に複数見やすくした */
     #nurse-message-container { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; justify-content: center; max-height: 140px; overflow-y: auto; }
@@ -594,7 +594,7 @@ html_code = """
             nCtx.fillRect(-15, 8, 15, 5); nCtx.fillRect(0, 8, 15, 5); 
             
         // 🌟 新アクション追加部分
-        } else if (nurseState === 'cracker') {
+      } else if (nurseState === 'cracker') {
             nCtx.fillRect(13, -25, 5, 20); // 右手を上げる
             nCtx.fillRect(-18, 4, 5, 10);  // 左手は下
             // クラッカー本体
@@ -604,17 +604,20 @@ html_code = """
             let colors = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f"];
             for(let i=0; i<6; i++) {
                 nCtx.fillStyle = colors[i%4];
-                nCtx.fillRect(15 + (i-3)*8, -35 - pOffset - (i%3)*5, 3, 3);
+                // 🌟 Y座標を -35 -> -55付近へ高く調整 (パディング等により微調整が必要かもです)
+                nCtx.fillRect(15 + (i-3)*8, -55 - pOffset - (i%3)*5, 3, 3);
             }
         } else if (nurseState === 'ok_circle') {
             // 頭の上で大きなマル
             nCtx.strokeStyle = "#ffdbac"; nCtx.lineWidth = 5;
-            nCtx.beginPath(); nCtx.arc(0, -15, 18, Math.PI, 0); nCtx.stroke();
+            // 🌟 Y座標を -15 -> -35へ高く調整
+            nCtx.beginPath(); nCtx.arc(0, -35, 18, Math.PI, 0); nCtx.stroke();
             nCtx.lineWidth = 1.5;
         } else if (nurseState === 'heart') {
             nCtx.fillRect(-18, 4, 5, 14); nCtx.fillRect(13, 4, 5, 14); // 腕は通常
             // 頭上にフワフワ浮かぶハート
-            let hY = -35 + Math.sin(frame*0.2)*3;
+            // 🌟 Y座標を -35 -> -55へ高く調整
+            let hY = -55 + Math.sin(frame*0.2)*3;
             nCtx.fillStyle = "#e74c3c";
             nCtx.beginPath(); nCtx.arc(-4, hY, 4, 0, Math.PI*2); nCtx.fill();
             nCtx.beginPath(); nCtx.arc(4, hY, 4, 0, Math.PI*2); nCtx.fill();
