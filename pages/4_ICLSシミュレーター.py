@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ICLS Simulator", page_icon="⚡", layout="wide")
-st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>⚡ ICLS コマンド・シミュレーター V26</h1>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 16px; color: #555;'>DC反復・J数低下ミス・リドカイン監査を追加。ECG波形もより長く残るよう見やすく調整しました。</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>⚡ 上田医療センターICLS　sim </h1>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 16px; color: #555;'>１０秒で１分が経過します。2分:20秒でリズムチェックなので注意！</p>", unsafe_allow_html=True)
 
 html_code = """
 <!DOCTYPE html>
@@ -54,8 +54,8 @@ html_code = """
     .nurse-bubble-item { background: #fff; padding: 8px 12px; border-radius: 12px; position: relative; font-size: 13px; font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,0.15); line-height: 1.3; color: #2c3e50; }
     .nurse-bubble-item:first-child::before { content: ''; position: absolute; left: -10px; top: 10px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 10px solid #fff; }
     
-    #command-area { padding: 10px; flex-grow: 1; background: #1a252f; position: relative; }
-    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 100%; }
+    #command-area { padding: 10px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; }
+    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-grow: 1; }
     .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 10px 5px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px #1f618d; transition: 0.1s; }
     .cmd-btn:active { transform: translateY(4px); box-shadow: 0 0 #1f618d; }
     .btn-shock { background: #e74c3c; box-shadow: 0 4px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
@@ -65,7 +65,13 @@ html_code = """
     .btn-test { background: #16a085; box-shadow: 0 4px #0e6655; } .btn-test:active { box-shadow: 0 0 #0e6655; }
     .btn-back { background: #95a5a6; box-shadow: 0 4px #7f8c8d; grid-column: 1 / -1; }
     
-    #clear-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 37, 47, 0.97); z-index: 50; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    #hidden-course-selector { text-align: right; padding-top: 8px; opacity: 0.3; transition: 0.3s; }
+    #hidden-course-selector:hover { opacity: 1; }
+    .hidden-btn { background: transparent; color: #bdc3c7; border: 1px solid #7f8c8d; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; margin-left: 4px; }
+    .hidden-btn:hover { background: #7f8c8d; color: white; }
+
+    /* 🌟 リザルト・終了画面の統合 */
+    #result-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 37, 47, 0.97); z-index: 50; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
     .result-panels { display: flex; gap: 20px; width: 95%; max-width: 760px; height: 55vh; text-align: left; }
     .result-panel-left { flex: 1; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; border: 1px solid #34495e; }
     .result-panel-right { flex: 1.2; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; overflow-y: auto; font-family: monospace; border: 1px solid #34495e; }
@@ -77,9 +83,10 @@ html_code = """
 </head>
 <body>
 <div id="game-container">
-    <div id="clear-overlay">
-        <div style="font-size: 50px; margin-bottom: 5px;">🎉</div>
-        <div style="font-size: 26px; font-weight: bold; color: white; margin-bottom: 15px;">ROSC 確認！</div>
+    <!-- 🌟 リザルトウィンドウ（成功・失敗共用） -->
+    <div id="result-overlay">
+        <div id="result-icon" style="font-size: 50px; margin-bottom: 5px;">🎉</div>
+        <div id="result-title" style="font-size: 26px; font-weight: bold; color: white; margin-bottom: 15px;">ROSC 確認！</div>
         
         <div class="result-panels">
             <div class="result-panel-left">
@@ -172,6 +179,14 @@ html_code = """
             <button class="cmd-btn btn-diag" onclick="actionDiagnose('Hyperkalemia')">高カリウム血症</button>
             <button class="cmd-btn btn-back" onclick="showMenu('main')">🔙 戻る</button>
         </div>
+        
+        <div id="hidden-course-selector">
+            <span style="font-size: 10px; color: #bdc3c7;">Debug / Course Fix: </span>
+            <button class="hidden-btn" onclick="setCourse('VF')">VF</button>
+            <button class="hidden-btn" onclick="setCourse('VT')">VT</button>
+            <button class="hidden-btn" onclick="setCourse('PEA')">PEA</button>
+            <button class="hidden-btn" onclick="setCourse('Asystole')">Asystole</button>
+        </div>
     </div>
 </div>
 
@@ -188,6 +203,7 @@ html_code = """
 
     let isMonitorOn = false; let isIvSecured = false;
     let isInitialCheckDone = false; 
+    let hasCheckedRhythmThisCycle = false; 
     
     let totalTime = 0; let cycleTime = 0; let interruptTime = 0;
     let isCPR = false; let hasStarted = false; let pendingShock = false;
@@ -213,14 +229,13 @@ html_code = """
     const msgContainer = document.getElementById("nurse-message-container");
     const cprWrapper = document.getElementById("cpr-wrapper"); 
     const shockEffect = document.getElementById("shock-effect");
-    const clearOverlay = document.getElementById("clear-overlay");
+    const resultOverlay = document.getElementById("result-overlay");
 
-    // 🌟 新たな減点項目を追加
     let mistakes = { 
         prepBeforeCPR: 0, notStarted: 0, earlyCheck: 0, checkWhileNotCPR: 0, shockNotIndicated: 0, 
-        earlyShock: 0, wrongJoules: 0, // DC関連追加
+        blindShock: 0, earlyShock: 0, wrongJoules: 0,
         earlyAdr: 0, earlyAdrReadmin: 0, wrongAmio: 0, wrongAmioTiming: 0, wrongAmioTiming2: 0, wrongAmioDose: 0, wrongAmioDose2: 0, amioMax: 0,
-        wrongLido: 0, wrongLidoTiming: 0, dupAmioLido: 0, // リドカイン関連追加
+        wrongLido: 0, wrongLidoTiming: 0, dupAmioLido: 0,
         wrongDiag: 0, noMonitor: 0, noIV: 0, handsOffLong: 0, checkDelay: 0, adrDelay: 0
     };
     
@@ -275,9 +290,9 @@ html_code = """
         else if(type === 'notStarted') { msg = count === 1 ? "先生、まずは胸骨圧迫を開始してください💦" : "先生！患者さんが目の前にいます！胸骨圧迫が最優先です！💢"; logMsg = "胸骨圧迫の開始遅延"; }
         else if(type === 'earlyCheck') { msg = count === 1 ? "先生、リズムチェックは2分ごとです！まだ時間が来ていません💦" : "先生！まだ2分経ってません！むやみに胸骨圧迫を中断しないで！💢"; logMsg = "2分未満でのリズムチェック"; }
         else if(type === 'checkWhileNotCPR') { msg = count === 1 ? "先生、今はすでに圧迫を中断して評価中です。早く次の指示を💦" : "先生！何度も評価しないで、早く指示を！💢"; logMsg = "不適切なタイミングの評価"; }
-        else if(type === 'shockNotIndicated') { msg = count === 1 ? `先生、波形は${rhythm}です！ショック適応のタイミングではありません💦` : "先生、だからショックは打てません！波形とアルゴリズムを見て！💢"; logMsg = "ショック非適応でのDC指示"; }
         
-        // 🌟 追加したDCエラー
+        else if(type === 'blindShock') { msg = "先生！リズムチェック（最終波形確認）をせずにショックは打てません！ブラインドDCです！💢"; logMsg = "リズムチェックなしでの除細動(ブラインドDC)"; }
+        else if(type === 'shockNotIndicated') { msg = count === 1 ? `先生、波形は${rhythm}です！ショック適応のタイミングではありません💦` : "先生、だからショックは打てません！波形とアルゴリズムを見て！💢"; logMsg = "ショック非適応でのDC指示"; }
         else if(type === 'earlyShock') { msg = "先生！次のチェックまでCPRを継続してください！連続ショックはガイドライン違反です！💢"; logMsg = "早すぎる除細動(DC)の反復"; }
         else if(type === 'wrongJoules') { msg = "先生！J数を下げるのは不適切です！同等かそれ以上で指示してください！💢"; logMsg = "不適切なJ数の選択(低下)"; }
 
@@ -289,18 +304,19 @@ html_code = """
         else if(type === 'wrongAmioDose') { msg = "先生！初回の投与量は300mgです！量が違います！💢"; logMsg = "初回アミオダロンの用量間違い"; }
         else if(type === 'wrongAmioDose2') { msg = "先生！2回目の投与量は150mgです！量が違います！💢"; logMsg = "追加アミオダロンの用量間違い"; }
         else if(type === 'amioMax') { msg = "先生！アミオダロンは既に極量(450mg)に達しています！💢"; logMsg = "アミオダロンの極量超過"; }
-        
-        // 🌟 追加したリドカインエラー
         else if(type === 'wrongLido') { msg = "先生、リドカインはVF/pVTのみ適応です！非適応です！💢"; logMsg = "リドカインの適応外投与"; }
         else if(type === 'wrongLidoTiming') { msg = "先生！初回リドカインは「第3回ショック後」です！早すぎます！💢"; logMsg = "初回リドカインの早期投与"; }
         else if(type === 'dupAmioLido') { msg = "先生！既にアミオダロンを投与しています！抗不整脈薬の重複は推奨されません！💢"; logMsg = "アミオダロンとリドカインの併用"; }
-
         else if(type === 'wrongDiag') { msg = count === 1 ? "先生、身体所見と合わない気がします…もう一度所見を確認してください💦" : "先生！原因が違います！適当に選ばないでください！💢"; logMsg = "不適切な原因診断(誤診)"; }
         
         logAction(logMsg, true);
         setNurseMessage(`<span style='color:#e74c3c; font-weight:bold;'>${msg}</span>`, nState, 6);
+        
+        // 🌟 減点発生時に毎回ゲームオーバーチェックを行う
+        checkGameOver();
     }
 
+    // 🌟 減点スコアの厳格な計算（マイナス上限解放）
     function calculateScore() {
         let score = 100;
         let breakdown = [];
@@ -313,6 +329,7 @@ html_code = """
         let checkErrs = mistakes.earlyCheck + mistakes.checkWhileNotCPR;
         if(checkErrs > 0) { score -= checkErrs * 10; breakdown.push(`不適切なリズムチェック (-${checkErrs * 10}点)`); }
         
+        if(mistakes.blindShock > 0) { score -= mistakes.blindShock * 20; breakdown.push(`リズムチェックなしでのDC指示(ブラインドDC) (-${mistakes.blindShock * 20}点)`); }
         let dcErrs = mistakes.shockNotIndicated + mistakes.earlyShock + mistakes.wrongJoules;
         if(dcErrs > 0) { score -= dcErrs * 15; breakdown.push(`不適切なDC指示(非適応・早期反復・J数低下) (-${dcErrs * 15}点)`); }
         
@@ -324,15 +341,52 @@ html_code = """
         if(mistakes.checkDelay > 0) { score -= mistakes.checkDelay * 10; breakdown.push(`リズムチェックの過度な遅延 (-${mistakes.checkDelay * 10}点)`); }
         if(mistakes.adrDelay > 0) { score -= mistakes.adrDelay * 10; breakdown.push(`アドレナリン投与の過度な遅延 (-${mistakes.adrDelay * 10}点)`); }
 
-        if(score < 0) score = 0;
-
         let rank = ""; let rankColor = "";
         if(score === 100) { rank = "👑 ICLSマスター (神レベル)"; rankColor = "#f1c40f"; }
         else if(score >= 80) { rank = "🏅 優秀なリーダー (臨床即戦力)"; rankColor = "#2ecc71"; }
         else if(score >= 60) { rank = "🎖️ 中堅プロバイダー (あと一歩！)"; rankColor = "#3498db"; }
-        else { rank = "🔰 ICLS研修生 (要復習)"; rankColor = "#e74c3c"; }
+        else if(score >= 0) { rank = "🔰 ICLS研修生 (要復習)"; rankColor = "#e74c3c"; }
+        else { rank = "❌ 不合格 (プロトコル破綻)"; rankColor = "#e74c3c"; }
 
         return { score, breakdown, rank, rankColor };
+    }
+
+    // 🌟 ゲームオーバー判定チェック
+    function checkGameOver() {
+        let res = calculateScore();
+        if(res.score <= -50) {
+            triggerGameOver();
+        }
+    }
+
+    // 🌟 残念な終了画面（ゲームオーバー）の処理
+    function triggerGameOver() {
+        if(gameInterval) clearInterval(gameInterval); gameInterval = null; isCPR = false; cprWrapper.classList.remove("cpr-active");
+        logAction("💔 救命失敗 (プロトコル破綻によるゲームオーバー)", true);
+
+        let res = calculateScore();
+        document.getElementById("result-icon").innerText = "💔";
+        document.getElementById("result-title").innerText = "救命失敗...";
+        document.getElementById("result-title").style.color = "#e74c3c";
+        
+        document.getElementById("result-rank").innerText = "❌ 不合格 (プロトコル破綻)";
+        document.getElementById("result-rank").style.color = "#e74c3c";
+        document.getElementById("result-score").innerText = `総合得点: ${res.score}点`;
+        
+        let bdHtml = "<div style='margin-bottom:5px; font-weight:bold; color:#e74c3c; font-size:14px;'>【不合格の原因（減点過多）】</div>" + res.breakdown.map(item => `・${item}`).join("<br>");
+        document.getElementById("result-breakdown").innerHTML = bdHtml;
+        
+        let logHtml = "<div style='font-size:15px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #7f8c8d; padding-bottom:5px; color:#fff;'>📜 デブリーフィング（アクションログ）</div>";
+        actionLog.forEach(l => {
+            let icon = l.isError ? "❌" : "✅";
+            let color = l.isError ? "#e74c3c" : "#bdc3c7";
+            if(!l.isError && l.text.includes("除細動")) color = "#f1c40f";
+            logHtml += `<div style="margin-bottom:6px; font-size:12px; color:${color};"><span style="color:#fff; font-family:monospace;">[${l.time}]</span> ${icon} ${l.text}</div>`;
+        });
+        document.getElementById("result-log").innerHTML = logHtml;
+
+        resultOverlay.style.display = "flex"; 
+        setNurseMessage("<span style='color:#e74c3c; font-weight:bold;'>先生…指示の誤りが多すぎて現場が完全に崩壊しました。救命不可能として終了します…💔</span>", "angry", 999);
     }
 
     function triggerROSC() {
@@ -340,6 +394,10 @@ html_code = """
         logAction("🎊 自己心拍再開 (ROSC)", false);
 
         let res = calculateScore();
+        document.getElementById("result-icon").innerText = "🎉";
+        document.getElementById("result-title").innerText = "ROSC 確認！";
+        document.getElementById("result-title").style.color = "#2ecc71";
+
         document.getElementById("result-rank").innerText = res.rank;
         document.getElementById("result-rank").style.color = res.rankColor;
         document.getElementById("result-score").innerText = `総合得点: ${res.score}点`;
@@ -358,7 +416,7 @@ html_code = """
         });
         document.getElementById("result-log").innerHTML = logHtml;
 
-        clearOverlay.style.display = "flex"; 
+        resultOverlay.style.display = "flex"; 
         setNurseMessage("<span style='color:#2ecc71; font-weight:bold;'>先生！すごいです！完璧なアルゴリズムでした！自己心拍再開(ROSC)です！！</span>", "sparkle", 999);
     }
 
@@ -389,7 +447,7 @@ html_code = """
             
             if(isCPR) {
                 cycleTime++; interruptTime = 0; 
-                if(cycleTime === 32) { mistakes.checkDelay++; logAction("リズムチェックの過度な遅延", true); }
+                if(cycleTime === 32) { mistakes.checkDelay++; logAction("リズムチェックの過度な遅延", true); checkGameOver(); }
                 if(cycleTime >= 32) autoMsgs.push({text: "<span style='color:red;'>先生！！もう3分経っちゃいます！リズムチェック！！！💢</span>", state: "angry"});
                 else if(cycleTime >= 26) autoMsgs.push({text: "<span style='color:red;'>先生、2分過ぎてます！早くリズムチェックを！💦</span>", state: "thinking"});
                 else if(cycleTime >= 21) autoMsgs.push({text: "<span style='color:red;'>2分経過！リズムチェックの指示を！</span>", state: "idle"});
@@ -397,7 +455,7 @@ html_code = """
             } else {
                 interruptTime++;
                 if(!pendingShock && rhythm !== "ROSC") {
-                    if(interruptTime === 12) { mistakes.handsOffLong++; logAction("長すぎる圧迫中断(10秒以上)", true); }
+                    if(interruptTime === 12) { mistakes.handsOffLong++; logAction("長すぎる圧迫中断(10秒以上)", true); checkGameOver(); }
                     if(interruptTime >= 12) autoMsgs.push({text: "<span style='color:red;'>先生！！手が止まってます！早く圧迫を！！💢</span>", state: "angry"});
                     else if(interruptTime >= 6) autoMsgs.push({text: "<span style='color:red;'>中断が長いです！早く圧迫再開の指示を！</span>", state: "angry"});
                 }
@@ -405,7 +463,7 @@ html_code = """
 
             if(pendingShock) {
                 pendingShockTimer++;
-                if(pendingShockTimer === 20) { mistakes.handsOffLong++; logAction("DC指示忘れによる長すぎる圧迫中断", true); }
+                if(pendingShockTimer === 20) { mistakes.handsOffLong++; logAction("DC指示忘れによる長すぎる圧迫中断", true); checkGameOver(); }
                 if(pendingShockTimer >= 20) autoMsgs.push({text: "<span style='color:red;'>先生！！ショック適応です！早くDC指示を！！💢</span>", state: "angry"});
                 else if(pendingShockTimer >= 10) autoMsgs.push({text: "<span style='color:red;'>先生、VF/VTです！早く除細動(DC)の指示を！💦</span>", state: "thinking"});
                 else if(pendingShockTimer >= 4) {
@@ -423,23 +481,23 @@ html_code = """
                 if(nonShockEvalTimer >= 15) nonShockEvalTimer = -1;
             }
 
-            if(rhythm !== "ROSC") {
+            if(rhythm !== "ROSC" && isInitialCheckDone) {
                 if(adrCount === 0) {
                     if(rhythm === "PEA" || rhythm === "Asystole") {
-                        if(totalTime === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); }
+                        if(totalTime === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); checkGameOver(); }
                         if(totalTime >= 35) autoMsgs.push({text: "<span style='color:red;'>先生！！早く初回のアドレナリン指示を出して！！💢</span>", state: "angry"});
                         else if(totalTime >= 20) autoMsgs.push({text: "<span style='color:red;'>先生、非適応波形です！可及的速やかに初回アドレナリンを！💦</span>", state: "thinking"});
                     } else if(isShockable(rhythm) && shockCount >= 2 && timeAtSecondShock >= 0) {
                         let diff = totalTime - timeAtSecondShock;
-                        if(diff === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); }
+                        if(diff === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); checkGameOver(); }
                         if(diff >= 35) autoMsgs.push({text: "<span style='color:red;'>先生！！早くアドレナリン投与して！！💢</span>", state: "angry"});
                         else if(diff >= 25) autoMsgs.push({text: "<span style='color:red;'>先生！初回アドレナリン忘れてませんか！？早く指示を！💦</span>", state: "thinking"});
                         else if(diff >= 15) autoMsgs.push({text: "先生、第2回ショックが終わりました。アドレナリンの指示をお願いします！", state: "idle"});
                     }
                 } else {
                     let timeSinceAdr = totalTime - lastAdrTime;
-                    if(timeSinceAdr === 60) { mistakes.adrDelay++; logAction("アドレナリンの再投与間隔の過度な遅延", true); }
-                    if(timeSinceAdr >= 60) autoMsgs.push({text: "<span style='color:red;'>先生！！アドレナリンの間隔空きすぎてます！！💢</span>", state: "angry"});
+                    if(timeSinceAdr === 60) { mistakes.adrDelay++; logAction("アドレナリンの再投与間隔の過度な遅延", true); checkGameOver(); }
+                    if(timeSinceAdr >= 60) autoMsgs.push({text: "<span style='color:red;'>先生！！アドレナリンの間隔空きすぎます！！💢</span>", state: "angry"});
                     else if(timeSinceAdr >= 50) autoMsgs.push({text: "<span style='color:red;'>先生！アドレナリンから5分経過しました！次の投与指示を！💦</span>", state: "thinking"});
                     else if(timeSinceAdr >= 45) autoMsgs.push({text: "先生、アドレナリン投与からまもなく5分です！準備しますか？", state: "idle"});
                 }
@@ -525,8 +583,7 @@ html_code = """
 
     function drawECG() {
         if(isMonitorOn) {
-            // 🌟 波形の残像を長くするため、塗りつぶしの不透明度をさらに低く設定（0.015）
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.015)'; ctx.fillRect(0, 0, canvas.width, canvas.height); 
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.004)'; ctx.fillRect(0, 0, canvas.width, canvas.height); 
             ctx.fillStyle = '#000'; ctx.fillRect(ecgX, 0, 15, canvas.height);
             let targetY = canvas.height / 2;
             
@@ -548,6 +605,16 @@ html_code = """
         frame++; drawNurse(); requestAnimationFrame(drawECG);
     }
     requestAnimationFrame(drawECG);
+
+    window.setCourse = function(course) {
+        if(hasStarted || isMonitorOn) {
+            alert("すでに処置が開始されています。右上の「新たな症例」でリセットしてから選択してください。");
+            return;
+        }
+        rhythm = course;
+        if(course === 'PEA' || course === 'Asystole') { peaCause = causes[Math.floor(Math.random() * causes.length)]; }
+        alert(`【隠しコマンド】この症例を ${course} コースに設定しました。`);
+    }
 
     window.actionMonitor = function() {
         if(!hasStarted) { triggerError('prepBeforeCPR'); return; }
@@ -591,6 +658,7 @@ html_code = """
         }
 
         isCPR = false; cycleTime = 0; cprWrapper.classList.remove("cpr-active"); uiCycleTime.innerHTML = getCycleTimeStr(cycleTime);
+        hasCheckedRhythmThisCycle = true; 
         
         let rName = {"VF": "VF(心室細動)", "VT": "VT(無脈性心室頻拍)", "PEA": "PEA", "Asystole": "Asystole"}[rhythm] || "ROSC";
         logAction(`リズムチェック実施 (波形: ${rName})`, false);
@@ -608,18 +676,13 @@ html_code = """
         showMenu('main');
         if(!hasStarted) { triggerError('notStarted'); return; }
         
-        // 🌟 早期反復ショックの監査（ゲーム内15秒未満＝1分半未満での再ショックはエラー）
-        if (lastShockTime >= 0 && totalTime - lastShockTime < 15) {
-            triggerError('earlyShock'); return;
-        }
-        
-        // 🌟 J数の低下監査
-        if (lastShockJoules > 0 && joules < lastShockJoules) {
-            triggerError('wrongJoules'); return;
-        }
+        if(!hasCheckedRhythmThisCycle) { triggerError('blindShock'); return; }
+        if (lastShockTime >= 0 && totalTime - lastShockTime < 15) { triggerError('earlyShock'); return; }
+        if (lastShockJoules > 0 && joules < lastShockJoules) { triggerError('wrongJoules'); return; }
 
         if(isShockable(rhythm)) { pendingShock = true; } else { triggerError('shockNotIndicated'); return; }
         
+        hasCheckedRhythmThisCycle = false; 
         shockCount++; pendingShock = false; pendingShockTimer = 0;
         if(shockCount === 2) timeAtSecondShock = totalTime; 
         lastShockTime = totalTime; lastShockJoules = joules; updateActionTimers();
@@ -663,22 +726,18 @@ html_code = """
             } else if(amioCount === 1) {
                 if(shockCount < 5) { triggerError('wrongAmioTiming2'); return; }
                 if(dose !== '150mg') { triggerError('wrongAmioDose2'); return; }
-            } else {
-                triggerError('amioMax'); return;
-            }
+            } else { triggerError('amioMax'); return; }
             
             amioCount++; logAction(`薬剤投与: アミオダロン ${dose}`, false);
             setNurseMessage(`アミオダロン${dose}静注しました！${getRandomPraise()}`, getRandomHappyState(), 5);
             if(isShockable(rhythm) && shockCount >= 3) { setTimeout(() => { if(isShockable(rhythm)) rhythm = "ROSC"; }, 6000); }
         
         } else if(drug === 'Lidocaine') {
-            // 🌟 リドカインの監査追加
             if(!isShockable(rhythm)) { triggerError('wrongLido'); return; }
             if(shockCount < 3) { triggerError('wrongLidoTiming'); return; }
-            if(amioCount > 0) { triggerError('dupAmioLido'); return; } // アミオダロンとの併用禁止
+            if(amioCount > 0) { triggerError('dupAmioLido'); return; } 
             
-            lidoCount++;
-            logAction(`薬剤投与: リドカイン ${dose}`, false);
+            lidoCount++; logAction(`薬剤投与: リドカイン ${dose}`, false);
             setNurseMessage(`リドカイン${dose}静注しました！${getRandomPraise()}`, getRandomHappyState(), 5);
             if(isShockable(rhythm) && shockCount >= 3) { setTimeout(() => { if(isShockable(rhythm)) rhythm = "ROSC"; }, 6000); }
         }
