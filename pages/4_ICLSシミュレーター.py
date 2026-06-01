@@ -252,7 +252,7 @@ html_code = """
     function getRandomPraise() { const praises = ["了解！先生、指示が的確で助かります！", "はい！タイミングばっちりですね！", "了解です！スムーズな進行ですね✨"]; return praises[Math.floor(Math.random() * praises.length)]; }
     function getRandomGreatPraise() { const praises = ["正解です！素晴らしいアセスメント！✨", "さすが先生！見事な着眼点です！👏", "完璧です！すぐに特異的治療を開始します！"]; return praises[Math.floor(Math.random() * praises.length)]; }
     function getRandomHappyState() { const states = ['happy', 'guts', 'sparkle', 'nod', 'cracker', 'ok_circle', 'heart']; return states[Math.floor(Math.random() * states.length)]; }
-
+function getRandomRoger() { const states = ['roger', 'salute', 'point']; return states[Math.floor(Math.random() * states.length)]; }
     function logAction(text, isError) {
         let m = Math.floor(totalTime / 60); let s = totalTime % 60;
         let timeStr = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
@@ -529,7 +529,7 @@ html_code = """
 
         let bounce = 0;
         if (nurseState === 'idle') bounce = Math.sin(frame * 0.08) * 2;
-        else if (nurseState === 'roger') bounce = Math.abs(Math.sin(frame * 0.2)) * -4;
+        else if (nurseState === 'roger' || nurseState === 'salute' || nurseState === 'point') bounce = Math.abs(Math.sin(frame * 0.2)) * -4;
         else if (nurseState === 'happy' || nurseState === 'cracker') bounce = Math.abs(Math.sin(frame * 0.3)) * -6; 
         else if (nurseState === 'guts' || nurseState === 'ok_circle') bounce = Math.abs(Math.sin(frame * 0.2)) * -5; 
         else if (nurseState === 'sparkle' || nurseState === 'heart') bounce = Math.sin(frame * 0.1) * 2; 
@@ -549,9 +549,8 @@ html_code = """
         // --- 顔の表情 ---
         if (nurseState === 'idle') {
             nCtx.fillRect(-6, -15, 3, 3); nCtx.fillRect(3, -15, 3, 3); nCtx.beginPath(); nCtx.arc(0, -7, 4, 0, Math.PI, false); nCtx.stroke();
-        } else if (nurseState === 'roger' || nurseState === 'happy' || nurseState === 'cracker' || nurseState === 'ok_circle') {
+        } else if (nurseState === 'roger' || nurseState === 'happy' || nurseState === 'cracker' || nurseState === 'ok_circle' || nurseState === 'salute' || nurseState === 'point') {
             nCtx.beginPath(); nCtx.arc(-5, -13, 3, Math.PI, 0, false); nCtx.stroke(); nCtx.beginPath(); nCtx.arc(5, -13, 3, Math.PI, 0, false); nCtx.stroke();
-            nCtx.beginPath(); nCtx.arc(0, -7, 5, 0, Math.PI, false); nCtx.stroke(); 
             if(nurseState === 'happy' || nurseState === 'cracker' || nurseState === 'ok_circle'){ nCtx.fillStyle = "#ff9999"; nCtx.beginPath(); nCtx.arc(-8, -9, 3, 0, Math.PI*2); nCtx.fill(); nCtx.beginPath(); nCtx.arc(8, -9, 3, 0, Math.PI*2); nCtx.fill(); }
         } else if (nurseState === 'guts') {
             nCtx.beginPath(); nCtx.arc(-5, -13, 3, Math.PI, 0, false); nCtx.stroke(); nCtx.beginPath(); nCtx.arc(5, -13, 3, Math.PI, 0, false); nCtx.stroke();
@@ -592,8 +591,18 @@ html_code = """
             nCtx.fillRect(-18, 4, 5, 12); nCtx.fillRect(6, -6, 12, 5); 
         } else if (nurseState === 'angry') {
             nCtx.fillRect(-15, 8, 15, 5); nCtx.fillRect(0, 8, 15, 5); 
-            
-        // 🌟 新アクション追加部分
+       } else if (nurseState === 'salute') {
+            nCtx.fillRect(-18, 4, 5, 14); // 左手は通常
+            // 右手で敬礼
+            nCtx.fillRect(14, -8, 5, 14); // 腕を上げる
+            nCtx.fillRect(6, -14, 12, 4); // 額の横に手を添える
+        } else if (nurseState === 'point') {
+            nCtx.fillRect(-18, 4, 5, 14); // 左手は通常
+            // 右手で指差し確認
+            nCtx.fillRect(13, -10, 5, 16); // 腕を前へ
+            nCtx.fillRect(14, -16, 3, 8);  // 人差し指
+            nCtx.fillRect(12, -8, 7, 5);   // 握った拳     
+        
       } else if (nurseState === 'cracker') {
             nCtx.fillRect(13, -25, 5, 20); // 右手を上げる
             nCtx.fillRect(-18, 4, 5, 10);  // 左手は下
@@ -671,7 +680,7 @@ html_code = """
         let btn = document.getElementById("btn-monitor"); btn.classList.add("secured"); btn.innerText = "🖥️ モニター装着済";
         document.getElementById("monitor-text").style.display = "none"; 
         logAction("モニターを装着", false);
-        setNurseMessage("モニター装着しました！波形を確認できます！", "roger", 4);
+        setNurseMessage("モニター装着しました！波形を確認できます！", getRandomRoger(), 4);
     }
 
     window.actionIV = function() {
@@ -680,14 +689,14 @@ html_code = """
         let btn = document.getElementById("btn-iv"); btn.classList.add("secured"); btn.innerText = "💉 ルート確保済";
         document.getElementById("iv-pole").style.display = "block"; 
         logAction("静脈ルートを確保", false);
-        setNurseMessage("静脈ルート確保しました！いつでも薬剤入ります！", "roger", 4);
+        setNurseMessage("静脈ルート確保しました！いつでも薬剤入ります！",getRandomRoger(), 4);
     }
 
     window.actionCPR = function() {
         if(!hasStarted) { startGame(); }
         isCPR = true; cprWrapper.classList.add("cpr-active"); 
         logAction("胸骨圧迫を開始/再開", false);
-        let action = ['roger', 'nod'][Math.floor(Math.random() * 2)]; 
+        let action = [getRandomRoger(), 'nod'][Math.floor(Math.random() * 2)]; 
         
         if (pendingShock || nonShockEvalTimer >= 0) {
             setNurseMessage("圧迫再開よし！", action, 4);
@@ -836,7 +845,7 @@ html_code = """
     window.actionAirway = function() {
         if(!hasStarted) { triggerError('notStarted'); return; }
         logAction("高度な気道確保を指示", false);
-        let action = ['roger', 'nod'][Math.floor(Math.random() * 2)];
+        let action = [getRandomRoger(), 'nod'][Math.floor(Math.random() * 2)];
         setNurseMessage("挿管準備します！胸骨圧迫は中断せずに進めます！カプノメータも準備します。", action, 5);
     }
 </script>
