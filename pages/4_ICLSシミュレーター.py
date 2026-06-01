@@ -487,7 +487,7 @@ html_code = """
                 nonShockEvalTimer++;
                 if(nonShockEvalTimer >= 4 && nonShockEvalTimer < 15) {
                     if(!isCPR) autoMsgs.push({text: "先生、ショック非適応（DC不要）です。直ちに圧迫を再開してください！", state: "thinking"});
-                    else if(nonShockEvalTimer < 8) autoMsgs.push({text: "非適応波形です。原因検索(4H4T)とアドレナリンを！", state: "idle"});
+                    else if(nonShockEvalTimer < 8) autoMsgs.push({text: "ショック非適応波形です。原因検索(4H4T)とアドレナリンを！", state: "idle"});
                 }
                 if(nonShockEvalTimer >= 15) nonShockEvalTimer = -1;
             }
@@ -498,7 +498,7 @@ html_code = """
                     if(rhythm === "PEA" || rhythm === "Asystole") {
                         if(totalTime === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); window.checkGameOver(); }
                         if(totalTime >= 35) autoMsgs.push({text: "<span style='color:red;'>先生！！早く初回のアドレナリン指示を出して！！💢</span>", state: "angry"});
-                        else if(totalTime >= 20) autoMsgs.push({text: "<span style='color:red;'>先生、非適応波形です！可及的速やかに初回アドレナリンを！💦</span>", state: "thinking"});
+                        else if(totalTime >= 20) autoMsgs.push({text: "<span style='color:red;'>先生、ショック非適応波形です！可及的速やかに初回アドレナリンを！💦</span>", state: "thinking"});
                     } else if(isShockable(rhythm) && shockCount >= 2 && timeAtSecondShock >= 0) {
                         let diff = totalTime - timeAtSecondShock;
                         if(diff === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); window.checkGameOver(); }
