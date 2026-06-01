@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ICLS Simulator", page_icon="⚡", layout="wide")
 st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>⚡ 信州上田ICLS sim</h1>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 16px; color: #555;'>10秒で１分が経過します。２分:20秒でリズムチェックなので注意！</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 16px; color: #555;'>10秒で１分が経過します。リズムチェックは２分=20秒なので注意！</p>", unsafe_allow_html=True)
 
 html_code = """
 <!DOCTYPE html>
