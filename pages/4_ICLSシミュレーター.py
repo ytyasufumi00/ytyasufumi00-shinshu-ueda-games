@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ICLS Simulator", page_icon="⚡", layout="wide")
-st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>⚡ 上田医療センターICLS　sim </h1>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 16px; color: #555;'>１０秒で１分が経過します。2分:20秒でリズムチェックなので注意！</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>⚡ 信州上田ICLS sim</h1>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 16px; color: #555;'>10秒で１分が経過します。２分:20秒でリズムチェックなので注意！</p>", unsafe_allow_html=True)
 
 html_code = """
 <!DOCTYPE html>
@@ -14,68 +14,68 @@ html_code = """
     body { margin: 0; background: #2c3e50; font-family: 'Helvetica Neue', Arial, sans-serif; color: #fff; user-select: none; -webkit-user-select: none; overflow: hidden; }
     #game-container { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; background: #1a252f; border: 2px solid #34495e; box-sizing: border-box; position: relative; }
     
-    #monitor { background: #000; height: 130px; position: relative; border-bottom: 2px solid #7f8c8d; background-image: linear-gradient(rgba(46, 204, 113, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(46, 204, 113, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
+    #monitor { background: #000; height: 120px; position: relative; border-bottom: 2px solid #7f8c8d; background-image: linear-gradient(rgba(46, 204, 113, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(46, 204, 113, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
     canvas { width: 100%; height: 100%; display: block; }
-    #monitor-text { position: absolute; top: 50px; width: 100%; text-align: center; color: #e74c3c; font-weight: bold; font-size: 18px; animation: text-blink 1s infinite alternate; }
+    #monitor-text { position: absolute; top: 45px; width: 100%; text-align: center; color: #e74c3c; font-weight: bold; font-size: 16px; animation: text-blink 1s infinite alternate; }
     
-    .btn-reset { position: absolute; top: 8px; right: 8px; z-index: 100; background: rgba(52, 73, 94, 0.8); color: white; border: 1px solid #bdc3c7; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-reset { position: absolute; top: 8px; right: 8px; z-index: 100; background: rgba(52, 73, 94, 0.8); color: white; border: 1px solid #bdc3c7; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
     .btn-reset:active { background: #2c3e50; }
     
     #middle-panel { display: flex; padding: 10px 15px; background: #2c3e50; border-bottom: 4px solid #bdc3c7; height: 175px; position: relative; }
     
-    #anim-area { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background: #34495e; border-radius: 8px; margin-right: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-    .prep-controls { position: absolute; top: 8px; left: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 20; }
-    .prep-btn { background: #e67e22; color: #fff; border: 2px solid #d35400; border-radius: 6px; padding: 6px 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px #a04000; transition: 0.1s; }
-    .prep-btn:active { transform: translateY(2px); box-shadow: 0 0 #a04000; }
-    .prep-btn.secured { background: #2ecc71; border-color: #27ae60; box-shadow: 0 2px #1e8449; }
+    #anim-area { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background: #34495e; border-radius: 8px; margin-right: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); overflow: hidden; }
+    .prep-controls { position: absolute; top: 4px; left: 4px; right: 4px; display: flex; flex-direction: row; gap: 4px; z-index: 20; }
+    .prep-btn { background: #e67e22; color: #fff; border: 1px solid #d35400; border-radius: 4px; padding: 4px 2px; font-size: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 1px #a04000; transition: 0.1s; flex: 1; text-align: center; white-space: nowrap; }
+    .prep-btn:active { transform: translateY(1px); box-shadow: 0 0 #a04000; }
+    .prep-btn.secured { background: #2ecc71; border-color: #27ae60; box-shadow: 0 1px #1e8449; }
     
-    .iv-pole { position: absolute; right: 15px; bottom: 15px; font-size: 45px; z-index: 5; display: none; }
-    .patient { font-size: 70px; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); }
-    #cpr-wrapper { position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; z-index: 10; }
+    .iv-pole { position: absolute; right: 10px; bottom: 15px; font-size: 40px; z-index: 5; display: none; }
+    .patient { font-size: 60px; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); }
+    #cpr-wrapper { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; z-index: 10; }
     .cpr-active { display: flex !important; }
     #cpr-anim-group { display: flex; flex-direction: column; align-items: center; animation: cpr-pump 0.54s infinite; }
-    .cpr-label { color: #e74c3c; font-size: 13px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 3px 8px; border-radius: 8px; margin-bottom: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); white-space: nowrap; }
-    .rescuer { font-size: 50px; line-height: 1; margin-bottom: -15px; z-index: 12; }
-    .hands { font-size: 45px; z-index: 11; }
+    .cpr-label { color: #e74c3c; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 2px 5px; border-radius: 6px; margin-bottom: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap; }
+    .rescuer { font-size: 45px; line-height: 1; margin-bottom: -12px; z-index: 12; }
+    .hands { font-size: 40px; z-index: 11; }
     
-    @keyframes cpr-pump { 0% { transform: translateY(0px); } 50% { transform: translateY(12px) scaleY(0.95); } 100% { transform: translateY(0px); } }
+    @keyframes cpr-pump { 0% { transform: translateY(0px); } 50% { transform: translateY(10px) scaleY(0.95); } 100% { transform: translateY(0px); } }
     @keyframes text-blink { 0% { opacity: 1; } 100% { opacity: 0.5; } }
     
-    #status-area { flex: 1; display: flex; flex-direction: column; justify-content: space-between; font-size: 14px; font-weight: bold; }
-    .timer-box { background: #000; padding: 5px; border-radius: 6px; text-align: center; border: 1px solid #7f8c8d; }
-    .text-red { color: #e74c3c; font-size: 16px; } .text-green { color: #2ecc71; }
-    .history-box { font-size: 13px; text-align: left; padding: 4px 8px; line-height: 1.3; }
-    .hist-title-dc { color: #e74c3c; margin-bottom: 2px; } .hist-title-adr { color: #9b59b6; margin-top: 4px; margin-bottom: 2px; }
-    .hist-text { color: #bdc3c7; margin-left: 5px; font-weight: normal; font-size: 12px; }
+    #status-area { flex: 1; display: flex; flex-direction: column; justify-content: space-between; font-size: 13px; font-weight: bold; }
+    .timer-box { background: #000; padding: 4px; border-radius: 6px; text-align: center; border: 1px solid #7f8c8d; }
+    .text-red { color: #e74c3c; font-size: 15px; } .text-green { color: #2ecc71; }
+    .history-box { font-size: 12px; text-align: left; padding: 4px 6px; line-height: 1.2; }
+    .hist-title-dc { color: #e74c3c; margin-bottom: 1px; } .hist-title-adr { color: #9b59b6; margin-top: 3px; margin-bottom: 1px; }
+    .hist-text { color: #bdc3c7; margin-left: 4px; font-weight: normal; font-size: 11px; }
     
-    #nurse-area { display: flex; padding: 10px 15px; background: #ecf0f1; align-items: center; min-height: 90px; }
-    #nurseCanvas { width: 80px; height: 80px; margin-right: 10px; flex-shrink: 0; }
-    #nurse-message-container { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; justify-content: center; max-height: 120px; overflow-y: auto; }
-    .nurse-bubble-item { background: #fff; padding: 8px 12px; border-radius: 12px; position: relative; font-size: 13px; font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,0.15); line-height: 1.3; color: #2c3e50; }
-    .nurse-bubble-item:first-child::before { content: ''; position: absolute; left: -10px; top: 10px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 10px solid #fff; }
+    #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 95px; }
+    #nurseCanvas { width: 70px; height: 70px; margin-right: 8px; flex-shrink: 0; }
     
-    #command-area { padding: 10px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; }
-    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-grow: 1; }
-    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 10px 5px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px #1f618d; transition: 0.1s; }
-    .cmd-btn:active { transform: translateY(4px); box-shadow: 0 0 #1f618d; }
-    .btn-shock { background: #e74c3c; box-shadow: 0 4px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
-    .btn-drug { background: #8e44ad; box-shadow: 0 4px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
-    .btn-diag { background: #d35400; box-shadow: 0 4px #a04000; } .btn-diag:active { box-shadow: 0 0 #a04000; }
-    .btn-exam { background: #f39c12; box-shadow: 0 4px #b9770e; } .btn-exam:active { box-shadow: 0 0 #b9770e; }
-    .btn-test { background: #16a085; box-shadow: 0 4px #0e6655; } .btn-test:active { box-shadow: 0 0 #0e6655; }
-    .btn-back { background: #95a5a6; box-shadow: 0 4px #7f8c8d; grid-column: 1 / -1; }
+    /* 🌟 吹き出し領域を拡張し、同時に複数見やすくした */
+    #nurse-message-container { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; justify-content: center; max-height: 140px; overflow-y: auto; }
+    .nurse-bubble-item { background: #fff; padding: 6px 10px; border-radius: 12px; position: relative; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15); line-height: 1.2; color: #2c3e50; }
+    .nurse-bubble-item:first-child::before { content: ''; position: absolute; left: -10px; top: 10px; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid #fff; }
     
-    #hidden-course-selector { text-align: right; padding-top: 8px; opacity: 0.3; transition: 0.3s; }
+    #command-area { padding: 8px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; }
+    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 8px 3px; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 3px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .cmd-btn:active { transform: translateY(3px); box-shadow: 0 0 #1f618d; }
+    .btn-shock { background: #e74c3c; box-shadow: 0 3px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
+    .btn-drug { background: #8e44ad; box-shadow: 0 3px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
+    .btn-diag { background: #d35400; box-shadow: 0 3px #a04000; } .btn-diag:active { box-shadow: 0 0 #a04000; }
+    .btn-exam { background: #f39c12; box-shadow: 0 3px #b9770e; } .btn-exam:active { box-shadow: 0 0 #b9770e; }
+    .btn-test { background: #16a085; box-shadow: 0 3px #0e6655; } .btn-test:active { box-shadow: 0 0 #0e6655; }
+    .btn-back { background: #95a5a6; box-shadow: 0 3px #7f8c8d; grid-column: 1 / -1; }
+    
+    #hidden-course-selector { text-align: right; padding-top: 4px; opacity: 0.3; transition: 0.3s; }
     #hidden-course-selector:hover { opacity: 1; }
-    .hidden-btn { background: transparent; color: #bdc3c7; border: 1px solid #7f8c8d; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; margin-left: 4px; }
+    .hidden-btn { background: transparent; color: #bdc3c7; border: 1px solid #7f8c8d; border-radius: 4px; padding: 1px 5px; font-size: 9px; cursor: pointer; margin-left: 3px; }
     .hidden-btn:hover { background: #7f8c8d; color: white; }
 
-    /* 🌟 リザルト・終了画面の統合 */
     #result-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 37, 47, 0.97); z-index: 50; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-    .result-panels { display: flex; gap: 20px; width: 95%; max-width: 760px; height: 55vh; text-align: left; }
-    .result-panel-left { flex: 1; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; border: 1px solid #34495e; }
-    .result-panel-right { flex: 1.2; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; overflow-y: auto; font-family: monospace; border: 1px solid #34495e; }
-    
+    .result-panels { display: flex; gap: 15px; width: 95%; max-width: 760px; height: 55vh; text-align: left; }
+    .result-panel-left { flex: 1; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; border: 1px solid #34495e; }
+    .result-panel-right { flex: 1.2; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; overflow-y: auto; font-family: monospace; border: 1px solid #34495e; font-size: 11px; }
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
     ::-webkit-scrollbar-thumb { background: #7f8c8d; border-radius: 4px; }
@@ -83,21 +83,20 @@ html_code = """
 </head>
 <body>
 <div id="game-container">
-    <!-- 🌟 リザルトウィンドウ（成功・失敗共用） -->
     <div id="result-overlay">
-        <div id="result-icon" style="font-size: 50px; margin-bottom: 5px;">🎉</div>
-        <div id="result-title" style="font-size: 26px; font-weight: bold; color: white; margin-bottom: 15px;">ROSC 確認！</div>
+        <div id="result-icon" style="font-size: 45px; margin-bottom: 5px;">🎉</div>
+        <div id="result-title" style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 12px;">ROSC 確認！</div>
         
         <div class="result-panels">
             <div class="result-panel-left">
-                <div id="result-rank" style="font-size: 18px; font-weight: bold; margin-bottom: 5px;"></div>
-                <div id="result-score" style="font-size: 30px; font-weight: bold; margin-bottom: 15px; color: white; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px;"></div>
-                <div id="result-breakdown" style="font-size: 13px; color: #ecf0f1; overflow-y: auto; flex-grow: 1;"></div>
+                <div id="result-rank" style="font-size: 16px; font-weight: bold; margin-bottom: 5px;"></div>
+                <div id="result-score" style="font-size: 26px; font-weight: bold; margin-bottom: 12px; color: white; border-bottom: 1px solid #7f8c8d; padding-bottom: 8px;"></div>
+                <div id="result-breakdown" style="font-size: 12px; color: #ecf0f1; overflow-y: auto; flex-grow: 1;"></div>
             </div>
             <div class="result-panel-right" id="result-log"></div>
         </div>
         
-        <button onclick="location.reload()" style="margin-top: 25px; padding: 12px 25px; font-size: 15px; background: #fff; color: #2c3e50; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px rgba(0,0,0,0.3);">別の症例に挑む</button>
+        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; font-size: 14px; background: #fff; color: #2c3e50; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px rgba(0,0,0,0.3);">別の症例に挑む</button>
     </div>
 
     <div id="monitor">
@@ -181,7 +180,7 @@ html_code = """
         </div>
         
         <div id="hidden-course-selector">
-            <span style="font-size: 10px; color: #bdc3c7;">Debug / Course Fix: </span>
+            <span style="font-size: 9px; color: #bdc3c7;">Debug / Course Fix: </span>
             <button class="hidden-btn" onclick="setCourse('VF')">VF</button>
             <button class="hidden-btn" onclick="setCourse('VT')">VT</button>
             <button class="hidden-btn" onclick="setCourse('PEA')">PEA</button>
@@ -231,12 +230,14 @@ html_code = """
     const shockEffect = document.getElementById("shock-effect");
     const resultOverlay = document.getElementById("result-overlay");
 
+    // 🌟 累積ミス用オブジェクト
     let mistakes = { 
         prepBeforeCPR: 0, notStarted: 0, earlyCheck: 0, checkWhileNotCPR: 0, shockNotIndicated: 0, 
         blindShock: 0, earlyShock: 0, wrongJoules: 0,
         earlyAdr: 0, earlyAdrReadmin: 0, wrongAmio: 0, wrongAmioTiming: 0, wrongAmioTiming2: 0, wrongAmioDose: 0, wrongAmioDose2: 0, amioMax: 0,
         wrongLido: 0, wrongLidoTiming: 0, dupAmioLido: 0,
-        wrongDiag: 0, noMonitor: 0, noIV: 0, handsOffLong: 0, checkDelay: 0, adrDelay: 0
+        wrongDiag: 0, noMonitor: 0, noIV: 0, 
+        handsOffLong: 0, dcDelay: 0, checkDelay: 0, adrDelay: 0
     };
     
     function isShockable(r) { return r === "VF" || r === "VT"; }
@@ -290,12 +291,10 @@ html_code = """
         else if(type === 'notStarted') { msg = count === 1 ? "先生、まずは胸骨圧迫を開始してください💦" : "先生！患者さんが目の前にいます！胸骨圧迫が最優先です！💢"; logMsg = "胸骨圧迫の開始遅延"; }
         else if(type === 'earlyCheck') { msg = count === 1 ? "先生、リズムチェックは2分ごとです！まだ時間が来ていません💦" : "先生！まだ2分経ってません！むやみに胸骨圧迫を中断しないで！💢"; logMsg = "2分未満でのリズムチェック"; }
         else if(type === 'checkWhileNotCPR') { msg = count === 1 ? "先生、今はすでに圧迫を中断して評価中です。早く次の指示を💦" : "先生！何度も評価しないで、早く指示を！💢"; logMsg = "不適切なタイミングの評価"; }
-        
         else if(type === 'blindShock') { msg = "先生！リズムチェック（最終波形確認）をせずにショックは打てません！ブラインドDCです！💢"; logMsg = "リズムチェックなしでの除細動(ブラインドDC)"; }
         else if(type === 'shockNotIndicated') { msg = count === 1 ? `先生、波形は${rhythm}です！ショック適応のタイミングではありません💦` : "先生、だからショックは打てません！波形とアルゴリズムを見て！💢"; logMsg = "ショック非適応でのDC指示"; }
         else if(type === 'earlyShock') { msg = "先生！次のチェックまでCPRを継続してください！連続ショックはガイドライン違反です！💢"; logMsg = "早すぎる除細動(DC)の反復"; }
         else if(type === 'wrongJoules') { msg = "先生！J数を下げるのは不適切です！同等かそれ以上で指示してください！💢"; logMsg = "不適切なJ数の選択(低下)"; }
-
         else if(type === 'earlyAdr') { msg = count === 1 ? "先生、VF/VTの場合アドレナリンは「第2回ショックの後」です！まだ早いです💦" : "先生！アドレナリンはまだですって！アルゴリズム思い出して！💢"; logMsg = "アドレナリンの早期投与"; }
         else if(type === 'earlyAdrReadmin') { msg = "先生、前回の投与からまだ3分経っていません！早すぎます！💢"; logMsg = "アドレナリンの不適切な再投与(3分未満)"; }
         else if(type === 'wrongAmio') { msg = "先生、アミオダロンはVF/pVTのみ適応です！非適応です！💢"; logMsg = "アミオダロンの適応外投与"; }
@@ -311,12 +310,10 @@ html_code = """
         
         logAction(logMsg, true);
         setNurseMessage(`<span style='color:#e74c3c; font-weight:bold;'>${msg}</span>`, nState, 6);
-        
-        // 🌟 減点発生時に毎回ゲームオーバーチェックを行う
-        checkGameOver();
+        window.checkGameOver();
     }
 
-    // 🌟 減点スコアの厳格な計算（マイナス上限解放）
+    // 🌟 累積ペナルティを計算に反映
     function calculateScore() {
         let score = 100;
         let breakdown = [];
@@ -329,15 +326,17 @@ html_code = """
         let checkErrs = mistakes.earlyCheck + mistakes.checkWhileNotCPR;
         if(checkErrs > 0) { score -= checkErrs * 10; breakdown.push(`不適切なリズムチェック (-${checkErrs * 10}点)`); }
         
-        if(mistakes.blindShock > 0) { score -= mistakes.blindShock * 20; breakdown.push(`リズムチェックなしでのDC指示(ブラインドDC) (-${mistakes.blindShock * 20}点)`); }
+        if(mistakes.blindShock > 0) { score -= mistakes.blindShock * 20; breakdown.push(`ブラインドDC(波形未確認) (-${mistakes.blindShock * 20}点)`); }
         let dcErrs = mistakes.shockNotIndicated + mistakes.earlyShock + mistakes.wrongJoules;
-        if(dcErrs > 0) { score -= dcErrs * 15; breakdown.push(`不適切なDC指示(非適応・早期反復・J数低下) (-${dcErrs * 15}点)`); }
+        if(dcErrs > 0) { score -= dcErrs * 15; breakdown.push(`不適切なDC指示(非適応・反復・J数低下) (-${dcErrs * 15}点)`); }
         
         let drugErrs = mistakes.earlyAdr + mistakes.earlyAdrReadmin + mistakes.wrongAmio + mistakes.wrongAmioTiming + mistakes.wrongAmioTiming2 + mistakes.wrongAmioDose + mistakes.wrongAmioDose2 + mistakes.amioMax + mistakes.wrongLido + mistakes.wrongLidoTiming + mistakes.dupAmioLido;
         if(drugErrs > 0) { score -= drugErrs * 15; breakdown.push(`不適切な薬剤投与 (-${drugErrs * 15}点)`); }
-        
         if(mistakes.wrongDiag > 0) { score -= mistakes.wrongDiag * 10; breakdown.push(`不適切な原因診断(誤診) (-${mistakes.wrongDiag * 10}点)`); }
-        if(mistakes.handsOffLong > 0) { score -= mistakes.handsOffLong * 10; breakdown.push(`長すぎる圧迫中断(10秒以上) (-${mistakes.handsOffLong * 10}点)`); }
+        
+        // 🌟 累積時間遅延ペナルティ
+        if(mistakes.handsOffLong > 0) { score -= mistakes.handsOffLong * 10; breakdown.push(`圧迫の長期中断(10秒ごと減点) (-${mistakes.handsOffLong * 10}点)`); }
+        if(mistakes.dcDelay > 0) { score -= mistakes.dcDelay * 10; breakdown.push(`DC指示の過度な遅延 (-${mistakes.dcDelay * 10}点)`); }
         if(mistakes.checkDelay > 0) { score -= mistakes.checkDelay * 10; breakdown.push(`リズムチェックの過度な遅延 (-${mistakes.checkDelay * 10}点)`); }
         if(mistakes.adrDelay > 0) { score -= mistakes.adrDelay * 10; breakdown.push(`アドレナリン投与の過度な遅延 (-${mistakes.adrDelay * 10}点)`); }
 
@@ -351,15 +350,11 @@ html_code = """
         return { score, breakdown, rank, rankColor };
     }
 
-    // 🌟 ゲームオーバー判定チェック
-    function checkGameOver() {
+    window.checkGameOver = function() {
         let res = calculateScore();
-        if(res.score <= -50) {
-            triggerGameOver();
-        }
+        if(res.score <= -50 && gameInterval) { triggerGameOver(); }
     }
 
-    // 🌟 残念な終了画面（ゲームオーバー）の処理
     function triggerGameOver() {
         if(gameInterval) clearInterval(gameInterval); gameInterval = null; isCPR = false; cprWrapper.classList.remove("cpr-active");
         logAction("💔 救命失敗 (プロトコル破綻によるゲームオーバー)", true);
@@ -386,7 +381,7 @@ html_code = """
         document.getElementById("result-log").innerHTML = logHtml;
 
         resultOverlay.style.display = "flex"; 
-        setNurseMessage("<span style='color:#e74c3c; font-weight:bold;'>先生…指示の誤りが多すぎて現場が完全に崩壊しました。救命不可能として終了します…💔</span>", "angry", 999);
+        setNurseMessage("<span style='color:#e74c3c; font-weight:bold;'>先生…指示の誤りや遅延が多すぎて現場が完全に崩壊しました。救命不可能として終了します…💔</span>", "angry", 999);
     }
 
     function triggerROSC() {
@@ -445,33 +440,45 @@ html_code = """
             if(manualMsgTimer > 0) manualMsgTimer--;
             let autoMsgs = [];
             
-            if(isCPR) {
+            // 🌟 1. 胸骨圧迫の中断チェック（一番重要）
+            if(!isCPR && rhythm !== "ROSC") {
+                interruptTime++;
+                // 10秒ごとに累積ペナルティを追加
+                if(interruptTime > 0 && interruptTime % 10 === 0) { 
+                    mistakes.handsOffLong++; 
+                    logAction(`胸骨圧迫の長期中断（${interruptTime}秒経過）`, true); 
+                    window.checkGameOver(); 
+                }
+                
+                if(interruptTime >= 15) autoMsgs.push({text: "<span style='color:red;'>先生！！脳に血が回っていません！早く圧迫を再開して！！💢</span>", state: "angry"});
+                else if(interruptTime >= 8) autoMsgs.push({text: "<span style='color:red;'>手が止まっています！中断は最小限に！圧迫の指示を！</span>", state: "angry"});
+            } else if(isCPR) {
                 cycleTime++; interruptTime = 0; 
-                if(cycleTime === 32) { mistakes.checkDelay++; logAction("リズムチェックの過度な遅延", true); checkGameOver(); }
+                if(cycleTime === 32) { mistakes.checkDelay++; logAction("リズムチェックの過度な遅延", true); window.checkGameOver(); }
                 if(cycleTime >= 32) autoMsgs.push({text: "<span style='color:red;'>先生！！もう3分経っちゃいます！リズムチェック！！！💢</span>", state: "angry"});
                 else if(cycleTime >= 26) autoMsgs.push({text: "<span style='color:red;'>先生、2分過ぎてます！早くリズムチェックを！💦</span>", state: "thinking"});
                 else if(cycleTime >= 21) autoMsgs.push({text: "<span style='color:red;'>2分経過！リズムチェックの指示を！</span>", state: "idle"});
                 else if(cycleTime >= 18) autoMsgs.push({text: "圧迫開始からまもなく2分です！リズムチェックの準備をお願いします！", state: "idle"});
-            } else {
-                interruptTime++;
-                if(!pendingShock && rhythm !== "ROSC") {
-                    if(interruptTime === 12) { mistakes.handsOffLong++; logAction("長すぎる圧迫中断(10秒以上)", true); checkGameOver(); }
-                    if(interruptTime >= 12) autoMsgs.push({text: "<span style='color:red;'>先生！！手が止まってます！早く圧迫を！！💢</span>", state: "angry"});
-                    else if(interruptTime >= 6) autoMsgs.push({text: "<span style='color:red;'>中断が長いです！早く圧迫再開の指示を！</span>", state: "angry"});
-                }
             }
 
+            // 🌟 2. DC指示の遅れチェック（同時多発を許可）
             if(pendingShock) {
                 pendingShockTimer++;
-                if(pendingShockTimer === 20) { mistakes.handsOffLong++; logAction("DC指示忘れによる長すぎる圧迫中断", true); checkGameOver(); }
-                if(pendingShockTimer >= 20) autoMsgs.push({text: "<span style='color:red;'>先生！！ショック適応です！早くDC指示を！！💢</span>", state: "angry"});
-                else if(pendingShockTimer >= 10) autoMsgs.push({text: "<span style='color:red;'>先生、VF/VTです！早く除細動(DC)の指示を！💦</span>", state: "thinking"});
-                else if(pendingShockTimer >= 4) {
-                    if(isCPR) autoMsgs.push({text: "先生、波形はショック適応です。除細動(DC)の準備指示もお願いします！", state: "idle"});
-                    else autoMsgs.push({text: "先生、この波形はショック適応です。除細動(DC)の準備指示と圧迫再開を！", state: "idle"});
+                // 15秒ごとに累積ペナルティ
+                if(pendingShockTimer > 0 && pendingShockTimer % 15 === 0) { 
+                    mistakes.dcDelay++; 
+                    logAction("除細動(DC)指示の長期遅延", true); 
+                    window.checkGameOver(); 
+                }
+                
+                if(pendingShockTimer >= 15) autoMsgs.push({text: "<span style='color:red;'>先生！！ショック適応です！早くDC指示を！！💢</span>", state: "angry"});
+                else if(pendingShockTimer >= 5) {
+                    if(isCPR) autoMsgs.push({text: "先生、波形はショック適応です。除細動(DC)の準備指示をお願いします！", state: "idle"});
+                    else autoMsgs.push({text: "<span style='color:red;'>波形はショック適応です。除細動(DC)の準備と圧迫再開を！</span>", state: "thinking"});
                 }
             } else { pendingShockTimer = 0; }
 
+            // 🌟 3. 非適応波形時のアドバイス
             if(nonShockEvalTimer >= 0 && rhythm !== "ROSC" && !pendingShock) {
                 nonShockEvalTimer++;
                 if(nonShockEvalTimer >= 4 && nonShockEvalTimer < 15) {
@@ -481,22 +488,23 @@ html_code = """
                 if(nonShockEvalTimer >= 15) nonShockEvalTimer = -1;
             }
 
+            // 🌟 4. 薬剤投与の遅れチェック
             if(rhythm !== "ROSC" && isInitialCheckDone) {
                 if(adrCount === 0) {
                     if(rhythm === "PEA" || rhythm === "Asystole") {
-                        if(totalTime === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); checkGameOver(); }
+                        if(totalTime === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); window.checkGameOver(); }
                         if(totalTime >= 35) autoMsgs.push({text: "<span style='color:red;'>先生！！早く初回のアドレナリン指示を出して！！💢</span>", state: "angry"});
                         else if(totalTime >= 20) autoMsgs.push({text: "<span style='color:red;'>先生、非適応波形です！可及的速やかに初回アドレナリンを！💦</span>", state: "thinking"});
                     } else if(isShockable(rhythm) && shockCount >= 2 && timeAtSecondShock >= 0) {
                         let diff = totalTime - timeAtSecondShock;
-                        if(diff === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); checkGameOver(); }
+                        if(diff === 35) { mistakes.adrDelay++; logAction("アドレナリン投与の過度な遅延", true); window.checkGameOver(); }
                         if(diff >= 35) autoMsgs.push({text: "<span style='color:red;'>先生！！早くアドレナリン投与して！！💢</span>", state: "angry"});
                         else if(diff >= 25) autoMsgs.push({text: "<span style='color:red;'>先生！初回アドレナリン忘れてませんか！？早く指示を！💦</span>", state: "thinking"});
                         else if(diff >= 15) autoMsgs.push({text: "先生、第2回ショックが終わりました。アドレナリンの指示をお願いします！", state: "idle"});
                     }
                 } else {
                     let timeSinceAdr = totalTime - lastAdrTime;
-                    if(timeSinceAdr === 60) { mistakes.adrDelay++; logAction("アドレナリンの再投与間隔の過度な遅延", true); checkGameOver(); }
+                    if(timeSinceAdr === 60) { mistakes.adrDelay++; logAction("アドレナリンの再投与間隔の過度な遅延", true); window.checkGameOver(); }
                     if(timeSinceAdr >= 60) autoMsgs.push({text: "<span style='color:red;'>先生！！アドレナリンの間隔空きすぎます！！💢</span>", state: "angry"});
                     else if(timeSinceAdr >= 50) autoMsgs.push({text: "<span style='color:red;'>先生！アドレナリンから5分経過しました！次の投与指示を！💦</span>", state: "thinking"});
                     else if(timeSinceAdr >= 45) autoMsgs.push({text: "先生、アドレナリン投与からまもなく5分です！準備しますか？", state: "idle"});
