@@ -59,7 +59,7 @@ html_code = """
     
     #command-area { padding: 8px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; }
-    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 2px 2px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 1px 1px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
     .cmd-btn:active { transform: translateY(3px); box-shadow: 0 0 #1f618d; }
     .btn-shock { background: #e74c3c; box-shadow: 0 3px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
     .btn-drug { background: #8e44ad; box-shadow: 0 3px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
@@ -109,8 +109,8 @@ html_code = """
     <div id="middle-panel">
         <div id="anim-area">
             <div class="prep-controls">
-                <button id="btn-monitor" class="prep-btn" onclick="actionMonitor()">🖥️ モニター装着</button>
-                <button id="btn-iv" class="prep-btn" onclick="actionIV()">💉 ルート確保</button>
+                <button id="btn-monitor" class="prep-btn" onclick="actionMonitor()"> モニター装着</button>
+                <button id="btn-iv" class="prep-btn" onclick="actionIV()"> ルート確保</button>
             </div>
             <div class="patient">🛌</div>
             <div id="iv-pole" class="iv-pole">💧</div>
@@ -356,7 +356,7 @@ html_code = """
 
     window.checkGameOver = function() {
         let res = calculateScore();
-        if(res.score <= -50 && gameInterval) { triggerGameOver(); }
+        if(res.score <= 0 && gameInterval) { triggerGameOver(); }
     }
 
     function triggerGameOver() {
