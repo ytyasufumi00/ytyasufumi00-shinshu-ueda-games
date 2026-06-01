@@ -50,7 +50,7 @@ html_code = """
     .hist-text { color: #ffffff; margin-left: 4px; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
     
     #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 110px; position: relative; z-index: 10; }
-    #nurseCanvas { width: 90px; height: 90px; margin-right: 8px; flex-shrink: 0; }
+    #nurseCanvas { width: 100px; height: 130px; margin-top: -40px; margin-right: 8px; flex-shrink: 0; position: relative; z-index: 100; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.4)); }
     
     /* 🌟 吹き出し領域を拡張し、同時に複数見やすくした */
     #nurse-message-container { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; justify-content: center; max-height: 140px; overflow-y: auto; }
@@ -59,7 +59,7 @@ html_code = """
     
     #command-area { padding: 8px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; }
-    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 1px 1px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 1px 1px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 1px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
     .cmd-btn:active { transform: translateY(3px); box-shadow: 0 0 #1f618d; }
     .btn-shock { background: #e74c3c; box-shadow: 0 3px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
     .btn-drug { background: #8e44ad; box-shadow: 0 3px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
@@ -137,7 +137,7 @@ html_code = """
     </div>
     
     <div id="nurse-area">
-        <canvas id="nurseCanvas" width="80" height="80"></canvas>
+        <canvas id="nurseCanvas" width="100" height="130"></canvas>
         <div id="nurse-message-container">
             <div class="nurse-bubble-item">患者が倒れています！意識なし、呼吸なし！指示をお願いします！</div>
         </div>
@@ -525,7 +525,7 @@ html_code = """
         const nCanvas = document.getElementById("nurseCanvas");
         if(!nCanvas) return;
         const nCtx = nCanvas.getContext("2d");
-        nCtx.clearRect(0, 0, 80, 80); nCtx.save(); nCtx.translate(40, 45);
+        nCtx.clearRect(0, 0, 100, 130); nCtx.save(); nCtx.translate(50, 100);
 
         let bounce = 0;
         if (nurseState === 'idle') bounce = Math.sin(frame * 0.08) * 2;
