@@ -46,7 +46,7 @@ html_code = """
     .text-red { color: #e74c3c; font-size: 15px; } .text-green { color: #2ecc71; }
    .history-box { font-size: 14px; text-align: left; padding: 6px 8px; line-height: 1.3; }
     .hist-title-dc { color: #ff7675; margin-bottom: 1px; font-weight: bold; } 
-    .hist-title-adr { color: #a29bfe; margin-top: 5px; margin-bottom: 1px; font-weight: bold; }
+    .hist-title-adr { color: #00a8ff; margin-top: 5px; margin-bottom: 1px; font-weight: bold; }
     .hist-text { color: #ffffff; margin-left: 4px; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
     
     #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 95px; }
@@ -59,7 +59,7 @@ html_code = """
     
     #command-area { padding: 8px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; }
-    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 8px 3px; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 3px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 2px 2px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
     .cmd-btn:active { transform: translateY(3px); box-shadow: 0 0 #1f618d; }
     .btn-shock { background: #e74c3c; box-shadow: 0 3px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
     .btn-drug { background: #8e44ad; box-shadow: 0 3px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
@@ -130,7 +130,7 @@ html_code = """
             <div class="timer-box history-box">
                 <div class="hist-title-dc">⚡ 最終DC</div>
                 <div id="time-since-shock" class="hist-text">未実施</div>
-                <div class="hist-title-adr">💉 最終Adr</div>
+                <div class="hist-title-adr">💉 最終アドレナリン</div>
                 <div id="time-since-adr" class="hist-text">未実施</div>
             </div>
         </div>
