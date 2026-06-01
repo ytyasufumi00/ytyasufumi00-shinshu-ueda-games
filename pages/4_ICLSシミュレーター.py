@@ -44,9 +44,10 @@ html_code = """
     #status-area { flex: 1; display: flex; flex-direction: column; justify-content: space-between; font-size: 13px; font-weight: bold; }
     .timer-box { background: #000; padding: 4px; border-radius: 6px; text-align: center; border: 1px solid #7f8c8d; }
     .text-red { color: #e74c3c; font-size: 15px; } .text-green { color: #2ecc71; }
-    .history-box { font-size: 12px; text-align: left; padding: 4px 6px; line-height: 1.2; }
-    .hist-title-dc { color: #e74c3c; margin-bottom: 1px; } .hist-title-adr { color: #9b59b6; margin-top: 3px; margin-bottom: 1px; }
-    .hist-text { color: #bdc3c7; margin-left: 4px; font-weight: normal; font-size: 11px; }
+   .history-box { font-size: 14px; text-align: left; padding: 6px 8px; line-height: 1.3; }
+    .hist-title-dc { color: #ff7675; margin-bottom: 1px; font-weight: bold; } 
+    .hist-title-adr { color: #a29bfe; margin-top: 5px; margin-bottom: 1px; font-weight: bold; }
+    .hist-text { color: #ffffff; margin-left: 4px; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
     
     #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 95px; }
     #nurseCanvas { width: 70px; height: 70px; margin-right: 8px; flex-shrink: 0; }
@@ -268,11 +269,14 @@ html_code = """
     function getActionTimeStr(diff, type) {
         if (diff < 5) return "さきほど"; if (diff < 15) return "約1分経過";
         if (type === 'DC') {
-            if (diff < 19) return "<span style='color:#f1c40f; font-weight:bold;'>まもなく2分!</span>";
-            if (diff < 25) return "<span style='color:#e74c3c; font-weight:bold;'>約2分経過!</span>"; return "<span style='color:#e74c3c;'>長期間未実施</span>";
+            if (diff < 19) return "<span style='color:#f39c12; font-size:16px; font-weight:bold;'>まもなく2分!</span>";
+            if (diff < 25) return "<span style='color:#ff4757; font-size:18px; font-weight:bold;'>約2分経過!</span>"; 
+            return "<span style='color:#ff4757; font-size:18px; font-weight:bold;'>長期間未実施!!</span>";
         } else if (type === 'Adr') {
-            if (diff < 25) return "約2分経過"; if (diff < 35) return "<span style='color:#2ecc71; font-weight:bold;'>約3分経過 (可)</span>";
-            if (diff < 50) return "<span style='color:#2ecc71; font-weight:bold;'>約4分経過 (可)</span>"; return "<span style='color:#e74c3c; font-weight:bold;'>5分以上経過！</span>";
+            if (diff < 25) return "約2分経過"; 
+            if (diff < 35) return "<span style='color:#2ecc71; font-size:16px; font-weight:bold;'>約3分経過 (可)</span>";
+            if (diff < 50) return "<span style='color:#2ecc71; font-size:16px; font-weight:bold;'>約4分経過 (可)</span>"; 
+            return "<span style='color:#ff4757; font-size:18px; font-weight:bold;'>5分以上経過!!</span>";
         } return "不明";
     }
 
