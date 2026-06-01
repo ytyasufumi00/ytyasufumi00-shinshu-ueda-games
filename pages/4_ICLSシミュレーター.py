@@ -251,7 +251,7 @@ html_code = """
 
     function getRandomPraise() { const praises = ["了解！先生、指示が的確で助かります！", "はい！タイミングばっちりですね！", "了解です！スムーズな進行ですね✨"]; return praises[Math.floor(Math.random() * praises.length)]; }
     function getRandomGreatPraise() { const praises = ["正解です！素晴らしいアセスメント！✨", "さすが先生！見事な着眼点です！👏", "完璧です！すぐに特異的治療を開始します！"]; return praises[Math.floor(Math.random() * praises.length)]; }
-    function getRandomHappyState() { const states = ['happy', 'guts', 'sparkle', 'nod']; return states[Math.floor(Math.random() * states.length)]; }
+    function getRandomHappyState() { const states = ['happy', 'guts', 'sparkle', 'nod', 'cracker', 'ok_circle', 'heart']; return states[Math.floor(Math.random() * states.length)]; }
 
     function logAction(text, isError) {
         let m = Math.floor(totalTime / 60); let s = totalTime % 60;
@@ -521,7 +521,7 @@ html_code = """
 
     let ecgX = 0; let frame = 0;
     
-    function drawNurse() {
+ function drawNurse() {
         const nCanvas = document.getElementById("nurseCanvas");
         if(!nCanvas) return;
         const nCtx = nCanvas.getContext("2d");
@@ -530,31 +530,33 @@ html_code = """
         let bounce = 0;
         if (nurseState === 'idle') bounce = Math.sin(frame * 0.08) * 2;
         else if (nurseState === 'roger') bounce = Math.abs(Math.sin(frame * 0.2)) * -4;
-        else if (nurseState === 'happy') bounce = Math.abs(Math.sin(frame * 0.3)) * -6; 
-        else if (nurseState === 'guts') bounce = Math.abs(Math.sin(frame * 0.2)) * -5; 
-        else if (nurseState === 'sparkle') bounce = Math.sin(frame * 0.1) * 2; 
+        else if (nurseState === 'happy' || nurseState === 'cracker') bounce = Math.abs(Math.sin(frame * 0.3)) * -6; 
+        else if (nurseState === 'guts' || nurseState === 'ok_circle') bounce = Math.abs(Math.sin(frame * 0.2)) * -5; 
+        else if (nurseState === 'sparkle' || nurseState === 'heart') bounce = Math.sin(frame * 0.1) * 2; 
         else if (nurseState === 'nod') bounce = Math.sin(frame * 0.6) * 5; 
         else if (nurseState === 'angry') nCtx.translate((Math.random()-0.5)*3, (Math.random()-0.5)*3);
         else if (nurseState === 'thinking') bounce = Math.sin(frame * 0.05) * 1; 
 
         nCtx.translate(0, bounce);
 
+        // --- 輪郭・髪 ---
         nCtx.fillStyle = "#ffffff"; nCtx.fillRect(-18, -32, 36, 12);
         nCtx.fillStyle = "#e74c3c"; nCtx.fillRect(-2, -30, 4, 8); nCtx.fillRect(-4, -28, 8, 4);
         nCtx.fillStyle = "#8e44ad"; nCtx.beginPath(); nCtx.arc(0, -10, 16, 0, Math.PI*2); nCtx.fill();
         nCtx.fillStyle = "#ffdbac"; nCtx.beginPath(); nCtx.arc(0, -12, 14, 0, Math.PI*2); nCtx.fill();
         nCtx.lineWidth = 1.5; nCtx.strokeStyle = "#2c3e50"; nCtx.fillStyle = "#2c3e50";
         
+        // --- 顔の表情 ---
         if (nurseState === 'idle') {
             nCtx.fillRect(-6, -15, 3, 3); nCtx.fillRect(3, -15, 3, 3); nCtx.beginPath(); nCtx.arc(0, -7, 4, 0, Math.PI, false); nCtx.stroke();
-        } else if (nurseState === 'roger' || nurseState === 'happy') {
+        } else if (nurseState === 'roger' || nurseState === 'happy' || nurseState === 'cracker' || nurseState === 'ok_circle') {
             nCtx.beginPath(); nCtx.arc(-5, -13, 3, Math.PI, 0, false); nCtx.stroke(); nCtx.beginPath(); nCtx.arc(5, -13, 3, Math.PI, 0, false); nCtx.stroke();
             nCtx.beginPath(); nCtx.arc(0, -7, 5, 0, Math.PI, false); nCtx.stroke(); 
-            if(nurseState === 'happy'){ nCtx.fillStyle = "#ff9999"; nCtx.beginPath(); nCtx.arc(-8, -9, 3, 0, Math.PI*2); nCtx.fill(); nCtx.beginPath(); nCtx.arc(8, -9, 3, 0, Math.PI*2); nCtx.fill(); }
+            if(nurseState === 'happy' || nurseState === 'cracker' || nurseState === 'ok_circle'){ nCtx.fillStyle = "#ff9999"; nCtx.beginPath(); nCtx.arc(-8, -9, 3, 0, Math.PI*2); nCtx.fill(); nCtx.beginPath(); nCtx.arc(8, -9, 3, 0, Math.PI*2); nCtx.fill(); }
         } else if (nurseState === 'guts') {
             nCtx.beginPath(); nCtx.arc(-5, -13, 3, Math.PI, 0, false); nCtx.stroke(); nCtx.beginPath(); nCtx.arc(5, -13, 3, Math.PI, 0, false); nCtx.stroke();
             nCtx.fillStyle = "#e74c3c"; nCtx.beginPath(); nCtx.arc(0, -7, 4, 0, Math.PI, false); nCtx.fill(); 
-        } else if (nurseState === 'sparkle') {
+        } else if (nurseState === 'sparkle' || nurseState === 'heart') {
             nCtx.fillStyle = "#f1c40f"; nCtx.save(); nCtx.translate(-5, -13); nCtx.rotate(Math.PI/4); nCtx.fillRect(-2.5, -2.5, 5, 5); nCtx.restore();
             nCtx.save(); nCtx.translate(5, -13); nCtx.rotate(Math.PI/4); nCtx.fillRect(-2.5, -2.5, 5, 5); nCtx.restore();
             nCtx.fillStyle = "#ff9999"; nCtx.beginPath(); nCtx.arc(-9, -9, 2.5, 0, Math.PI*2); nCtx.fill(); nCtx.beginPath(); nCtx.arc(9, -9, 2.5, 0, Math.PI*2); nCtx.fill();
@@ -571,7 +573,10 @@ html_code = """
             nCtx.strokeStyle = "#e74c3c"; nCtx.beginPath(); nCtx.moveTo(12, -22); nCtx.lineTo(16,-18); nCtx.lineTo(20,-22); nCtx.stroke(); nCtx.strokeStyle = "#2c3e50";
         }
 
+        // --- 体 ---
         nCtx.fillStyle = "#ffffff"; nCtx.fillRect(-14, 2, 28, 22);
+        
+        // --- 腕と追加エフェクト ---
         nCtx.fillStyle = "#ffdbac"; nCtx.strokeStyle = "#ffffff";
         if (nurseState === 'roger') {
             nCtx.beginPath(); nCtx.arc(0, -32, 18, Math.PI, 0); nCtx.lineWidth=5; nCtx.stroke(); nCtx.strokeStyle = "#ffdbac"; nCtx.stroke(); nCtx.lineWidth=1.5;
@@ -587,9 +592,38 @@ html_code = """
             nCtx.fillRect(-18, 4, 5, 12); nCtx.fillRect(6, -6, 12, 5); 
         } else if (nurseState === 'angry') {
             nCtx.fillRect(-15, 8, 15, 5); nCtx.fillRect(0, 8, 15, 5); 
+            
+        // 🌟 新アクション追加部分
+        } else if (nurseState === 'cracker') {
+            nCtx.fillRect(13, -25, 5, 20); // 右手を上げる
+            nCtx.fillRect(-18, 4, 5, 10);  // 左手は下
+            // クラッカー本体
+            nCtx.fillStyle = "#e67e22"; nCtx.beginPath(); nCtx.moveTo(15, -25); nCtx.lineTo(5, -35); nCtx.lineTo(25, -35); nCtx.fill();
+            // 紙吹雪（時間で上に飛んでいく）
+            let pOffset = (frame % 20);
+            let colors = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f"];
+            for(let i=0; i<6; i++) {
+                nCtx.fillStyle = colors[i%4];
+                nCtx.fillRect(15 + (i-3)*8, -35 - pOffset - (i%3)*5, 3, 3);
+            }
+        } else if (nurseState === 'ok_circle') {
+            // 頭の上で大きなマル
+            nCtx.strokeStyle = "#ffdbac"; nCtx.lineWidth = 5;
+            nCtx.beginPath(); nCtx.arc(0, -15, 18, Math.PI, 0); nCtx.stroke();
+            nCtx.lineWidth = 1.5;
+        } else if (nurseState === 'heart') {
+            nCtx.fillRect(-18, 4, 5, 14); nCtx.fillRect(13, 4, 5, 14); // 腕は通常
+            // 頭上にフワフワ浮かぶハート
+            let hY = -35 + Math.sin(frame*0.2)*3;
+            nCtx.fillStyle = "#e74c3c";
+            nCtx.beginPath(); nCtx.arc(-4, hY, 4, 0, Math.PI*2); nCtx.fill();
+            nCtx.beginPath(); nCtx.arc(4, hY, 4, 0, Math.PI*2); nCtx.fill();
+            nCtx.beginPath(); nCtx.moveTo(-8, hY); nCtx.lineTo(8, hY); nCtx.lineTo(0, hY+7); nCtx.fill();
+            
         } else {
             nCtx.fillRect(-18, 4, 5, 14); nCtx.fillRect(13, 4, 5, 14); 
         }
+        
         nCtx.restore();
     }
 
