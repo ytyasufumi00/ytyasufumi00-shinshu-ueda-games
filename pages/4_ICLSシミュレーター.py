@@ -42,11 +42,11 @@ html_code = """
     @keyframes text-blink { 0% { opacity: 1; } 100% { opacity: 0.5; } }
     
     #status-area { flex: 1; display: flex; flex-direction: column; justify-content: space-between; font-size: 13px; font-weight: bold; }
-    .timer-box { background: #000; padding: 4px; border-radius: 6px; text-align: center; border: 1px solid #7f8c8d; }
+    .timer-box { background: #000; padding: 2px; border-radius: 6px; text-align: center; border: 1px solid #7f8c8d; }
     .text-red { color: #e74c3c; font-size: 15px; } .text-green { color: #2ecc71; }
    .history-box { font-size: 14px; text-align: left; padding: 6px 8px; line-height: 1.3; }
     .hist-title-dc { color: #ff7675; margin-bottom: 1px; font-weight: bold; } 
-    .hist-title-adr { color: #00a8ff; margin-top: 5px; margin-bottom: 1px; font-weight: bold; }
+    .hist-title-adr { color: #00a8ff; margin-top: 2px; margin-bottom: 1px; font-weight: bold; }
     .hist-text { color: #ffffff; margin-left: 4px; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
     
     #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 110px; position: relative; z-index: 10; }
@@ -59,7 +59,7 @@ html_code = """
     
     #command-area { padding: 8px; flex-grow: 1; background: #1a252f; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-grow: 1; align-content: start; }
-    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 5px 5px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 1px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .cmd-btn { background: #2980b9; color: white; border: none; border-radius: 6px; padding: 0px; height: 45px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 3px #1f618d; transition: 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; }
     .cmd-btn:active { transform: translateY(3px); box-shadow: 0 0 #1f618d; }
     .btn-shock { background: #e74c3c; box-shadow: 0 3px #c0392b; } .btn-shock:active { box-shadow: 0 0 #c0392b; }
     .btn-drug { background: #8e44ad; box-shadow: 0 3px #732d91; } .btn-drug:active { box-shadow: 0 0 #732d91; }
