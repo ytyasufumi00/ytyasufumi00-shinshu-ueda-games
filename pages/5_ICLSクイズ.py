@@ -471,8 +471,13 @@ html_code = """
             selectedBtn.classList.add("incorrect");
             loseLife();
             
+         // 🌟 鬼畜仕様：間違えたらXP（経験値）とレベルをゼロに強制リセット
+            totalXP = 0;
+            localStorage.setItem('iclsTotalXP', totalXP);
+            updateXpUI();
+            
             if(!wrongIds.includes(qId)) { wrongIds.push(qId); saveWrongIds(wrongIds); }
-            updateNurseMsg(`<span style='color:#e74c3c; font-size:16px;'>違います先生！！💢</span><br>${qData.exp}`, "angry");
+            updateNurseMsg(`<span style='color:#e74c3c; font-size:16px;'>違います先生！！💢 (経験値全ロスト)</span><br>${qData.exp}`, "angry");
         }
         
         if(life > 0) document.getElementById("next-btn-container").style.display = "block";
