@@ -21,7 +21,7 @@ html_code = """
     .btn-reset { position: absolute; top: 8px; right: 8px; z-index: 100; background: rgba(52, 73, 94, 0.8); color: white; border: 1px solid #bdc3c7; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
     .btn-reset:active { background: #2c3e50; }
     
-    #middle-panel { display: flex; padding: 10px 15px; background: #2c3e50; border-bottom: 4px solid #bdc3c7; height: 200px; position: relative; }
+    #middle-panel { display: flex; padding: 10px 15px; background: #2c3e50; border-bottom: 4px solid #bdc3c7; height: 230px; position: relative; }
     
     #anim-area { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background: #34495e; border-radius: 8px; margin-right: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); overflow: hidden; }
     .prep-controls { position: absolute; top: 4px; left: 4px; right: 4px; display: flex; flex-direction: row; gap: 4px; z-index: 20; }
