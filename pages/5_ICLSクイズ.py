@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="ICLS Quiz", page_icon="📝", layout="wide")
 st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>📝 ICLS マニアック・クイズアタック</h1>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 16px; color: #555;'>累積正解数（XP）を引き継ぎ、ナースが10段階の奇想天外な姿へ進化します！間違えた問題は次回優先出題！</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 16px; color: #555;'>累積正解数(XP)を引き継ぎ、ナースが10段階の姿へ進化します！間違えた問題は次回優先出題！</p>", unsafe_allow_html=True)
 
 html_code = """
 <!DOCTYPE html>
@@ -60,7 +60,7 @@ html_code = """
     <div id="overlay">
         <div style="font-size: 60px; margin-bottom: 10px;">🧬</div>
         <div class="overlay-title">ICLS 限界突破クイズ</div>
-        <div class="overlay-desc">間違えた問題は次回優先して出題される「弱点克服アルゴリズム」搭載。<br>累積正解数(XP)でナースちゃんが<b>10段階の奇想天外な進化</b>を遂げます！<br><span style="color:#e74c3c; font-weight:bold;">※3回間違える（または時間切れ）で1プレイ終了です。</span></div>
+        <div class="overlay-desc">間違えた問題は次回優先して出題される「弱点克服アルゴリズム」搭載。<br>累積正解数(XP)でナースちゃんが<b>10段階の奇想天外な進化</b>を遂げます！<br><span style="color:#e74c3c; font-weight:bold;">※不正解または時間切れで経験値ロスト、Lv.0の新人からやり直しです。</span></div>
         <button class="start-btn" onclick="initGame()">テストを開始する</button>
     </div>
 
@@ -73,7 +73,7 @@ html_code = """
     <div id="nurse-area">
         <canvas id="nurseCanvas" width="120" height="150"></canvas>
         <div id="nurse-message-container">
-            <div id="nurse-msg" class="nurse-bubble-item">先生、正解を積み重ねて私を究極の姿へ導いてください！</div>
+            <div id="nurse-msg" class="nurse-bubble-item">先生、私を究極の姿へ導いてください！間違えたら許しません！💢</div>
         </div>
     </div>
     
@@ -144,9 +144,155 @@ html_code = """
         return 0;
     }
     
+    // 🌟 形態ごとの名前
     function getLevelName(lvl) {
         const names = ["新人", "中堅ブルー", "ハードヒッター", "真田の赤備え", "ICLSの忍び", "メカ・ナース", "ネフロン魔法少女", "超・覚醒", "病棟の千手観音", "ギャラクシー", "ICLSの女神"];
         return names[lvl];
+    }
+    
+    // 🌟 形態ごとの待機(アイドル)ランダムコメント (各4種類)
+    function getFormIdleMsg(lvl) {
+        let msgs = [];
+        if (lvl === 0) {
+            msgs = [
+                "先生、制限時間は15秒です！的確な指示を！",
+                "3回間違えると即ゲームオーバーです！慎重に！",
+                "過去に間違えた問題は優先して出題されますよ！",
+                "まずは落ち着いて。時間はまだあります！"
+            ];
+        } else if (lvl === 1) {
+            msgs = [
+                "先生、制限時間は15秒です。焦らずいきましょう。",
+                "私の青いオーラ、見えますか？冷静な判断を。",
+                "アルゴリズムは完璧ですか？次、来ますよ。",
+                "無駄な動きは減らして。最短で指示を！"
+            ];
+        } else if (lvl === 2) {
+            msgs = [
+                "さあ来い！どんな問題でも強烈に打ち返します！",
+                "制限時間は15秒！私のスピンに遅れないで！",
+                "エースを狙うチャンスです！的確な指示を！",
+                "フットワーク軽く！次々と裁いていきましょう！"
+            ];
+        } else if (lvl === 3) {
+            msgs = [
+                "先生、采配を！我ら赤備え、遅れはとりません！",
+                "制限時間15秒！戦場での迷いは命取りですぞ！",
+                "六文銭の誓い…いざ、決戦の刻！",
+                "この赤き鎧、伊達ではありません！さあ、次へ！"
+            ];
+        } else if (lvl === 4) {
+            msgs = [
+                "……（気配を消している。制限時間は15秒）",
+                "先生、指示を。誰にも気付かれず遂行します。",
+                "忍法、迅速蘇生の術……さあ、次の問題を。",
+                "影からサポートします。油断なきよう。"
+            ];
+        } else if (lvl === 5) {
+            msgs = [
+                "タイマー起動。制限時間15.00秒。論理的判断を。",
+                "システム・オールグリーン。次の解析へ移行します。",
+                "感情パラメーターをオフ。アルゴリズムに全振りします。",
+                "先生の脳波、安定しています。指示をどうぞ。"
+            ];
+        } else if (lvl === 6) {
+            msgs = [
+                "魔法のステッキで、カリウムも浄化しちゃいますよ☆",
+                "制限時間は15秒！魔法の時間は限られてるんです！",
+                "先生、一緒に奇跡を起こしましょう！エイッ☆",
+                "メロメロにさせちゃう前に、早く指示を出してね！"
+            ];
+        } else if (lvl === 7) {
+            msgs = [
+                "俺の闘気が見えねぇのか…？早く指示を出せ！",
+                "15秒なんて、俺には止まって見えるぜ…！",
+                "限界を超えろ、先生！宇宙の果てまで付き合うぜ！",
+                "雷鳴の如く！一瞬で答えを導き出せ！"
+            ];
+        } else if (lvl === 8) {
+            msgs = [
+                "無数の腕が、先生の指示をお待ちしております。",
+                "制限時間は15秒。すべて同時並行で処理しますよ。",
+                "慈悲の心と千の腕。さあ、救済の時間です。",
+                "どんな手技も一瞬で。次の指示をどうぞ。"
+            ];
+        } else if (lvl === 9) {
+            msgs = [
+                "宇宙の真理…ガイドラインの深淵に触れる時間です。",
+                "時間は相対的なもの…しかし、この空間では15秒です。",
+                "星々の囁きが、正しい答えを教えてくれるはずです。",
+                "先生の知識は、銀河の如く広がっていますね。"
+            ];
+        } else {
+            msgs = [
+                "私の光に導かれなさい…。究極の救済を。",
+                "神の領域で、先生の判断を拝見いたします。",
+                "すべての命を繋ぐため…さあ、正しき道へ。",
+                "もう恐れることはありません。あなたの直感を信じて。"
+            ];
+        }
+        return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+    
+    function getFormCorrectMsg(lvl) {
+        if (lvl === 0) return "正解です！👏 この調子で！";
+        if (lvl === 1) return "完璧な判断です。👏";
+        if (lvl === 2) return "クリーンショット！👏";
+        if (lvl === 3) return "見事な采配！👏";
+        if (lvl === 4) return "お見事、先生！👏";
+        if (lvl === 5) return "正解。論理的です。👏";
+        if (lvl === 6) return "電解質、浄化完了！👏";
+        if (lvl === 7) return "バチバチきてんな！👏";
+        if (lvl === 8) return "慈悲の正解！👏";
+        if (lvl === 9) return "真理に一歩近づきました。👏";
+        if (lvl === 10) return "神罰回避。👏";
+        return "正解です。";
+    }
+    
+    function getFormEvolutionMsg(lvl) {
+        const special = ["", "", "", "【上田の魂】", "【隠密蘇生】", "【解析完了】", "【電解質浄化】", "【限界突破】", "【病棟無双】", "【真理悟得】", "【究極救済】"];
+        return `<br><span style='color:#f1c40f;font-weight:bold;font-size:16px;'>✨${special[lvl]}【Lv.${lvl} ${getLevelName(lvl)}】に進化しました！✨</span>`;
+    }
+    
+    function getFormIncorrectMsg(lvl) {
+        if (lvl === 0) return "違います！アルゴリズムを思い出して！💢 (経験値全ロスト・新人に戻ります)";
+        if (lvl === 1) return "違います、先生。冷静に！💢 (新人に戻ります)";
+        if (lvl === 2) return "アウト！💢 (新人に戻ります)";
+        if (lvl === 3) return "采配ミス！💢 (新人に戻ります)";
+        if (lvl === 4) return "敵袭！💢 (新人に戻ります)";
+        if (lvl === 5) return "エラー。論理破綻。💢 (新人に戻ります)";
+        if (lvl === 6) return "違います！メロメロ💢 (新人に戻ります)";
+        if (lvl === 7) return "バカな…！💢 (新人に戻ります)";
+        if (lvl === 8) return "煩脳！💢 (新人に戻ります)";
+        if (lvl === 9) return "真理から遠ざかりました。💢 (新人に戻ります)";
+        if (lvl === 10) return "神罰。💢 (新人に戻ります)";
+        return "違います。";
+    }
+    
+    function getFormTimeoutMsg(lvl) {
+        if (lvl === 0) return "時間切れ！判断が遅い！💢 (経験値全ロスト・新人に戻ります)";
+        if (lvl === 1) return "時間切れ、先生。💢 (新人に戻ります)";
+        if (lvl === 2) return "タイムオーバー！💢 (新人に戻ります)";
+        if (lvl === 3) return "遅すぎた采配！💢 (新人に戻ります)";
+        if (lvl === 4) return "時間が…！💢 (新人に戻ります)";
+        if (lvl === 5) return "タイムアウト。💢 (新人に戻ります)";
+        if (lvl === 6) return "時間が…メロ💢 (新人に戻ります)";
+        if (lvl === 7) return "俺は…ここまでか…💢 (新人に戻ります)";
+        if (lvl === 8) return "時間が足らん！💢 (新人に戻ります)";
+        if (lvl === 9) return "時間が止まった…？💢 (新人に戻ります)";
+        if (lvl === 10) return "神罰。💢 (新人に戻ります)";
+        return "時間切れ。";
+    }
+    
+    function getFormClearMsg(lvl) {
+        if (lvl === 10) return "先生、究極の救済を成し遂げました！✨";
+        return "先生、完璧です！✨ このまま究極の姿を目指しましょう！";
+    }
+    
+    function getFormGameOverMsg(lvl) {
+        if (lvl === 0) return "先生、しっかり復習してください。間違えたら即リセットですよ。";
+        if (lvl === 10) return "先生…女神の領域からは遠ざかりました。💢";
+        return "先生…次は神の領域へ。間違えないでください。";
     }
 
     function getWrongIds() { try { return JSON.parse(localStorage.getItem('iclsWrongQs')) || []; } catch(e) { return []; } }
@@ -180,16 +326,16 @@ html_code = """
         nCtx.translate(0, bounce);
 
         // 🎨 形態ごとのカラーパレット
-        let uniColor = "#ffffff"; let hairColor = "#8e44ad"; let skinColor = "#ffdbac";
+        let uniColor = "#ffffff"; let hairColor = "#8e44ad"; let skinColor = "#ffdbac"; let armColor = skinColor;
         if (nurseLevel === 1) uniColor = "#3498db";
         if (nurseLevel === 2) uniColor = "#f1c40f";
         if (nurseLevel === 3) uniColor = "#c0392b";
         if (nurseLevel === 4) { uniColor = "#111"; hairColor = "#222"; } // 忍び
-        if (nurseLevel === 5) { uniColor = "#95a5a6"; } // メカ
+        if (nurseLevel === 5) { uniColor = "#95a5a6"; armColor = "#bdc3c7"; } // メカ
         if (nurseLevel === 6) { uniColor = "#ff9ff3"; hairColor = "#fd79a8"; } // 魔法少女
         if (nurseLevel === 7) { uniColor = "#e67e22"; hairColor = "#f1c40f"; } // 超覚醒
         if (nurseLevel === 8) { uniColor = "#d35400"; } // 千手観音
-        if (nurseLevel === 9) { uniColor = "#192a56"; hairColor = "#273c75"; skinColor = "#7f8fa6"; } // 宇宙
+        if (nurseLevel === 9) { uniColor = "#192a56"; hairColor = "#273c75"; skinColor = "#7f8fa6"; armColor = skinColor; } // 宇宙
         if (nurseLevel === 10) { uniColor = "#ffffff"; hairColor = "#ffffff"; } // 女神
 
         // 🌌 背面の装飾 (オーラ、翼、千手など)
@@ -197,6 +343,7 @@ html_code = """
         if (nurseLevel >= 1 && nurseLevel <= 6) {
             let glow = Math.abs(Math.sin(frame * 0.1)) * 5;
             let auraC = ["", "rgba(52,152,219,0.3)", "rgba(241,196,15,0.4)", "rgba(192,57,43,0.4)", "rgba(0,0,0,0.5)", "rgba(0,255,255,0.3)", "rgba(253,121,168,0.4)"][nurseLevel];
+            if (nurseLevel === 5) auraC = "rgba(0,255,255,0.2)"; // メカオーラ
             nCtx.fillStyle = auraC; nCtx.beginPath(); nCtx.arc(0, -10, 35 + glow, 0, Math.PI*2); nCtx.fill();
         }
         if (nurseLevel === 4) { // 忍びマフラー
@@ -247,6 +394,16 @@ html_code = """
         if (nurseLevel === 3) { nCtx.fillStyle = "#c0392b"; nCtx.fillRect(-14, -28, 28, 8); nCtx.fillStyle = "#f1c40f"; for(let i=0; i<3; i++) { nCtx.beginPath(); nCtx.arc(-6+i*6, -26, 2, 0, Math.PI*2); nCtx.fill(); nCtx.beginPath(); nCtx.arc(-6+i*6, -22, 2, 0, Math.PI*2); nCtx.fill(); } }
         if (nurseLevel === 10) { nCtx.fillStyle = "#f1c40f"; nCtx.beginPath(); nCtx.moveTo(-10, -20); nCtx.lineTo(-15, -35); nCtx.lineTo(-5, -25); nCtx.lineTo(0, -40); nCtx.lineTo(5, -25); nCtx.lineTo(15, -35); nCtx.lineTo(10, -20); nCtx.fill(); } // 王冠
 
+        // 🌟 メカ・ナース(Lv.5)の頭部ディテール追加
+        if (nurseLevel === 5) {
+            // アンテナ
+            nCtx.strokeStyle = "#7f8c8d"; nCtx.lineWidth = 2;
+            nCtx.beginPath(); nCtx.moveTo(-10, -25); nCtx.lineTo(-15, -45); nCtx.stroke();
+            nCtx.fillStyle = "#e74c3c"; nCtx.beginPath(); nCtx.arc(-15, -45, 3, 0, Math.PI*2); nCtx.fill();
+            // メカ眼帯
+            nCtx.fillStyle = "#00ffff"; nCtx.fillRect(1, -16, 6, 6);
+        }
+
         // 表情
         if (nurseState === 'idle') {
             nCtx.fillRect(-6, -15, 3, 3); nCtx.fillRect(3, -15, 3, 3); nCtx.beginPath(); nCtx.arc(0, -7, 4, 0, Math.PI, false); nCtx.stroke();
@@ -270,32 +427,45 @@ html_code = """
             if(nurseState==='angry') { nCtx.strokeStyle = "#e74c3c"; nCtx.beginPath(); nCtx.moveTo(12, -22); nCtx.lineTo(16,-18); nCtx.lineTo(20,-22); nCtx.stroke(); nCtx.strokeStyle = "#2c3e50"; }
         }
 
-        // メカ眼帯
-        if (nurseLevel === 5) { nCtx.fillStyle = "#00ffff"; nCtx.fillRect(1, -16, 6, 6); }
-
         // ボディ
         nCtx.fillStyle = uniColor; nCtx.fillRect(-14, 2, 28, 22);
-        if (nurseLevel === 2) { nCtx.fillStyle = "#2c3e50"; nCtx.fillRect(-14, 10, 28, 3); nCtx.fillRect(-14, 16, 28, 3); }
+        
+        // 🌟 メカ・ナース(Lv.5)のボディディテール追加
+        if (nurseLevel === 5) {
+            // パネルライン
+            nCtx.strokeStyle = "#7f8c8d"; nCtx.lineWidth = 1;
+            nCtx.beginPath(); nCtx.moveTo(-14, 10); nCtx.lineTo(14, 10); nCtx.stroke();
+            nCtx.beginPath(); nCtx.moveTo(0, 2); nCtx.lineTo(0, 22); nCtx.stroke();
+            // LED
+            let ledF = Math.sin(frame*0.5);
+            nCtx.fillStyle = ledF > 0 ? "#2ecc71" : "#1e8449"; nCtx.beginPath(); nCtx.arc(-7, 7, 2, 0, Math.PI*2); nCtx.fill();
+            nCtx.fillStyle = ledF > 0.5 ? "#e74c3c" : "#922b21"; nCtx.beginPath(); nCtx.arc(-7, 13, 2, 0, Math.PI*2); nCtx.fill();
+            nCtx.fillStyle = ledF < -0.5 ? "#3498db" : "#1f618d"; nCtx.beginPath(); nCtx.arc(-7, 19, 2, 0, Math.PI*2); nCtx.fill();
+        }
+        
+        else if (nurseLevel === 2) { nCtx.fillStyle = "#2c3e50"; nCtx.fillRect(-14, 10, 28, 3); nCtx.fillRect(-14, 16, 28, 3); }
         else if (nurseLevel === 3) { nCtx.strokeStyle = "#f1c40f"; nCtx.lineWidth = 1; nCtx.strokeRect(-12, 4, 24, 18); nCtx.beginPath(); nCtx.moveTo(-12, 10); nCtx.lineTo(12, 10); nCtx.stroke(); nCtx.beginPath(); nCtx.moveTo(-12, 16); nCtx.lineTo(12, 16); nCtx.stroke(); }
         else if (nurseLevel === 6) { nCtx.fillStyle = "#e74c3c"; nCtx.beginPath(); nCtx.moveTo(0, 5); nCtx.lineTo(-8, -2); nCtx.lineTo(-8, 10); nCtx.fill(); nCtx.beginPath(); nCtx.moveTo(0, 5); nCtx.lineTo(8, -2); nCtx.lineTo(8, 10); nCtx.fill(); } // 胸リボン
         
         // 腕とアクション
-        nCtx.fillStyle = skinColor; nCtx.strokeStyle = "#ffffff";
-        if (nurseLevel === 5) nCtx.fillStyle = "#bdc3c7"; // メカ腕
-        if (nurseLevel === 9) nCtx.fillStyle = "#7f8fa6"; 
-
+        nCtx.fillStyle = armColor; nCtx.strokeStyle = "#ffffff";
+        
         if (nurseState === 'happy') {
             nCtx.fillRect(-22, -15, 5, 20); nCtx.fillRect(17, -15, 5, 20); 
+            // メカ腕関節
+            if(nurseLevel===5) { nCtx.fillStyle="#7f8c8d"; nCtx.fillRect(-22, -5, 5, 2); nCtx.fillRect(17, -5, 5, 2); nCtx.fillStyle=armColor; }
         } else if (nurseState === 'cracker') {
             nCtx.fillRect(13, -25, 5, 20); nCtx.fillRect(-18, 4, 5, 10);
+            if(nurseLevel===5) { nCtx.fillStyle="#7f8c8d"; nCtx.fillRect(13, -15, 5, 2); nCtx.fillRect(-18, 9, 5, 2); nCtx.fillStyle=armColor; }
             nCtx.fillStyle = "#e67e22"; nCtx.beginPath(); nCtx.moveTo(15, -25); nCtx.lineTo(5, -35); nCtx.lineTo(25, -35); nCtx.fill();
             let pOffset = (frame % 20); let colors = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f"];
             for(let i=0; i<6; i++) { nCtx.fillStyle = colors[i%4]; nCtx.fillRect(15 + (i-3)*8, -45 - pOffset - (i%3)*5, 3, 3); }
         } else if (nurseState === 'ok_circle') {
-            nCtx.strokeStyle = skinColor; nCtx.lineWidth = 5;
+            nCtx.strokeStyle = armColor; nCtx.lineWidth = 5;
             nCtx.beginPath(); nCtx.arc(0, -28, 18, Math.PI, 0); nCtx.stroke(); nCtx.lineWidth = 1.5;
         } else if (nurseState === 'heart' || nurseState === 'sparkle') {
             nCtx.fillRect(-18, 4, 5, 14); nCtx.fillRect(13, 4, 5, 14); 
+            if(nurseLevel===5) { nCtx.fillStyle="#7f8c8d"; nCtx.fillRect(-18, 11, 5, 2); nCtx.fillRect(13, 11, 5, 2); nCtx.fillStyle=armColor; }
             if(nurseState === 'heart') {
                 let hY = -45 + Math.sin(frame*0.2)*3; nCtx.fillStyle = "#e74c3c";
                 nCtx.beginPath(); nCtx.arc(-4, hY, 4, 0, Math.PI*2); nCtx.fill(); nCtx.beginPath(); nCtx.arc(4, hY, 4, 0, Math.PI*2); nCtx.fill();
@@ -303,10 +473,13 @@ html_code = """
             }
         } else if (nurseState === 'thinking') {
             nCtx.fillRect(-18, 4, 5, 12); nCtx.fillRect(6, -6, 12, 5); 
+            if(nurseLevel===5) { nCtx.fillStyle="#7f8c8d"; nCtx.fillRect(-18, 10, 5, 2); nCtx.fillStyle=armColor; }
         } else if (nurseState === 'angry' || nurseState === 'shock') {
             nCtx.fillRect(-15, 8, 15, 5); nCtx.fillRect(0, 8, 15, 5); 
+            if(nurseLevel===5) { nCtx.fillStyle="#7f8c8d"; nCtx.fillRect(-7.5, 8, 2, 5); nCtx.fillRect(7.5, 8, 2, 5); nCtx.fillStyle=armColor; }
         } else {
             nCtx.fillRect(-18, 4, 5, 14); nCtx.fillRect(13, 4, 5, 14); 
+            if(nurseLevel===5) { nCtx.fillStyle="#7f8c8d"; nCtx.fillRect(-18, 11, 5, 2); nCtx.fillRect(13, 11, 5, 2); nCtx.fillStyle=armColor; }
         }
 
         // 手持ちアイテム (前面)
@@ -405,9 +578,8 @@ html_code = """
             grid.appendChild(btn);
         });
 
-        let startMsgs = ["先生、制限時間は15秒です！", "さあ、指示をお願いします！", "知識の限界を超えましょう！"];
-        if(nurseLevel >= 7) startMsgs = ["私のオーラに遅れないでくださいね！", "究極の蘇生を魅せましょう！"];
-        updateNurseMsg(startMsgs[Math.floor(Math.random()*startMsgs.length)], "idle");
+        // 🌟 形態ごとの待機(ランダム)コメント
+        updateNurseMsg(getFormIdleMsg(nurseLevel), "idle");
         startTimer(qData.id);
     }
 
@@ -451,7 +623,6 @@ html_code = """
             score += 10 + timer;
             document.getElementById("score-box").innerText = score;
             
-            // 🌟 経験値(XP)の加算とレベルアップ判定
             let oldLevel = nurseLevel;
             totalXP++;
             localStorage.setItem('iclsTotalXP', totalXP);
@@ -459,25 +630,28 @@ html_code = """
             
             let levelUpMsg = "";
             if (nurseLevel > oldLevel) {
-                levelUpMsg = `<br><span style='color:#f1c40f;font-weight:bold;font-size:16px;'>✨【Lv.${nurseLevel} ${getLevelName(nurseLevel)}】に進化しました！✨</span>`;
+                levelUpMsg = getFormEvolutionMsg(nurseLevel);
             }
             
             wrongIds = wrongIds.filter(id => id !== qId);
             saveWrongIds(wrongIds);
             
             let goodStates = ['happy', 'cracker', 'ok_circle', 'heart'];
-            updateNurseMsg(`<span style='color:#2ecc71; font-size:16px;'>大正解です！👏</span>${levelUpMsg}<br>${qData.exp}`, goodStates[Math.floor(Math.random()*goodStates.length)]);
+            updateNurseMsg(`<span style='color:#2ecc71; font-size:16px;'>${getFormCorrectMsg(nurseLevel)}</span>${levelUpMsg}<br>${qData.exp}`, goodStates[Math.floor(Math.random()*goodStates.length)]);
         } else {
             selectedBtn.classList.add("incorrect");
             loseLife();
             
-         // 🌟 鬼畜仕様：間違えたらXP（経験値）とレベルをゼロに強制リセット
+            let oldLevel = nurseLevel;
+            // 🌟 鬼畜仕様：間違えたらXP（経験値）とレベルをゼロに強制リセット
             totalXP = 0;
             localStorage.setItem('iclsTotalXP', totalXP);
-            updateXpUI();
+            updateXpUI(); // ここで内部のLvが0に戻る
             
             if(!wrongIds.includes(qId)) { wrongIds.push(qId); saveWrongIds(wrongIds); }
-            updateNurseMsg(`<span style='color:#e74c3c; font-size:16px;'>違います先生！！💢 (経験値全ロスト)</span><br>${qData.exp}`, "angry");
+            
+            // 🌟 進化していた形態の断末魔コメントを表示
+            updateNurseMsg(`<span style='color:#e74c3c; font-size:16px;'>${getFormIncorrectMsg(oldLevel)}</span><br>${qData.exp}`, "angry");
         }
         
         if(life > 0) document.getElementById("next-btn-container").style.display = "block";
@@ -494,8 +668,16 @@ html_code = """
         if(!wrongIds.includes(qId)) { wrongIds.push(qId); saveWrongIds(wrongIds); }
         
         loseLife();
+        
+        let oldLevel = nurseLevel;
+        // 🌟 鬼畜仕様：時間切れでもXP（経験値）とレベルをゼロに強制リセット
+        totalXP = 0;
+        localStorage.setItem('iclsTotalXP', totalXP);
+        updateXpUI(); // ここで内部のLvが0に戻る
+        
         let qData = gameQuestions[currentQIndex];
-        updateNurseMsg(`<span style='color:#e74c3c; font-size:16px;'>時間切れです！判断が遅い！！💢</span><br>${qData.exp}`, "shock");
+        // 🌟 進化していた形態の断末魔コメントを表示
+        updateNurseMsg(`<span style='color:#e74c3c; font-size:16px;'>${getFormTimeoutMsg(oldLevel)}</span><br>${qData.exp}`, "shock");
         
         if(life > 0) document.getElementById("next-btn-container").style.display = "block";
     }
@@ -527,7 +709,7 @@ html_code = """
             <button class="start-btn" onclick="location.reload()">弱点を復習する</button>
         `;
         ov.style.display = "flex";
-        updateNurseMsg("先生…しっかり復習してから出直してきてください。", "angry");
+        updateNurseMsg(getFormGameOverMsg(nurseLevel), "angry");
     }
 
     function showClear() {
@@ -543,7 +725,7 @@ html_code = """
             <button class="start-btn" style="background:#3498db; box-shadow:0 4px #2980b9;" onclick="location.reload()">次の周回へ</button>
         `;
         ov.style.display = "flex";
-        updateNurseMsg("先生、すごいです！完璧な知識ですね！このまま究極の姿を目指しましょう！", "sparkle");
+        updateNurseMsg(getFormClearMsg(nurseLevel), "sparkle");
     }
 </script>
 </body>
