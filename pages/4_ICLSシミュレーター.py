@@ -273,8 +273,8 @@ function getRandomRoger() { const states = ['roger', 'salute', 'point']; return 
             if (diff < 25) return "<span style='color:#ff4757; font-size:18px; font-weight:bold;'>約2分経過!</span>"; 
             return "<span style='color:#ff4757; font-size:18px; font-weight:bold;'>長期間未実施!!</span>";
         } else if (type === 'Adr') {
-            if (diff < 25) return "約2分経過"; 
-            if (diff < 35) return "<span style='color:#2ecc71; font-size:16px; font-weight:bold;'>約3分経過 (可)</span>";
+            if (diff < 30) return "約2分経過"; 
+            if (diff < 40) return "<span style='color:#2ecc71; font-size:16px; font-weight:bold;'>約3分経過 (可)</span>";
             if (diff < 50) return "<span style='color:#2ecc71; font-size:16px; font-weight:bold;'>約4分経過 (可)</span>"; 
             return "<span style='color:#ff4757; font-size:18px; font-weight:bold;'>5分以上経過!!</span>";
         } return "不明";

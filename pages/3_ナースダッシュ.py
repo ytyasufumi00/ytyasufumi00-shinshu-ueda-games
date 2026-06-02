@@ -179,12 +179,12 @@ html_code = """
             let pool = [];
             switch(phase) {
                 case 0: pool = [ {e: "🦠", t: "normal", h: 30}, {e: "🐌", t: "slow", h: 25} ]; break;
-                case 1: pool = [ {e: "💉", t: "normal", h: 30}, {e: "🦇", t: "wave", h: 100} ]; break;
+                case 1: pool = [ {e: "👾", t: "normal", h: 30}, {e: "🦇", t: "wave", h: 100} ]; break;
                 case 2: pool = [ {e: "👻", t: "chase", h: 100}, {e: "🦇", t: "wave", h: 80} ]; break;
                 case 3: pool = [ {e: "🚑", t: "fast", h: 40}, {e: "🧟‍♂️", t: "normal", h: 40} ]; break;
                 case 4: pool = [ {e: "💀", t: "waveAir", h: 120}, {e: "🦅", t: "fastAir", h: 150} ]; break;
-                case 5: pool = [ {e: "☣️", t: "normal", h: 30}, {e: "🦠", t: "chase", h: 80} ]; break;
-                case 6: pool = [ {e: "🛒", t: "fast", h: 40}, {e: "🐍", t: "normal", h: 30} ]; break;
+                case 5: pool = [ {e: "💩", t: "normal", h: 30}, {e: "🦠", t: "chase", h: 80} ]; break;
+                case 6: pool = [ {e: "🐉", t: "fast", h: 40}, {e: "🐍", t: "normal", h: 30} ]; break;
                 case 7: pool = [ {e: "🌪️", t: "fastAir", h: 120}, {e: "👻", t: "chase", h: 90} ]; break;
                 case 8: pool = [ {e: "🧟‍♂️", t: "fast", h: 40}, {e: "🚑", t: "fast", h: 40}, {e: "💀", t: "waveAir", h: 100} ]; break;
                 default: pool = [ {e: "🧟‍♂️", t: "fast", h: 40}, {e: "👻", t: "chase", h: 120}, {e: "🦅", t: "fastAir", h: 160} ]; break;
