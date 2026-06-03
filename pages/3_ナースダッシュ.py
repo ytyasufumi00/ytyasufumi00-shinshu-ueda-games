@@ -258,6 +258,11 @@ html_code = """
         if (s < 15000) return { title: "🌟 剛腕ナース", comment: "ここ一番に強い突破力のあるナース！" };
         if (s < 20000) return { title: "🏥 完璧リーダー", comment: "病棟のピンチを救う圧倒的な統率力！" };
         return { title: "👑 ゴッドハンドナース", comment: "もはや院内感染ボスの天敵です！" };
+        if (s < 40000) return { title: "🌌 ギャラクシー・ナース", comment: "宇宙の真理を悟り、あらゆる急変を未然に防ぐ！" };
+        if (s < 50000) return { title: "👼 慈愛の千手観音", comment: "無数の手で病棟中の患者を同時に救済する境地！" };
+        if (s < 60000) return { title: "⚡ 究極覚醒・雷神", comment: "電光石火の超反応！あなたの前に死角なし！" };
+        if (s < 70000) return { title: "🌟 伝説の救済者 (レジェンド)", comment: "信州上田医療センターの歴史に名を刻む生ける伝説！" };
+        return { title: "💮 医療の神 (Medical God)", comment: "もはや人の領域を超越しました…！あなたこそが真理！" };
     }
 
     function triggerGameOver() {
@@ -265,10 +270,12 @@ html_code = """
         let eval = evaluateScore(score);
         
         let html = `<div class="quiz-title" style="font-size:22px;">💀 勤務終了</div>
-                    <div class="quiz-text" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
-                        最終スコア：<span style="font-size:26px; color:#e74c3c; margin: 8px 0;">${score} 点</span>
-                        <b>獲得称号：【${eval.title}】</b><br>
-                        <span style="font-size:14px; color:#555; margin-top:8px;">${eval.comment}</span>
+                    <div class="quiz-text" style="text-align:center;">
+                        <div style="margin-top:5px; font-size:14px; color:#555;">最終スコア：</div>
+                        <div style="font-size:32px; color:#e74c3c; font-weight:900; margin-bottom:15px;">${score} 点</div>
+                        <div style="font-size:16px; font-weight:bold; margin-bottom:5px;">獲得称号：</div>
+                        <div style="font-size:20px; color:#2980b9; font-weight:900; margin-bottom:10px;">【${eval.title}】</div>
+                        <div style="font-size:14px; color:#555;">${eval.comment}</div>
                     </div>
                     <div class="quiz-btn-container" style="grid-template-columns: 1fr;">
                         <button class="quiz-btn game-over-btn" onclick="location.reload()">もう一度シフトに入る</button>
@@ -326,14 +333,17 @@ html_code = """
         }
 
     // 🌟 ボス撃破後のクリア画面（表彰）を表示する関数
-    function triggerGameClearOverlay() {
+   function triggerGameClearOverlay() {
         isPaused = true;
         let eval = evaluateScore(score);
+        
         let html = `<div class="quiz-title" style="font-size:22px; color:#2ecc71;">🎊 勤務完了（ゲームクリア！）🎊</div>
-                    <div class="quiz-text" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
-                        最終スコア：<span style="font-size:26px; color:#f1c40f; margin: 8px 0;">${score} 点</span>
-                        <b>獲得称号：【${eval.title}】</b><br>
-                        <span style="font-size:14px; color:#555; margin-top:8px;">${eval.comment}<br>見事なアセスメントで病棟の平和を守り抜きました！</span>
+                    <div class="quiz-text" style="text-align:center;">
+                        <div style="margin-top:5px; font-size:14px; color:#555;">最終スコア：</div>
+                        <div style="font-size:36px; color:#f1c40f; font-weight:900; margin-bottom:15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">${score} 点</div>
+                        <div style="font-size:16px; font-weight:bold; margin-bottom:5px;">獲得称号：</div>
+                        <div style="font-size:20px; color:#2980b9; font-weight:900; margin-bottom:10px;">【${eval.title}】</div>
+                        <div style="font-size:14px; color:#555;">${eval.comment}<br><br><span style="color:#e74c3c; font-weight:bold;">見事なアセスメントで病棟の平和を守り抜きました！</span></div>
                     </div>
                     <div class="quiz-btn-container" style="grid-template-columns: 1fr;">
                         <button class="quiz-btn" style="background:#27ae60; min-height:45px; grid-column: 1 / -1;" onclick="location.reload()">次のシフト（再挑戦）へ</button>
