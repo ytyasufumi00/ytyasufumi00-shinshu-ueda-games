@@ -316,25 +316,25 @@ html_code = """
         return { title: "💮 医療の神 (Medical God)", comment: "もはや人の領域を超越しました…！あなたこそが真理！" };
     }
 
-   function triggerGameOver() {
+ function triggerGameOver() {
         isGameOver = true; isPaused = true;
         let eval = evaluateScore(score);
         
         let html = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; width:100%; background:#fff; border-radius:12px; padding:15px; box-sizing:border-box; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
-                <div style="font-size:24px; font-weight:900; color:#e74c3c; margin-bottom:5px;">💀 勤務終了</div>
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; background:#fff; border-radius:12px; padding:15px; box-sizing:border-box; box-shadow: 0 8px 25px rgba(0,0,0,0.2); flex-grow:1; margin-bottom:10px; overflow-y:auto;">
+                <div style="font-size:24px; font-weight:900; color:#e74c3c; margin-bottom:10px;">💀 勤務終了</div>
                 
-                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%;">
-                    <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">最終スコア</div>
-                    <div style="font-size:48px; color:#e74c3c; font-weight:900; line-height:1.1; margin-bottom:10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">${score}<span style="font-size:20px;"> 点</span></div>
-                    
-                    <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">獲得称号</div>
-                    <div style="font-size:26px; color:#2980b9; font-weight:900; line-height:1.3; text-align:center; margin-bottom:10px; padding:0 5px;">【${eval.title}】</div>
-                    
-                    <div style="font-size:14px; color:#555; text-align:center; line-height:1.4;">${eval.comment}</div>
-                </div>
+                <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">最終スコア</div>
+                <div style="font-size:48px; color:#e74c3c; font-weight:900; line-height:1.1; margin-bottom:15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">${score}<span style="font-size:20px;"> 点</span></div>
                 
-                <button class="quiz-btn game-over-btn" style="width:100%; min-height:55px; font-size:18px; font-weight:bold; border-radius:10px; flex-shrink:0;" onclick="location.reload()">もう一度シフトに入る</button>
+                <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">獲得称号</div>
+                <div style="font-size:26px; color:#2980b9; font-weight:900; line-height:1.3; text-align:center; margin-bottom:10px; padding:0 5px;">【${eval.title}】</div>
+                
+                <div style="font-size:14px; color:#555; text-align:center; line-height:1.4;">${eval.comment}</div>
+            </div>
+            
+            <div style="flex-shrink:0;">
+                <button class="quiz-btn game-over-btn" style="width:100%; min-height:55px; font-size:18px; font-weight:bold; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" onclick="location.reload()">もう一度シフトに入る</button>
             </div>
         `;
         quizBox.innerHTML = html; overlay.style.display = "block";
@@ -390,25 +390,25 @@ html_code = """
         }
 
     // 🌟 ボス撃破後のクリア画面（表彰）を表示する関数
-  function triggerGameClearOverlay() {
+ function triggerGameClearOverlay() {
         isPaused = true;
         let eval = evaluateScore(score);
         
         let html = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; width:100%; background:#fff; border-radius:12px; padding:15px; border: 5px solid #f1c40f; box-sizing:border-box; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
-                <div style="font-size:26px; font-weight:900; color:#2ecc71; margin-bottom:5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">🎊 勤務完了 🎊</div>
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; background:#fff; border-radius:12px; padding:15px; border: 5px solid #f1c40f; box-sizing:border-box; box-shadow: 0 8px 25px rgba(0,0,0,0.2); flex-grow:1; margin-bottom:10px; overflow-y:auto;">
+                <div style="font-size:26px; font-weight:900; color:#2ecc71; margin-bottom:10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">🎊 勤務完了 🎊</div>
                 
-                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%;">
-                    <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">最終スコア</div>
-                    <div style="font-size:52px; color:#f1c40f; font-weight:900; line-height:1.1; margin-bottom:10px; text-shadow: 2px 2px 0px #d35400;">${score}<span style="font-size:20px;"> 点</span></div>
-                    
-                    <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">獲得称号</div>
-                    <div style="font-size:26px; color:#2980b9; font-weight:900; line-height:1.3; text-align:center; margin-bottom:10px; padding:0 5px;">【${eval.title}】</div>
-                    
-                    <div style="font-size:14px; color:#555; text-align:center; line-height:1.4;">${eval.comment}<br><span style="color:#e74c3c; font-weight:bold;">見事なアセスメントで病棟を守り抜きました！</span></div>
-                </div>
+                <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">最終スコア</div>
+                <div style="font-size:52px; color:#f1c40f; font-weight:900; line-height:1.1; margin-bottom:15px; text-shadow: 2px 2px 0px #d35400;">${score}<span style="font-size:20px;"> 点</span></div>
                 
-                <button class="quiz-btn" style="width:100%; background:#27ae60; min-height:55px; font-size:18px; font-weight:bold; border-radius:10px; flex-shrink:0;" onclick="location.reload()">次のシフト（再挑戦）へ</button>
+                <div style="font-size:14px; color:#7f8c8d; font-weight:bold;">獲得称号</div>
+                <div style="font-size:26px; color:#2980b9; font-weight:900; line-height:1.3; text-align:center; margin-bottom:10px; padding:0 5px;">【${eval.title}】</div>
+                
+                <div style="font-size:14px; color:#555; text-align:center; line-height:1.4;">${eval.comment}<br><span style="color:#e74c3c; font-weight:bold; display:inline-block; margin-top:5px;">見事なアセスメントで病棟を守り抜きました！</span></div>
+            </div>
+            
+            <div style="flex-shrink:0;">
+                <button class="quiz-btn" style="width:100%; background:#27ae60; min-height:55px; font-size:18px; font-weight:bold; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" onclick="location.reload()">次のシフト（再挑戦）へ</button>
             </div>
         `;
         quizBox.innerHTML = html; overlay.style.display = "block";
