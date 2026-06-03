@@ -310,9 +310,9 @@ html_code = """
         if (s < 20000) return { title: "🏥 完璧リーダー", comment: "病棟のピンチを救う圧倒的な統率力！" };
         if (s < 30000) return { title: "👑 ゴッドハンドナース", comment: "もはや院内感染ボスの天敵です！" };
         if (s < 40000) return { title: "🌌 ギャラクシー・ナース", comment: "宇宙の真理を悟り、あらゆる急変を未然に防ぐ！" };
-        if (s < 50000) return { title: "👼 慈愛の千手観音", comment: "無数の手で病棟中の患者を同時に救済する境地！" };
-        if (s < 60000) return { title: "⚡ 究極覚醒・雷神", comment: "電光石火の超反応！あなたの前に死角なし！" };
-        if (s < 70000) return { title: "🌟 伝説の救済者 (レジェンド)", comment: "信州上田医療センターの歴史に名を刻む生ける伝説！" };
+        if (s < 50000) return { title: "👼 慈愛の千手観音ナース", comment: "無数の手で病棟中の患者を同時に救済する境地！" };
+        if (s < 60000) return { title: "⚡ 究極覚醒・雷神ナース", comment: "電光石火の超反応！あなたの前に死角なし！" };
+        if (s < 70000) return { title: "🌟 伝説の救済者 (レジェンドナース)", comment: "信州上田医療センターの歴史に名を刻む生ける伝説！" };
         return { title: "💮 医療の神 (Medical God)", comment: "もはや人の領域を超越しました…！あなたこそが真理！" };
     }
 
