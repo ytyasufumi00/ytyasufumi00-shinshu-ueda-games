@@ -251,27 +251,30 @@ html_code = """
         }
     };
 
+    function evaluateScore(s) {
+        if (s < 3000) return { title: "🐥 ひよっこナース", comment: "まずは業務に慣れるところから！" };
+        if (s < 6000) return { title: "🔰 若手エース", comment: "自立して夜勤も任せられる頼もしさ！" };
+        if (s < 10000) return { title: "💉 中堅病棟ナース", comment: "冷静なアセスメントでチームの要です！" };
+        if (s < 15000) return { title: "🌟 剛腕ナース", comment: "ここ一番に強い突破力のあるナース！" };
+        if (s < 20000) return { title: "🏥 完璧リーダー", comment: "病棟のピンチを救う圧倒的な統率力！" };
+        return { title: "👑 ゴッドハンドナース", comment: "もはや院内感染ボスの天敵です！" };
+    }
+
     function triggerGameOver() {
         isGameOver = true; isPaused = true;
-        let title = ""; let comment = "";
+        let eval = evaluateScore(score);
         
-        if (score < 3000) { title = "🐥 ひよっこナース"; comment = "まずは業務に慣れるところから！"; }
-        else if (score < 8000) { title = "💉 中堅ナース"; comment = "落ち着いてアセスメントできています！"; }
-        else if (score < 15000) { title = "🌟 ベテランナース"; comment = "素晴らしい反射神経と判断力！"; }
-        else { title = "👑 ゴッドハンド・ナース"; comment = "もはや院内感染ボスの天敵です！"; }
-
         let html = `<div class="quiz-title" style="font-size:22px;">💀 勤務終了</div>
                     <div class="quiz-text" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
                         最終スコア：<span style="font-size:26px; color:#e74c3c; margin: 8px 0;">${score} 点</span>
-                        <b>獲得称号：【${title}】</b><br>
-                        <span style="font-size:14px; color:#555; margin-top:8px;">${comment}</span>
+                        <b>獲得称号：【${eval.title}】</b><br>
+                        <span style="font-size:14px; color:#555; margin-top:8px;">${eval.comment}</span>
                     </div>
                     <div class="quiz-btn-container" style="grid-template-columns: 1fr;">
                         <button class="quiz-btn game-over-btn" onclick="location.reload()">もう一度シフトに入る</button>
                     </div>`;
         quizBox.innerHTML = html; overlay.style.display = "block";
     }
-
     function takeDamage() {
         if (player.invincible > 0 || player.isHurt > 0) return;
         player.lives--; player.invincible = 60; player.isHurt = 60;
@@ -322,14 +325,36 @@ html_code = """
             }
         }
 
-        function bossHit() {
-            boss.hp--;
-            if (boss.hp <= 0) {
-                score += 5000; effects.push({ x: boss.x, y: boss.y, text: "💥撃破!!💥", life: 100 });
-                boss = null; isGameClear = true;
-                gameMessage = { text: "🎊 完 全 治 癒 🎊", subtext: "5分間防衛成功！見事なアセスメントです！", life: 9999, color: "#f1c40f" };
-            } else { score += 1000; effects.push({ x: boss.x, y: boss.y, text: "💢", life: 30 }); player.vy = player.jumpPower * 1.2; }
+    // 🌟 ボス撃破後のクリア画面（表彰）を表示する関数
+    function triggerGameClearOverlay() {
+        isPaused = true;
+        let eval = evaluateScore(score);
+        let html = `<div class="quiz-title" style="font-size:22px; color:#2ecc71;">🎊 勤務完了（ゲームクリア！）🎊</div>
+                    <div class="quiz-text" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
+                        最終スコア：<span style="font-size:26px; color:#f1c40f; margin: 8px 0;">${score} 点</span>
+                        <b>獲得称号：【${eval.title}】</b><br>
+                        <span style="font-size:14px; color:#555; margin-top:8px;">${eval.comment}<br>見事なアセスメントで病棟の平和を守り抜きました！</span>
+                    </div>
+                    <div class="quiz-btn-container" style="grid-template-columns: 1fr;">
+                        <button class="quiz-btn" style="background:#27ae60; min-height:45px; grid-column: 1 / -1;" onclick="location.reload()">次のシフト（再挑戦）へ</button>
+                    </div>`;
+        quizBox.innerHTML = html; overlay.style.display = "block";
+    }
+
+    // 🌟 ボス撃破ロジックを更新
+    function bossHit() {
+        boss.hp--;
+        if (boss.hp <= 0) {
+            score += 5000; effects.push({ x: boss.x, y: boss.y, text: "💥撃破!!💥", life: 100 });
+            boss = null; isGameClear = true;
+            gameMessage = { text: "🎊 完 全 治 癒 🎊", subtext: "5分間防衛成功！見事なアセスメントです！", life: 9999, color: "#f1c40f" };
+            
+            // 🌟 ボス爆発の2秒後に、スコアと称号を表彰するクリア画面をポップアップ
+            setTimeout(triggerGameClearOverlay, 2000);
+        } else { 
+            score += 1000; effects.push({ x: boss.x, y: boss.y, text: "💢", life: 30 }); player.vy = player.jumpPower * 1.2; 
         }
+    }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             let obs = obstacles[i];
