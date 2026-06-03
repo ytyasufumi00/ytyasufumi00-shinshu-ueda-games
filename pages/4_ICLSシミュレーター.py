@@ -45,8 +45,8 @@ html_code = """
     .timer-box { background: #000; padding: 2px; border-radius: 6px; text-align: center; border: 1px solid #7f8c8d; }
     .text-red { color: #e74c3c; font-size: 15px; } .text-green { color: #2ecc71; }
    .history-box { font-size: 14px; text-align: left; padding: 6px 8px; line-height: 1.3; }
-   .hist-title-dc { color: #ff7675; margin-bottom: 1px; font-weight: bold; font-size: 12px; } 
-    .hist-title-adr { color: #00a8ff; margin-top: 5px; margin-bottom: 1px; font-weight: bold; font-size: 12px; }
+   .hist-title-dc { color: #ff7675; margin-bottom: 1px; font-weight: bold; font-size: 11px; } 
+    .hist-title-adr { color: #00a8ff; margin-top: 5px; margin-bottom: 1px; font-weight: bold; font-size: 11px; }
     .hist-text { color: #ffffff; margin-left: 4px; font-weight: bold; font-size: 13px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
     
     #nurse-area { display: flex; padding: 8px 12px; background: #ecf0f1; align-items: center; min-height: 110px; position: relative; z-index: 10; }
