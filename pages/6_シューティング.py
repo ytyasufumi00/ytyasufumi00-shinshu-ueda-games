@@ -6,24 +6,20 @@ import os
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
 
 st.markdown(
-    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10</h1>", 
+    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.1</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>オリジナルボス画像対応！ <code>pages/images/</code> フォルダに <code>boss1.png</code> 等を配置すると自動で降臨します。</p>", 
+    "<p style='font-size: 16px; color: #555;'>【UI修正完了】ジョイスティックがしっかり中央に戻るようになりました！</p>", 
     unsafe_allow_html=True
 )
 
-# ==============================================================================
-# 🌟 画像をBase64文字列に変換する関数
-# ==============================================================================
 def get_image_base64(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
-    return "" # 画像がない場合は空文字を返す
+    return "" 
 
-# 10体分のボス画像を読み込む（ファイルが存在しない場合は空文字になります）
 b64_1 = get_image_base64("pages/images/boss1.png")
 b64_2 = get_image_base64("pages/images/boss2.png")
 b64_3 = get_image_base64("pages/images/boss3.png")
@@ -35,9 +31,6 @@ b64_8 = get_image_base64("pages/images/boss8.png")
 b64_9 = get_image_base64("pages/images/boss9.png")
 b64_10 = get_image_base64("pages/images/boss10.png")
 
-# ==============================================================================
-# 🌟 ゲームエンジンのコア部分 (HTML/JS)
-# ==============================================================================
 html_code = """
 <!DOCTYPE html>
 <html>
@@ -49,8 +42,10 @@ html_code = """
         font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; 
         touch-action: none; user-select: none; -webkit-user-select: none;
     }
+    
     #game-container { 
         position: relative; width: 100%; max-width: 500px; 
+        min-height: 750px; 
         background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; 
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         display: flex; flex-direction: column;
@@ -85,7 +80,10 @@ html_code = """
         display: none; width: 100%; background: #1a252f; border-top: 2px solid #34495e; 
         padding: 10px 20px; box-sizing: border-box; justify-content: space-between; align-items: center; z-index: 20;
     }
+    
+    /* 🌟 ここに display: flex; を追加しました！ 🌟 */
     #joystick-zone {
+        display: flex;
         width: 110px; height: 110px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; 
         justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2); margin: 0; position: relative;
     }
@@ -93,7 +91,10 @@ html_code = """
         width: 45px; height: 45px; background: rgba(52, 152, 219, 0.8);
         border-radius: 50%; position: absolute; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none;
     }
+    
+    /* 🌟 ここにも display: flex; を追加しました！ 🌟 */
     #action-btn {
+        display: flex;
         width: 80px; height: 80px; background: rgba(231, 76, 60, 0.8);
         border-radius: 50%; flex-direction: column; justify-content: center; align-items: center;
         border: 2px solid rgba(255,255,255,0.3); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); margin: 0; position: relative;
@@ -207,19 +208,17 @@ html_code = """
         return obj;
     }
 
-    // Pythonから文字列置換でデータを受け取る
-    const bossImg1 = createBossImgObj("REPLACE_B64_1");
-    const bossImg2 = createBossImgObj("REPLACE_B64_2");
-    const bossImg3 = createBossImgObj("REPLACE_B64_3");
-    const bossImg4 = createBossImgObj("REPLACE_B64_4");
-    const bossImg5 = createBossImgObj("REPLACE_B64_5");
-    const bossImg6 = createBossImgObj("REPLACE_B64_6");
-    const bossImg7 = createBossImgObj("REPLACE_B64_7");
-    const bossImg8 = createBossImgObj("REPLACE_B64_8");
-    const bossImg9 = createBossImgObj("REPLACE_B64_9");
-    const bossImg10 = createBossImgObj("REPLACE_B64_10");
+    const bossImg1 = createBossImgObj("__B64_BOSS_01__");
+    const bossImg2 = createBossImgObj("__B64_BOSS_02__");
+    const bossImg3 = createBossImgObj("__B64_BOSS_03__");
+    const bossImg4 = createBossImgObj("__B64_BOSS_04__");
+    const bossImg5 = createBossImgObj("__B64_BOSS_05__");
+    const bossImg6 = createBossImgObj("__B64_BOSS_06__");
+    const bossImg7 = createBossImgObj("__B64_BOSS_07__");
+    const bossImg8 = createBossImgObj("__B64_BOSS_08__");
+    const bossImg9 = createBossImgObj("__B64_BOSS_09__");
+    const bossImg10 = createBossImgObj("__B64_BOSS_10__");
 
-    // ボスリスト（imgObjプロパティを追加）
     const bossList = [
         { name: "LV1: 狂乱のバナナ", imgObj: bossImg1, emoji: "🍌", hp: 80, speed: 0.5, size: 80, color: "#f1c40f" },
         { name: "LV2: 暴走ナノクローラー", imgObj: bossImg2, emoji: "🕷️", hp: 150, speed: 0.6, size: 85, color: "#9b59b6" },
@@ -485,7 +484,7 @@ html_code = """
             let bossInfo = bossList[bossIndex];
             enemies.push({ 
                 x: 250, y: -60, size: bossInfo.size, speed: bossInfo.speed, 
-                emoji: bossInfo.emoji, imgObj: bossInfo.imgObj, // 🌟 画像オブジェクトを引き継ぐ
+                emoji: bossInfo.emoji, imgObj: bossInfo.imgObj, 
                 hp: bossInfo.hp, maxHp: bossInfo.hp, 
                 name: bossInfo.name, color: bossInfo.color, isQuiz: false, isBoss: true 
             });
@@ -680,14 +679,9 @@ html_code = """
         
         enemies.forEach(e => { 
             if (e.isBoss) {
-                // ==========================================================
-                // 🌟 オリジナル画像の描画処理
-                // ==========================================================
                 if (e.imgObj && e.imgObj.isLoaded) {
-                    // 画像の読み込みが完了していればグラフィックを描画
                     ctx.drawImage(e.imgObj.img, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2);
                 } else {
-                    // 画像がない、またはエラーの時は絵文字で代替
                     ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
                 }
                 
@@ -768,16 +762,15 @@ html_code = """
 </html>
 """
 
-# HTML内の一部の文字列を、Pythonで読み込んだBase64文字列に置換して流し込む
-html_code = html_code.replace("REPLACE_B64_1", b64_1)
-html_code = html_code.replace("REPLACE_B64_2", b64_2)
-html_code = html_code.replace("REPLACE_B64_3", b64_3)
-html_code = html_code.replace("REPLACE_B64_4", b64_4)
-html_code = html_code.replace("REPLACE_B64_5", b64_5)
-html_code = html_code.replace("REPLACE_B64_6", b64_6)
-html_code = html_code.replace("REPLACE_B64_7", b64_7)
-html_code = html_code.replace("REPLACE_B64_8", b64_8)
-html_code = html_code.replace("REPLACE_B64_9", b64_9)
-html_code = html_code.replace("REPLACE_B64_10", b64_10)
+html_code = html_code.replace("__B64_BOSS_01__", b64_1)
+html_code = html_code.replace("__B64_BOSS_02__", b64_2)
+html_code = html_code.replace("__B64_BOSS_03__", b64_3)
+html_code = html_code.replace("__B64_BOSS_04__", b64_4)
+html_code = html_code.replace("__B64_BOSS_05__", b64_5)
+html_code = html_code.replace("__B64_BOSS_06__", b64_6)
+html_code = html_code.replace("__B64_BOSS_07__", b64_7)
+html_code = html_code.replace("__B64_BOSS_08__", b64_8)
+html_code = html_code.replace("__B64_BOSS_09__", b64_9)
+html_code = html_code.replace("__B64_BOSS_10__", b64_10)
 
 components.html(html_code, height=900)
