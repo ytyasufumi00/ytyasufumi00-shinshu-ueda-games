@@ -1,17 +1,43 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import base64
+import os
 
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
 
 st.markdown(
-    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V7</h1>", 
+    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>レーザー、オプション、フォース、波動砲…。君だけの最強ビルドを構築せよ！</p>", 
+    "<p style='font-size: 16px; color: #555;'>オリジナルボス画像対応！ <code>pages/images/</code> フォルダに <code>boss1.png</code> 等を配置すると自動で降臨します。</p>", 
     unsafe_allow_html=True
 )
 
+# ==============================================================================
+# 🌟 画像をBase64文字列に変換する関数
+# ==============================================================================
+def get_image_base64(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode('utf-8')
+    return "" # 画像がない場合は空文字を返す
+
+# 10体分のボス画像を読み込む（ファイルが存在しない場合は空文字になります）
+b64_1 = get_image_base64("pages/images/boss1.png")
+b64_2 = get_image_base64("pages/images/boss2.png")
+b64_3 = get_image_base64("pages/images/boss3.png")
+b64_4 = get_image_base64("pages/images/boss4.png")
+b64_5 = get_image_base64("pages/images/boss5.png")
+b64_6 = get_image_base64("pages/images/boss6.png")
+b64_7 = get_image_base64("pages/images/boss7.png")
+b64_8 = get_image_base64("pages/images/boss8.png")
+b64_9 = get_image_base64("pages/images/boss9.png")
+b64_10 = get_image_base64("pages/images/boss10.png")
+
+# ==============================================================================
+# 🌟 ゲームエンジンのコア部分 (HTML/JS)
+# ==============================================================================
 html_code = """
 <!DOCTYPE html>
 <html>
@@ -24,9 +50,10 @@ html_code = """
         touch-action: none; user-select: none; -webkit-user-select: none;
     }
     #game-container { 
-        position: relative; width: 100%; max-width: 500px; aspect-ratio: 3 / 4; 
+        position: relative; width: 100%; max-width: 500px; 
         background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; 
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: flex; flex-direction: column;
     }
     
     #hanger-screen {
@@ -49,26 +76,27 @@ html_code = """
     .upg-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 #d35400; }
     .upg-btn:disabled { background: #7f8c8d; box-shadow: 0 3px 0 #34495e; color: #bdc3c7; cursor: not-allowed; }
 
-    canvas { width: 100%; height: 100%; display: none; }
+    canvas { 
+        width: 100%; max-width: 500px; aspect-ratio: 500 / 666; 
+        display: none; margin: 0 auto;
+    }
     
-    /* 🌟 コントローラー UI */
+    #controls-container {
+        display: none; width: 100%; background: #1a252f; border-top: 2px solid #34495e; 
+        padding: 10px 20px; box-sizing: border-box; justify-content: space-between; align-items: center; z-index: 20;
+    }
     #joystick-zone {
-        display: none; position: absolute; bottom: 20px; left: 20px; 
-        width: 120px; height: 120px; background: rgba(255, 255, 255, 0.15);
-        border-radius: 50%; z-index: 20; justify-content: center; align-items: center;
-        border: 2px solid rgba(255,255,255,0.3);
+        width: 110px; height: 110px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; 
+        justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2); margin: 0; position: relative;
     }
     #joystick-knob {
-        width: 50px; height: 50px; background: rgba(52, 152, 219, 0.8);
+        width: 45px; height: 45px; background: rgba(52, 152, 219, 0.8);
         border-radius: 50%; position: absolute; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none;
     }
-    
-    /* 🌟 ボム/波動砲ボタン */
     #action-btn {
-        display: none; position: absolute; bottom: 30px; right: 20px;
         width: 80px; height: 80px; background: rgba(231, 76, 60, 0.8);
-        border-radius: 50%; z-index: 20; flex-direction: column; justify-content: center; align-items: center;
-        border: 2px solid rgba(255,255,255,0.3); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        border-radius: 50%; flex-direction: column; justify-content: center; align-items: center;
+        border: 2px solid rgba(255,255,255,0.3); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); margin: 0; position: relative;
     }
     #action-btn:active { transform: scale(0.95); }
 
@@ -115,10 +143,10 @@ html_code = """
 
     <canvas id="gameCanvas" width="500" height="666"></canvas>
     
-    <div id="joystick-zone"><div id="joystick-knob"></div></div>
-    
-    <div id="action-btn" onmousedown="startAction(event)" ontouchstart="startAction(event)" onmouseup="endAction(event)" ontouchend="endAction(event)" onmouseleave="endAction(event)">
-        </div>
+    <div id="controls-container">
+        <div id="joystick-zone"><div id="joystick-knob"></div></div>
+        <div id="action-btn" onmousedown="startAction(event)" ontouchstart="startAction(event)" onmouseup="endAction(event)" ontouchend="endAction(event)" onmouseleave="endAction(event)"></div>
+    </div>
 
     <div id="overlay">
         <div style="font-size: 40px; font-weight: 900; color: #e74c3c; margin-bottom: 10px;">MISSION FAILED</div>
@@ -139,6 +167,7 @@ html_code = """
     const overlay = document.getElementById("overlay");
     const hanger = document.getElementById("hanger-screen");
     const actionBtn = document.getElementById("action-btn");
+    const controls = document.getElementById("controls-container");
     
     // ジョイスティック
     const joyZone = document.getElementById("joystick-zone");
@@ -166,22 +195,44 @@ html_code = """
     window.addEventListener("mousemove", handleJoyMove);
     window.addEventListener("mouseup", handleJoyEnd);
 
-    // ボスリスト
+    // ==========================================================================
+    // 🌟 画像アセットの初期化関数
+    // ==========================================================================
+    function createBossImgObj(b64_string) {
+        let obj = { img: new Image(), isLoaded: false };
+        if (b64_string && b64_string !== "") {
+            obj.img.src = "data:image/png;base64," + b64_string;
+            obj.img.onload = () => { obj.isLoaded = true; };
+        }
+        return obj;
+    }
+
+    // Pythonから文字列置換でデータを受け取る
+    const bossImg1 = createBossImgObj("REPLACE_B64_1");
+    const bossImg2 = createBossImgObj("REPLACE_B64_2");
+    const bossImg3 = createBossImgObj("REPLACE_B64_3");
+    const bossImg4 = createBossImgObj("REPLACE_B64_4");
+    const bossImg5 = createBossImgObj("REPLACE_B64_5");
+    const bossImg6 = createBossImgObj("REPLACE_B64_6");
+    const bossImg7 = createBossImgObj("REPLACE_B64_7");
+    const bossImg8 = createBossImgObj("REPLACE_B64_8");
+    const bossImg9 = createBossImgObj("REPLACE_B64_9");
+    const bossImg10 = createBossImgObj("REPLACE_B64_10");
+
+    // ボスリスト（imgObjプロパティを追加）
     const bossList = [
-        { name: "LV1: 狂乱の巨大バナナ", emoji: "🍌", hp: 80, speed: 0.5, size: 80, color: "#f1c40f" },
-        { name: "LV2: 暴走ナノ・クローラー", emoji: "🕷️", hp: 150, speed: 0.6, size: 85, color: "#9b59b6" },
-        { name: "LV3: 猛毒スコーピオン", emoji: "🦂", hp: 250, speed: 0.7, size: 90, color: "#e67e22" },
-        { name: "LV4: 変異型バクテリオファージ", emoji: "🧬", hp: 400, speed: 0.8, size: 95, color: "#2ecc71" },
-        { name: "LV5: 漆黒のネクロ・セル", emoji: "💀", hp: 600, speed: 0.5, size: 100, color: "#95a5a6" },
-        { name: "LV6: 監視者 ジ・アイ", emoji: "👁️", hp: 850, speed: 0.4, size: 110, color: "#e74c3c" },
-        { name: "LV7: 地球外病原体 X", emoji: "👽", hp: 1200, speed: 1.0, size: 90, color: "#2ecc71" },
-        { name: "LV8: 殺戮機兵 オメガ", emoji: "🤖", hp: 1600, speed: 0.5, size: 120, color: "#34495e" },
-        { name: "LV9: 終末の魔竜", emoji: "🐉", hp: 2500, speed: 0.6, size: 140, color: "#e74c3c" },
-        { name: "MAX: 医療の神 アスクレピオス", emoji: "👼", hp: 4000, speed: 0.4, size: 160, color: "#f1c40f" }
+        { name: "LV1: 狂乱のバナナ", imgObj: bossImg1, emoji: "🍌", hp: 80, speed: 0.5, size: 80, color: "#f1c40f" },
+        { name: "LV2: 暴走ナノクローラー", imgObj: bossImg2, emoji: "🕷️", hp: 150, speed: 0.6, size: 85, color: "#9b59b6" },
+        { name: "LV3: 猛毒スコーピオン", imgObj: bossImg3, emoji: "🦂", hp: 250, speed: 0.7, size: 90, color: "#e67e22" },
+        { name: "LV4: 変異バクテリオファージ", imgObj: bossImg4, emoji: "🧬", hp: 400, speed: 0.8, size: 95, color: "#2ecc71" },
+        { name: "LV5: 漆黒のネクロセル", imgObj: bossImg5, emoji: "💀", hp: 600, speed: 0.5, size: 100, color: "#95a5a6" },
+        { name: "LV6: 監視者 ジ・アイ", imgObj: bossImg6, emoji: "👁️", hp: 850, speed: 0.4, size: 110, color: "#e74c3c" },
+        { name: "LV7: 地球外病原体 X", imgObj: bossImg7, emoji: "👽", hp: 1200, speed: 1.0, size: 90, color: "#2ecc71" },
+        { name: "LV8: 殺戮機兵 オメガ", imgObj: bossImg8, emoji: "🤖", hp: 1600, speed: 0.5, size: 120, color: "#34495e" },
+        { name: "LV9: 終末の魔竜", imgObj: bossImg9, emoji: "🐉", hp: 2500, speed: 0.6, size: 140, color: "#e74c3c" },
+        { name: "MAX: 医療神 アスクレピオス", imgObj: bossImg10, emoji: "👼", hp: 4000, speed: 0.4, size: 160, color: "#f1c40f" }
     ];
     let bossEncounterCount = 0; 
-    const bossImage = new Image(); bossImage.src = "https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.png"; 
-    let isBossImageLoaded = false; bossImage.onload = () => { isBossImageLoaded = true; };
 
     const ynQuizzes = [
         { q: "成人の胸骨圧迫の深さは5cm以上である？", a: "⭕" },
@@ -190,9 +241,6 @@ html_code = """
         { q: "成人ICLSの高度気道確保後の換気は6秒に1回である？", a: "⭕" }
     ];
 
-    // ==========================================================================
-    // 🌟 セーブデータ管理（オプション＆フォース追加）
-    // ==========================================================================
     let savedData = { credits: 0, upgrades: { fire: 0, speed: 0, shield: 0, bomb: 0, laser: 0, subBomb: 0, missile: 0, bit: 0, option: 0, force: 0 } };
     try {
         const localData = localStorage.getItem('medicalStrikerSaveV8');
@@ -208,15 +256,13 @@ html_code = """
     function saveData() { try { localStorage.setItem('medicalStrikerSaveV8', JSON.stringify(savedData)); } catch(e) {} }
     window.resetSaveData = function() { if(confirm("データを初期化しますか？")) { localStorage.removeItem('medicalStrikerSaveV8'); location.reload(); } }
 
-    const MAX_LEVEL = 10;
-    const MAX_LEVEL_OPTION = 4;
-    const MAX_LEVEL_FORCE = 3;
-    
+    const MAX_LEVEL = 10; const MAX_LEVEL_OPTION = 4; const MAX_LEVEL_FORCE = 3;
     function getCost(type, lvl) { 
-        if(type === 'force') return 300 * (lvl + 1);
-        if(type === 'shield' || type === 'option') return 200 * (lvl + 1);
-        if(type === 'bomb' || type === 'laser' || type === 'missile') return 150 * (lvl + 1);
-        return 100 * (lvl + 1); 
+        let multi = (lvl + 1) * (lvl + 1);
+        if(type === 'force') return 200 * multi;
+        if(type === 'shield' || type === 'option') return 150 * multi;
+        if(type === 'bomb' || type === 'laser' || type === 'missile') return 100 * multi;
+        return 50 * multi; 
     }
 
     const upgKeys = ['fire', 'speed', 'shield', 'bomb', 'laser', 'subBomb', 'missile', 'bit', 'option', 'force'];
@@ -244,61 +290,65 @@ html_code = """
     }
     updateHangerUI();
 
-    // ==========================================================================
-    // 🌟 ゲームシステム変数
-    // ==========================================================================
     let isGameOver = false; let score = 0; let frameCount = 0; let powerUpTime = 0; let activeQuiz = null;
     let exp = 0; let level = 1; let nextLevelExp = 500;
     
     let stars = []; for(let i=0; i<50; i++) { stars.push({ x: Math.random() * 500, y: Math.random() * 666, speed: 1 + Math.random() * 3, size: Math.random() * 3 }); }
     let player = { x: 250, y: 550, size: 40, emoji: "💉", speed: 5.0, shields: 0, invincible: 0, history: [] };
-    let bullets = []; let enemies = []; let effects = []; let blasts = []; let gameLoopId;
-
-    // 🌟 ボム / 波動砲 変数
+    
+    let bullets = []; let enemies = []; let enemyBullets = []; let effects = []; let blasts = []; let gameLoopId;
     let bombs = 0; let isBombing = 0; 
     let isCharging = false; let chargeLevel = 0; let actionPressTime = 0;
     let forceObj = { exists: false, attached: true, returning: false, x: 0, y: 0, vx: 0, vy: 0 };
     let waveCannon = { active: false, life: 0, width: 0, damage: 0 };
 
     window.startGame = function() {
-        hanger.style.display = "none"; canvas.style.display = "block"; 
-        joyZone.style.display = "flex"; actionBtn.style.display = "flex";
+        hanger.style.display = "none"; canvas.style.display = "block"; controls.style.display = "flex"; 
         
         player.speed = 5.0 + (savedData.upgrades.speed * 0.4);
-        player.shields = savedData.upgrades.shield; player.invincible = 0;
-        player.history = []; // オプションの軌跡用
+        player.shields = savedData.upgrades.shield; player.invincible = 0; player.history = []; 
         
-        // 🌟 フォース判定によるUIとシステム切り替え
         let forceLv = savedData.upgrades.force;
         if (forceLv > 0) {
-            actionBtn.style.background = "rgba(52, 152, 219, 0.8)"; // 青色
+            actionBtn.style.background = "rgba(52, 152, 219, 0.8)"; 
             actionBtn.innerHTML = `<div style="font-size: 26px;">🛡️</div><div style="font-size: 10px; font-weight: bold; color: white;">CHARGE</div>`;
             forceObj.exists = true; forceObj.attached = true;
         } else {
-            actionBtn.style.background = "rgba(231, 76, 60, 0.8)"; // 赤色
+            actionBtn.style.background = "rgba(231, 76, 60, 0.8)"; 
             bombs = 2 + savedData.upgrades.bomb;
             actionBtn.innerHTML = `<div style="font-size: 26px;">🔥</div><div id="bomb-count-disp" style="font-size: 14px; font-weight: bold; color: white;">x${bombs}</div>`;
         }
 
-        blasts = []; bullets = []; enemies = []; effects = [];
+        blasts = []; bullets = []; enemies = []; enemyBullets = []; effects = [];
         if (!gameLoopId) loop();
     }
 
-    // ==========================================================================
-    // 🌟 アクションボタン（ボム or フォース＆波動砲）の挙動
-    // ==========================================================================
+    function damagePlayer() {
+        if (player.invincible <= 0) {
+            if (player.shields > 0) {
+                player.shields--; player.invincible = 90; 
+                effects.push({ x: player.x, y: player.y, text: "🛡️ シールド破損!", life: 40, vy: -1, color: "#3498db" });
+                return false;
+            } else {
+                isGameOver = true; controls.style.display = "none";
+                let earned = Math.floor(score / 25); savedData.credits += earned; saveData();
+                effects.push({ x: player.x, y: player.y, text: "🔥", life: 60, vy: 0, color: "#fff" });
+                document.getElementById("final-score").innerText = score;
+                document.getElementById("earned-credits").innerText = "+" + earned + " C";
+                overlay.style.display = "flex";
+                return true; 
+            }
+        }
+        return false;
+    }
+
     window.startAction = function(e) {
         if(e) e.preventDefault();
         if (isGameOver) return;
-        
         if (savedData.upgrades.force > 0) {
-            // フォース：チャージ開始
-            isCharging = true;
-            chargeLevel = 0;
-            actionPressTime = Date.now();
+            isCharging = true; chargeLevel = 0; actionPressTime = Date.now();
             actionBtn.style.transform = "scale(0.9)";
         } else {
-            // ボム：即時発動
             if(bombs > 0 && isBombing === 0) fireNormalBomb();
         }
     }
@@ -312,22 +362,14 @@ html_code = """
         if (forceLv > 0 && isCharging) {
             isCharging = false;
             let holdTime = Date.now() - actionPressTime;
-            
             if (holdTime < 300) {
-                // 【タップ処理】フォース射出 or 帰還
-                if (forceObj.attached) {
-                    forceObj.attached = false;
-                    forceObj.vx = 0; forceObj.vy = -12; // 前方へ射出
-                } else {
-                    forceObj.returning = true; // 手元へ帰還
-                }
+                if (forceObj.attached) { forceObj.attached = false; forceObj.vx = 0; forceObj.vy = -12; } 
+                else { forceObj.returning = true; }
             } else {
-                // 【長押しリリース】波動砲 発射！
-                if (chargeLevel > 20) {
-                    waveCannon.active = true;
-                    waveCannon.life = 45; // 45フレームの破壊光線
-                    waveCannon.width = 40 + (chargeLevel / 1.5) + (forceLv * 20);
-                    waveCannon.damage = 1 + (forceLv * 0.5) + (chargeLevel / 40);
+                if (chargeLevel > 60) {
+                    waveCannon.active = true; waveCannon.life = 45; 
+                    waveCannon.width = 40 + (chargeLevel / 3) + (forceLv * 20);
+                    waveCannon.damage = 0.5 + (forceLv * 0.3) + (chargeLevel / 100);
                     effects.push({ x: player.x, y: player.y, text: "🌊 波動砲 発射! 🌊", life: 60, vy: -1, color: "#3498db" });
                 }
             }
@@ -344,6 +386,7 @@ html_code = """
             effects.push({ x: enemy.x + (Math.random()*40-20), y: enemy.y + (Math.random()*40-20), text: "💥", life: 30, vy: -1, color: "#fff" });
             if(enemy.hp <= 0 && !enemy.vanish) killEnemy(enemy);
         });
+        enemyBullets = [];
     }
 
     function checkCollision(obj1, obj2, hitRadius) { return Math.hypot(obj1.x - obj2.x, obj1.y - obj2.y) < hitRadius; }
@@ -366,6 +409,7 @@ html_code = """
             score += 10000; gainExp(2000);
             effects.push({ x: enemy.x, y: enemy.y, text: `🎊 ${enemy.name.split(' ')[0]} 撃破!! 🎊`, life: 60, vy: -2, color: enemy.color });
             enemies.forEach(e => { if(!e.isQuiz) e.vanish = true; }); 
+            enemyBullets = []; 
         } else {
             let isMid = enemy.emoji === "👾"; score += (isMid ? 300 : 100); gainExp(isMid ? 150 : 50);
             effects.push({ x: enemy.x, y: enemy.y, text: "✨", life: 20, vy: -2, color: "#fff" });
@@ -384,36 +428,28 @@ html_code = """
         if(player.x < 20) player.x = 20; if(player.x > canvas.width - 20) player.x = canvas.width - 20;
         if(player.y < 20) player.y = 20; if(player.y > canvas.height - 20) player.y = canvas.height - 20;
 
-        // 🌟 グラディウス風オプションの履歴保存
         player.history.unshift({x: player.x, y: player.y});
         let optLv = savedData.upgrades.option;
         if(player.history.length > optLv * 15 + 1) player.history.pop();
 
-        // 🌟 フォース（R-TYPE）の移動処理
         if (forceObj.exists) {
             if (forceObj.attached) {
-                forceObj.x = player.x; forceObj.y = player.y - 45; // 機体前方に固定
+                forceObj.x = player.x; forceObj.y = player.y - 45; 
             } else if (forceObj.returning) {
                 let dx = player.x - forceObj.x; let dy = (player.y - 45) - forceObj.y; let dist = Math.hypot(dx, dy);
                 if (dist < 20) { forceObj.attached = true; forceObj.returning = false; } 
                 else { forceObj.x += (dx / dist) * 15; forceObj.y += (dy / dist) * 15; }
             } else {
-                forceObj.x += forceObj.vx; forceObj.y += forceObj.vy;
-                forceObj.vy *= 0.95; // 摩擦で減速
+                forceObj.x += forceObj.vx; forceObj.y += forceObj.vy; forceObj.vy *= 0.95; 
                 if (forceObj.x < 20) forceObj.x = 20; if (forceObj.x > canvas.width - 20) forceObj.x = canvas.width - 20;
                 if (forceObj.y < 20) forceObj.y = 20; if (forceObj.y > canvas.height - 20) forceObj.y = canvas.height - 20;
             }
         }
 
-        // 🌟 波動砲のチャージ処理
-        if (isCharging) { if (chargeLevel < 180) chargeLevel++; }
+        if (isCharging) { if (chargeLevel < 300) chargeLevel += 0.5; }
 
-        // ==========================================================================
-        // 🌟 武装ごとの発射ロジック
-        // ==========================================================================
         let fireRate = Math.max(3, 14 - Math.floor(savedData.upgrades.fire * 1)); 
-        if (frameCount % fireRate === 0) {
-            // メインウェポン
+        if (frameCount % fireRate === 0 && !isCharging) { 
             if (powerUpTime > 0) {
                 bullets.push({ x: player.x, y: player.y - 20, size: 15, vx: 0, vy: -15, type: 'main', emoji: "💊" });
                 bullets.push({ x: player.x - 15, y: player.y - 15, size: 15, vx: -4, vy: -14, type: 'main', emoji: "💊" });
@@ -423,47 +459,44 @@ html_code = """
                 bullets.push({ x: player.x + 12, y: player.y - 20, size: 15, vx: 0, vy: -15, type: 'main', emoji: "💊" });
             }
 
-            // 🌟 オプションからの発射
             for(let i=1; i<=optLv; i++) {
                 let pos = player.history[i*15];
-                if(pos) {
-                    bullets.push({ x: pos.x, y: pos.y - 20, size: 15, vx: 0, vy: -15, type: 'main', emoji: "💊" });
-                }
+                if(pos) bullets.push({ x: pos.x, y: pos.y - 20, size: 15, vx: 0, vy: -15, type: 'main', emoji: "💊" });
             }
         }
 
-        // レーザー
         let laserLv = savedData.upgrades.laser;
-        if (laserLv > 0 && frameCount % Math.max(5, 25 - laserLv * 2) === 0) {
+        if (laserLv > 0 && frameCount % Math.max(5, 25 - laserLv * 2) === 0 && !isCharging) {
             bullets.push({ x: player.x, y: player.y - 30, size: 5, vx: 0, vy: -30, type: 'laser' });
         }
 
-        // 対地サブボム
         let subBombLv = savedData.upgrades.subBomb;
-        if (subBombLv > 0 && frameCount % Math.max(30, 90 - subBombLv * 5) === 0) {
+        if (subBombLv > 0 && frameCount % Math.max(30, 90 - subBombLv * 5) === 0 && !isCharging) {
             bullets.push({ x: player.x, y: player.y, size: 15, vx: 0, vy: -8, type: 'subBomb', targetY: player.y - 100 - (subBombLv * 15), emoji: "🧨" });
         }
 
-        // 追尾ミサイル
         let missileLv = savedData.upgrades.missile;
-        if (missileLv > 0 && frameCount % Math.max(20, 60 - missileLv * 3) === 0) {
+        if (missileLv > 0 && frameCount % Math.max(20, 60 - missileLv * 3) === 0 && !isCharging) {
             bullets.push({ x: player.x, y: player.y, size: 12, vx: (Math.random()-0.5)*10, vy: -5, speed: 10, type: 'missile', emoji: "🚀" });
         }
-
-        // ==========================================================================
 
         if (frameCount > 0 && frameCount % 1200 === 0) {
             let bossIndex = Math.min(bossEncounterCount, bossList.length - 1);
             let bossInfo = bossList[bossIndex];
-            enemies.push({ x: 250, y: -60, size: bossInfo.size, speed: bossInfo.speed, emoji: bossInfo.emoji, hp: bossInfo.hp, maxHp: bossInfo.hp, name: bossInfo.name, color: bossInfo.color, isQuiz: false, isBoss: true });
+            enemies.push({ 
+                x: 250, y: -60, size: bossInfo.size, speed: bossInfo.speed, 
+                emoji: bossInfo.emoji, imgObj: bossInfo.imgObj, // 🌟 画像オブジェクトを引き継ぐ
+                hp: bossInfo.hp, maxHp: bossInfo.hp, 
+                name: bossInfo.name, color: bossInfo.color, isQuiz: false, isBoss: true 
+            });
             effects.push({ x: 250, y: 300, text: `⚠️ ${bossInfo.name} 襲来 ⚠️`, life: 120, vy: 0, color: bossInfo.color });
             bossEncounterCount++; 
         }
 
         if (!activeQuiz && frameCount % 600 === 0 && (frameCount % 1200 !== 0)) {
             activeQuiz = ynQuizzes[Math.floor(Math.random() * ynQuizzes.length)];
-            enemies.push({ x: 150, y: -30, size: 45, speed: 1.5, emoji: "⭕", hp: 3, isQuiz: true, ans: "⭕" });
-            enemies.push({ x: 350, y: -30, size: 45, speed: 1.5, emoji: "❌", hp: 3, isQuiz: true, ans: "❌" });
+            enemies.push({ x: 150, y: -30, size: 45, speed: 1.5, emoji: "⭕", hp: 3, isQuiz: true, ans: "⭕", invTime: 90 });
+            enemies.push({ x: 350, y: -30, size: 45, speed: 1.5, emoji: "❌", hp: 3, isQuiz: true, ans: "❌", invTime: 90 });
         }
 
         let spawnRate = Math.max(8, 50 - Math.floor(score / 500)); 
@@ -472,18 +505,26 @@ html_code = """
             enemies.push({ x: Math.random() * (canvas.width - 40) + 20, y: -30, size: 35, speed: 3 + Math.random() * 3 + (score / 3000), emoji: type > 0.8 ? "👾" : "🦠", hp: type > 0.8 ? 4 : 1, isQuiz: false, isBoss: false });
         }
 
+        for (let i = enemyBullets.length - 1; i >= 0; i--) {
+            let eb = enemyBullets[i]; eb.x += eb.vx; eb.y += eb.vy;
+            if (eb.y > canvas.height + 20 || eb.x < -20 || eb.x > canvas.width + 20) { enemyBullets.splice(i, 1); continue; }
+            if (forceObj.exists && checkCollision(eb, forceObj, 35)) {
+                enemyBullets.splice(i, 1); effects.push({ x: eb.x, y: eb.y, text: "💥", life: 5, vy: 0, color: "#3498db" }); continue;
+            }
+            if (checkCollision(eb, player, 15)) { enemyBullets.splice(i, 1); damagePlayer(); }
+        }
+
         for (let i = bullets.length - 1; i >= 0; i--) {
             let b = bullets[i];
             if (b.type === 'missile') {
                 let target = null; let minDist = 9999;
                 enemies.forEach(e => {
-                    if(!e.vanish && e.y < canvas.height) { let d = Math.hypot(e.x - b.x, e.y - b.y); if (d < minDist) { minDist = d; target = e; } }
+                    if(!e.vanish && e.y < canvas.height && !e.isQuiz) { let d = Math.hypot(e.x - b.x, e.y - b.y); if (d < minDist) { minDist = d; target = e; } }
                 });
                 if (target) {
                     let dx = target.x - b.x; let dy = target.y - b.y; let dist = Math.hypot(dx, dy);
                     b.vx += (dx / dist) * 0.8; b.vy += (dy / dist) * 0.8;
-                    let currentSpeed = Math.hypot(b.vx, b.vy);
-                    b.vx = (b.vx / currentSpeed) * b.speed; b.vy = (b.vy / currentSpeed) * b.speed;
+                    let currentSpeed = Math.hypot(b.vx, b.vy); b.vx = (b.vx / currentSpeed) * b.speed; b.vy = (b.vy / currentSpeed) * b.speed;
                 }
             }
             b.x += b.vx; b.y += b.vy;
@@ -495,26 +536,29 @@ html_code = """
             if (b.y < -20 || b.x < -20 || b.x > canvas.width + 20) bullets.splice(i, 1);
         }
 
-        // 爆風ダメージ
         for (let i = blasts.length - 1; i >= 0; i--) {
             let blast = blasts[i]; blast.life--;
             if (frameCount % 5 === 0) {
                 enemies.forEach(e => {
-                    if (!e.vanish && checkCollision(blast, e, blast.radius + (e.size/2))) {
-                        e.hp -= blast.damage; if(e.hp <= 0 && !e.vanish) killEnemy(e);
-                    }
+                    if (e.isQuiz && e.invTime > 0) return;
+                    if (!e.vanish && checkCollision(blast, e, blast.radius + (e.size/2))) { e.hp -= blast.damage; if(e.hp <= 0 && !e.vanish) killEnemy(e); }
                 });
             }
             if (blast.life <= 0) blasts.splice(i, 1);
         }
 
-        // ビット（R-TYPE風回転）ダメージ
         let bitCount = savedData.upgrades.bit;
         if (bitCount > 0 && frameCount % 10 === 0) { 
             for(let i=0; i<bitCount; i++) {
                 let angle = frameCount * 0.05 + (i * Math.PI * 2 / bitCount);
                 let bx = player.x + Math.cos(angle) * 60; let by = player.y + Math.sin(angle) * 60;
+                for(let j=enemyBullets.length-1; j>=0; j--) {
+                    if(checkCollision({x:bx, y:by}, enemyBullets[j], 25)) {
+                        enemyBullets.splice(j, 1); effects.push({ x: bx, y: by, text: "✨", life: 5, vy: 0, color: "#fff" });
+                    }
+                }
                 enemies.forEach(e => {
+                    if (e.isQuiz && e.invTime > 0) return;
                     if (!e.vanish && checkCollision({x:bx, y:by}, e, 35)) {
                         e.hp -= 2; effects.push({ x: e.x, y: e.y, text: "💥", life: 5, vy: -1, color: "#fff" });
                         if(e.hp <= 0 && !e.vanish) killEnemy(e);
@@ -523,9 +567,9 @@ html_code = """
             }
         }
 
-        // 🌟 フォース接触ダメージ
         if (forceObj.exists && frameCount % 5 === 0) {
             enemies.forEach(e => {
+                if (e.isQuiz && e.invTime > 0) return;
                 if (!e.vanish && checkCollision(e, forceObj, (e.isBoss ? e.size/2 : 25) + 20)) {
                     e.hp -= 2 + savedData.upgrades.force;
                     effects.push({ x: e.x + (Math.random()*40-20), y: e.y + (Math.random()*40-20), text: "💥", life: 5, vy: -1, color: "#3498db" });
@@ -534,11 +578,10 @@ html_code = """
             });
         }
 
-        // 🌟 波動砲のダメージ判定
         if (waveCannon.active) {
             waveCannon.life--;
             enemies.forEach(e => {
-                // 波動砲のX座標の幅に入っており、かつ自機より前にいる敵
+                if (e.isQuiz && e.invTime > 0) return;
                 if (!e.vanish && e.y < player.y && Math.abs(e.x - player.x) < (waveCannon.width/2 + e.size/2)) {
                     e.hp -= waveCannon.damage;
                     effects.push({ x: e.x + (Math.random()*40-20), y: e.y, text: "💥", life: 5, vy: -1, color: "#fff" });
@@ -550,8 +593,24 @@ html_code = """
 
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i]; enemy.y += enemy.speed;
-            if (enemy.isBoss) { enemy.x += Math.sin(frameCount * 0.03) * 2.5; } 
-            else if (!enemy.isQuiz) { enemy.x += Math.sin(frameCount * 0.05 + i) * 1.5; }
+            if (enemy.isQuiz && enemy.invTime > 0) enemy.invTime--;
+
+            if (enemy.isBoss) { 
+                enemy.x += Math.sin(frameCount * 0.03) * 2.5; 
+                if (frameCount % 60 === 0 && enemy.y > 0) {
+                    enemyBullets.push({ x: enemy.x, y: enemy.y, vx: -2, vy: 5, emoji: "🔴" });
+                    enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 0, vy: 6, emoji: "🔴" });
+                    enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 2, vy: 5, emoji: "🔴" });
+                }
+            } 
+            else if (!enemy.isQuiz) { 
+                enemy.x += Math.sin(frameCount * 0.05 + i) * 1.5; 
+                if (enemy.emoji === "👾" && (frameCount + i * 10) % 90 === 0 && enemy.y > 0) {
+                    let dx = player.x - enemy.x; let dy = player.y - enemy.y; let dist = Math.hypot(dx, dy);
+                    let speed = 4 + (level * 0.1); 
+                    enemyBullets.push({ x: enemy.x, y: enemy.y, vx: (dx/dist)*speed, vy: (dy/dist)*speed, emoji: "🟣" });
+                }
+            }
 
             if (enemy.y > canvas.height + 30 + (enemy.size/2)) { if (enemy.isQuiz) activeQuiz = null; enemies.splice(i, 1); continue; }
 
@@ -559,10 +618,12 @@ html_code = """
                 let bullet = bullets[j];
                 let hitRadius = enemy.isBoss ? (enemy.size / 2) + 10 : 25;
                 if (checkCollision(enemy, bullet, hitRadius)) {
+                    if (enemy.isQuiz && enemy.invTime > 0) {
+                        bullets.splice(j, 1); effects.push({ x: bullet.x, y: bullet.y - 10, text: "🛡️", life: 5, vy: -1, color: "#fff" }); continue;
+                    }
                     if (bullet.type !== 'laser') bullets.splice(j, 1); 
                     enemy.hp -= (bullet.type === 'laser' ? 0.5 : 1);
                     if(Math.random() > 0.5) effects.push({ x: enemy.x + (Math.random()*40-20), y: enemy.y + (Math.random()*40-20), text: "💥", life: 5, vy: -1, color: "#fff" });
-
                     if (enemy.hp <= 0 && !enemy.vanish) { killEnemy(enemy); break; }
                 }
             }
@@ -571,20 +632,8 @@ html_code = """
 
             let playerHitRadius = enemy.isBoss ? (enemy.size / 2) : 15;
             if (enemies[i] && checkCollision(enemy, player, playerHitRadius)) {
-                if (player.invincible <= 0) {
-                    if (player.shields > 0) {
-                        player.shields--; player.invincible = 90; 
-                        effects.push({ x: player.x, y: player.y, text: "🛡️ シールド破損!", life: 40, vy: -1, color: "#3498db" });
-                        if (!enemy.isBoss) { enemy.hp = 0; killEnemy(enemy); }
-                    } else {
-                        isGameOver = true; joyZone.style.display = "none"; actionBtn.style.display = "none";
-                        let earned = Math.floor(score / 5); savedData.credits += earned; saveData();
-                        effects.push({ x: player.x, y: player.y, text: "🔥", life: 60, vy: 0, color: "#fff" });
-                        document.getElementById("final-score").innerText = score;
-                        document.getElementById("earned-credits").innerText = "+" + earned + " C";
-                        overlay.style.display = "flex";
-                    }
-                }
+                let isDead = damagePlayer();
+                if (!isDead && !enemy.isBoss) { enemy.hp = 0; killEnemy(enemy); }
             }
         }
 
@@ -597,7 +646,6 @@ html_code = """
 
         if (isBombing > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${isBombing / 40})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
-        // 🌟 波動砲の描画
         if (waveCannon.active) {
             ctx.fillStyle = `rgba(52, 152, 219, ${Math.min(1.0, waveCannon.life/10)})`;
             ctx.shadowColor = "#00ffff"; ctx.shadowBlur = 20;
@@ -607,21 +655,14 @@ html_code = """
             ctx.shadowBlur = 0;
         }
 
-        blasts.forEach(b => {
-            ctx.fillStyle = `rgba(231, 76, 60, ${b.life / 30})`;
-            ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill();
-        });
+        blasts.forEach(b => { ctx.fillStyle = `rgba(231, 76, 60, ${b.life / 30})`; ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill(); });
 
-        // オプション（グラディウス風）
         let optLv = savedData.upgrades.option;
         if (optLv > 0) {
             ctx.font = "25px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             for(let i=1; i<=optLv; i++) {
                 let pos = player.history[i*15];
-                if(pos) {
-                    ctx.save(); ctx.shadowColor = "#e67e22"; ctx.shadowBlur = 10;
-                    ctx.fillText("🟠", pos.x, pos.y); ctx.restore();
-                }
+                if(pos) { ctx.save(); ctx.shadowColor = "#e67e22"; ctx.shadowBlur = 10; ctx.fillText("🟠", pos.x, pos.y); ctx.restore(); }
             }
         }
 
@@ -634,17 +675,36 @@ html_code = """
                 ctx.font = "20px Arial"; ctx.fillText(b.emoji, b.x, b.y); 
             }
         });
+
+        ctx.font = "15px Arial"; enemyBullets.forEach(eb => { ctx.fillText(eb.emoji, eb.x, eb.y); });
         
         enemies.forEach(e => { 
             if (e.isBoss) {
-                if (isBossImageLoaded) ctx.drawImage(bossImage, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2);
-                else { ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); }
+                // ==========================================================
+                // 🌟 オリジナル画像の描画処理
+                // ==========================================================
+                if (e.imgObj && e.imgObj.isLoaded) {
+                    // 画像の読み込みが完了していればグラフィックを描画
+                    ctx.drawImage(e.imgObj.img, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2);
+                } else {
+                    // 画像がない、またはエラーの時は絵文字で代替
+                    ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
+                }
+                
                 ctx.fillStyle = e.color || "#fff"; ctx.font = "bold 14px Arial"; ctx.fillText(e.name, e.x, e.y - e.size/2 - 25);
                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100, 8);
                 ctx.fillStyle = "#2ecc71"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100 * (e.hp / e.maxHp), 8);
+            } else if (e.isQuiz) { 
+                if (e.invTime > 0) {
+                    ctx.globalAlpha = 0.5 + Math.sin(frameCount * 0.3) * 0.5;
+                    ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); ctx.globalAlpha = 1.0;
+                    ctx.fillStyle = "#f1c40f"; ctx.font = "bold 16px Arial"; ctx.fillText("WAIT!", e.x, e.y - 35);
+                } else {
+                    ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
+                    ctx.fillStyle = "#fff"; ctx.font = "bold 16px Arial"; ctx.fillText("撃て!", e.x, e.y - 35); 
+                }
             } else {
                 ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
-                if (e.isQuiz) { ctx.fillStyle = "#fff"; ctx.font = "bold 16px Arial"; ctx.fillText("撃て!", e.x, e.y - 35); }
             }
         });
         
@@ -661,23 +721,20 @@ html_code = """
                 ctx.beginPath(); ctx.arc(player.x, player.y, 35, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.restore();
             }
             
-            // 🌟 波動砲チャージ中のオーラ
             if (isCharging) {
                 ctx.save(); ctx.shadowColor = "#3498db"; ctx.shadowBlur = 15;
-                ctx.beginPath(); ctx.arc(player.x, player.y - 20, 20 + chargeLevel/4, 0, Math.PI*2);
-                ctx.fillStyle = `rgba(52, 152, 219, ${chargeLevel/180 * 0.5})`; ctx.fill();
-                ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2 + chargeLevel/30; ctx.stroke(); ctx.restore();
+                ctx.beginPath(); ctx.arc(player.x, player.y - 20, 20 + chargeLevel/6, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(52, 152, 219, ${chargeLevel/300 * 0.5})`; ctx.fill();
+                ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2 + chargeLevel/50; ctx.stroke(); ctx.restore();
             }
             
             ctx.fillText(player.emoji, player.x, player.y); ctx.globalAlpha = 1.0;
             
-            // フォースの描画
             if (forceObj.exists) {
                 ctx.save(); ctx.shadowColor = "#3498db"; ctx.shadowBlur = 15;
                 ctx.font = "35px Arial"; ctx.fillText("🛡️", forceObj.x, forceObj.y); ctx.restore();
             }
 
-            // ビット（R-TYPEオプション風）
             let bitCount = savedData.upgrades.bit;
             if (bitCount > 0) {
                 for(let i=0; i<bitCount; i++) {
@@ -710,4 +767,17 @@ html_code = """
 </body>
 </html>
 """
-components.html(html_code, height=750)
+
+# HTML内の一部の文字列を、Pythonで読み込んだBase64文字列に置換して流し込む
+html_code = html_code.replace("REPLACE_B64_1", b64_1)
+html_code = html_code.replace("REPLACE_B64_2", b64_2)
+html_code = html_code.replace("REPLACE_B64_3", b64_3)
+html_code = html_code.replace("REPLACE_B64_4", b64_4)
+html_code = html_code.replace("REPLACE_B64_5", b64_5)
+html_code = html_code.replace("REPLACE_B64_6", b64_6)
+html_code = html_code.replace("REPLACE_B64_7", b64_7)
+html_code = html_code.replace("REPLACE_B64_8", b64_8)
+html_code = html_code.replace("REPLACE_B64_9", b64_9)
+html_code = html_code.replace("REPLACE_B64_10", b64_10)
+
+components.html(html_code, height=900)
