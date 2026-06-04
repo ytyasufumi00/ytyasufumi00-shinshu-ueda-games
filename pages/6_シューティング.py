@@ -6,11 +6,11 @@ import os
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
 
 st.markdown(
-    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.1</h1>", 
+    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.2</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【UI修正完了】ジョイスティックがしっかり中央に戻るようになりました！</p>", 
+    "<p style='font-size: 16px; color: #555;'>【UI修正完了】ゲーム画面（キャンバス）をスワイプして画面の位置調整ができるようになりました！</p>", 
     unsafe_allow_html=True
 )
 
@@ -39,8 +39,9 @@ html_code = """
 <style>
     body { 
         margin: 0; background: #2c3e50; display: flex; flex-direction: column; align-items: center; 
-        font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; 
-        touch-action: none; user-select: none; -webkit-user-select: none;
+        font-family: 'Helvetica Neue', Arial, sans-serif; 
+        /* 🌟 ここから overflow: hidden; と touch-action: none; を削除してスクロールを許可！ */
+        user-select: none; -webkit-user-select: none;
     }
     
     #game-container { 
@@ -81,9 +82,9 @@ html_code = """
         padding: 10px 20px; box-sizing: border-box; justify-content: space-between; align-items: center; z-index: 20;
     }
     
-    /* 🌟 ここに display: flex; を追加しました！ 🌟 */
     #joystick-zone {
-        display: flex;
+        display: flex; 
+        touch-action: none; /* 🌟 ジョイスティック操作時だけはスクロールさせない */
         width: 110px; height: 110px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; 
         justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2); margin: 0; position: relative;
     }
@@ -92,9 +93,9 @@ html_code = """
         border-radius: 50%; position: absolute; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none;
     }
     
-    /* 🌟 ここにも display: flex; を追加しました！ 🌟 */
     #action-btn {
-        display: flex;
+        display: flex; 
+        touch-action: none; /* 🌟 ボタン操作時だけはスクロールさせない */
         width: 80px; height: 80px; background: rgba(231, 76, 60, 0.8);
         border-radius: 50%; flex-direction: column; justify-content: center; align-items: center;
         border: 2px solid rgba(255,255,255,0.3); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); margin: 0; position: relative;
