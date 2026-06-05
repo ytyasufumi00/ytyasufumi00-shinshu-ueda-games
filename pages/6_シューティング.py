@@ -7,11 +7,11 @@ import io
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
 
 st.markdown(
-    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.7</h1>", 
+    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.9</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【演出・調整】ボスの発射時のノックバックを滑らかにし、強力な単発大火力弾を実装しました！</p>", 
+    "<p style='font-size: 16px; color: #555;'>【部位グラフィック完全対応】サソリのハサミパーツに画像が正常に反映されます！</p>", 
     unsafe_allow_html=True
 )
 
@@ -45,8 +45,11 @@ b64_1_c = get_image_base64("pages/images/boss1_c.png")
 
 b64_2 = get_image_base64("pages/images/boss2.png")
 b64_3 = get_image_base64("pages/images/boss3.png")
+
+# 🌟 パーツの画像を読み込む
 b64_3_L = get_image_base64("pages/images/boss3_L.png")
 b64_3_R = get_image_base64("pages/images/boss3_R.png")
+
 b64_4 = get_image_base64("pages/images/boss4.png")
 b64_5 = get_image_base64("pages/images/boss5.png")
 b64_6 = get_image_base64("pages/images/boss6.png")
@@ -125,8 +128,11 @@ html_code = """
 </div>
 
 <script>
+    // 🌟 JavaScript側の変数もしっかり確保
     var DATA_B64_1_A = "__B64_BOSS_01_A__"; var DATA_B64_1_B = "__B64_BOSS_01_B__"; var DATA_B64_1_C = "__B64_BOSS_01_C__";
-    var DATA_B64_2 = "__B64_BOSS_02__"; var DATA_B64_3 = "__B64_BOSS_03__"; var DATA_B64_4 = "__B64_BOSS_04__";
+    var DATA_B64_2 = "__B64_BOSS_02__"; 
+    var DATA_B64_3 = "__B64_BOSS_03__"; var DATA_B64_3_L = "__B64_BOSS_03_L__"; var DATA_B64_3_R = "__B64_BOSS_03_R__";
+    var DATA_B64_4 = "__B64_BOSS_04__";
     var DATA_B64_5 = "__B64_BOSS_05__"; var DATA_B64_6 = "__B64_BOSS_06__"; var DATA_B64_7 = "__B64_BOSS_07__"; 
     var DATA_B64_8 = "__B64_BOSS_08__"; var DATA_B64_9 = "__B64_BOSS_09__"; var DATA_B64_10 = "__B64_BOSS_10__";
 </script>
@@ -163,7 +169,13 @@ html_code = """
     }
 
     const boss1_A = createBossImgObj(safeGetB64("DATA_B64_1_A")); const boss1_B = createBossImgObj(safeGetB64("DATA_B64_1_B")); const boss1_C = createBossImgObj(safeGetB64("DATA_B64_1_C"));
-    const bossImg2 = createBossImgObj(safeGetB64("DATA_B64_2")); const bossImg3 = createBossImgObj(safeGetB64("DATA_B64_3")); 
+    const bossImg2 = createBossImgObj(safeGetB64("DATA_B64_2")); 
+    
+    // 🌟 パーツの画像オブジェクトを生成
+    const bossImg3 = createBossImgObj(safeGetB64("DATA_B64_3")); 
+    const boss3_L_Img = createBossImgObj(safeGetB64("DATA_B64_3_L")); 
+    const boss3_R_Img = createBossImgObj(safeGetB64("DATA_B64_3_R")); 
+
     const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4")); const bossImg5 = createBossImgObj(safeGetB64("DATA_B64_5")); 
     const bossImg6 = createBossImgObj(safeGetB64("DATA_B64_6")); const bossImg7 = createBossImgObj(safeGetB64("DATA_B64_7")); 
     const bossImg8 = createBossImgObj(safeGetB64("DATA_B64_8")); const bossImg9 = createBossImgObj(safeGetB64("DATA_B64_9")); 
@@ -173,7 +185,11 @@ html_code = """
         { name: "LV1: 狂乱の戦闘機", imgAnims: [boss1_A, boss1_B, boss1_C], emoji: "🍌", hp: 120, speed: 0.5, size: 80, color: "#f1c40f" },
         { name: "LV2: 暴走ナノクローラー", imgAnims: [bossImg2], emoji: "🕷️", hp: 200, speed: 0.6, size: 85, color: "#9b59b6" },
         { name: "LV3: 猛毒スコーピオン", imgAnims: [bossImg3], emoji: "🦂", hp: 400, speed: 0.4, size: 90, color: "#e67e22",
-          parts: [ { name: "左ハサミ", emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, { name: "右ハサミ", emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } ]
+          parts: [ 
+              // 🌟 左右のハサミパーツに imgObj を設定
+              { name: "左ハサミ", imgObj: boss3_L_Img, emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, 
+              { name: "右ハサミ", imgObj: boss3_R_Img, emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } 
+          ]
         },
         { name: "LV4: 変異バクテリオファージ", imgAnims: [bossImg4], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
         { name: "LV5: 漆黒のネクロセル", imgAnims: [bossImg5], emoji: "💀", hp: 700, speed: 0.5, size: 100, color: "#95a5a6" },
@@ -391,7 +407,8 @@ html_code = """
                 bossInfo.parts.forEach(p => {
                     enemies.push({
                         x: 250 + p.baseDx, y: -60 + p.baseDy, size: p.size, speed: 0, 
-                        emoji: p.emoji, hp: p.hp, maxHp: p.hp, name: p.name, 
+                        emoji: p.emoji, imgObj: p.imgObj, 
+                        hp: p.hp, maxHp: p.hp, name: p.name, 
                         isQuiz: false, isBossPart: true, parentId: bossId, 
                         baseDx: p.baseDx, baseDy: p.baseDy, isLeft: p.isLeft, animPhase: p.animPhase
                     });
@@ -412,17 +429,10 @@ html_code = """
             enemies.push({ x: Math.random() * (canvas.width - 40) + 20, y: -30, size: 35, speed: 3 + Math.random() * 3 + (score / 3000), emoji: type > 0.8 ? "👾" : "🦠", hp: type > 0.8 ? 4 : 1, isQuiz: false, isBoss: false });
         }
 
-        // ==========================================================================
-        // 🌟 敵弾とプレイヤー＆フォースの衝突判定
-        // ==========================================================================
         for (let i = enemyBullets.length - 1; i >= 0; i--) {
             let eb = enemyBullets[i]; eb.x += eb.vx; eb.y += eb.vy;
             if (eb.y > canvas.height + 20 || eb.x < -20 || eb.x > canvas.width + 20) { enemyBullets.splice(i, 1); continue; }
-            
-            // 超巨大弾(isHuge)は当たり判定も大きくする
-            let hitRadiusForce = eb.isHuge ? 50 : 35;
-            let hitRadiusPlayer = eb.isHuge ? 25 : 15;
-
+            let hitRadiusForce = eb.isHuge ? 50 : 35; let hitRadiusPlayer = eb.isHuge ? 25 : 15;
             if (forceObj.exists && checkCollision(eb, forceObj, hitRadiusForce)) { enemyBullets.splice(i, 1); effects.push({ x: eb.x, y: eb.y, text: "💥", life: 5, vy: 0, color: "#3498db" }); continue; }
             if (checkCollision(eb, player, hitRadiusPlayer)) { enemyBullets.splice(i, 1); damagePlayer(); }
         }
@@ -509,35 +519,19 @@ html_code = """
 
                 if (enemy.isBoss) { 
                     if (enemy.imgAnims && enemy.imgAnims.length >= 3) {
-                        let cycle = frameCount % 240; // 240フレーム（4秒）周期の攻撃サイクル
-                        
+                        let cycle = frameCount % 240; 
                         if (cycle < 60) {
-                            // 【状態A】通常飛行
-                            enemy.animState = 0;
-                            enemy.x += Math.sin(frameCount * 0.03) * 2.5;
+                            enemy.animState = 0; enemy.x += Math.sin(frameCount * 0.03) * 2.5;
                         } else if (cycle < 100) {
-                            // 【状態B】チャージ・警告（激しく震える）
-                            enemy.animState = 1;
-                            enemy.x += Math.sin(frameCount * 1.5) * 4.0; 
+                            enemy.animState = 1; enemy.x += Math.sin(frameCount * 1.5) * 4.0; 
                         } else {
-                            // 【状態C】発射・反動（ノックバック）
-                            enemy.animState = 2;
-                            enemy.x += Math.sin(frameCount * 0.03) * 1.0; 
-                            
-                            // 🌟 1発だけ発射される超強力な巨大彗星弾（☄️）
+                            enemy.animState = 2; enemy.x += Math.sin(frameCount * 0.03) * 1.0; 
                             if (cycle === 100 && enemy.y > 0) {
                                 enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 9, emoji: "☄️", isHuge: true });
                                 effects.push({ x: enemy.x, y: enemy.y + 30, text: "💨", life: 20, vy: 1, color: "#fff" });
                             }
-                            
-                            // 🌟 ノックバックを滑らかに分散させる（イージング）
-                            if (cycle >= 100 && cycle <= 104) {
-                                // 発射直後の5フレームで急激に後ろ（上）へ下がる（合計30px）
-                                enemy.y -= 6;
-                            } else if (cycle > 104) {
-                                // その後の15フレームでゆっくり元の位置に戻る（合計30px）
-                                enemy.y += 2; 
-                            }
+                            if (cycle >= 100 && cycle <= 104) { enemy.y -= 6; } 
+                            else if (cycle > 104) { enemy.y += 2; }
                         }
                     } else {
                         enemy.x += Math.sin(frameCount * 0.03) * 2.5; 
@@ -609,11 +603,7 @@ html_code = """
             else { ctx.font = "20px Arial"; ctx.fillText(b.emoji, b.x, b.y); }
         });
 
-        // 🌟 ボスの超巨大弾（isHuge）と通常弾の描画を分ける
-        enemyBullets.forEach(eb => { 
-            ctx.font = eb.isHuge ? "40px Arial" : "15px Arial"; 
-            ctx.fillText(eb.emoji, eb.x, eb.y); 
-        });
+        enemyBullets.forEach(eb => { ctx.font = eb.isHuge ? "40px Arial" : "15px Arial"; ctx.fillText(eb.emoji, eb.x, eb.y); });
         
         enemies.forEach(e => { 
             if (e.isBoss) {
@@ -641,7 +631,12 @@ html_code = """
                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100, 8);
                 ctx.fillStyle = "#2ecc71"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100 * (e.hp / e.maxHp), 8);
             } else if (e.isBossPart) {
-                ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
+                // 🌟 パーツの画像をしっかり描画する処理（ここが抜けていました！）
+                if (e.imgObj && e.imgObj.isLoaded) {
+                    ctx.drawImage(e.imgObj.img, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2);
+                } else {
+                    ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
+                }
                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 20, e.y - e.size/2 - 10, 40, 5);
                 ctx.fillStyle = "#f1c40f"; ctx.fillRect(e.x - 20, e.y - e.size/2 - 10, 40 * (e.hp / e.maxHp), 5);
                 ctx.fillStyle = "#fff"; ctx.font = "10px Arial"; ctx.fillText(e.name, e.x, e.y - e.size/2 - 15);
@@ -697,14 +692,17 @@ html_code = """
 </html>
 """
 
+# 🌟 PythonからJavaScriptへ、すべての画像データを間違いなく流し込む
 html_code = html_code.replace("__B64_BOSS_01_A__", b64_1_a)
 html_code = html_code.replace("__B64_BOSS_01_B__", b64_1_b)
 html_code = html_code.replace("__B64_BOSS_01_C__", b64_1_c)
 
 html_code = html_code.replace("__B64_BOSS_02__", b64_2)
+
 html_code = html_code.replace("__B64_BOSS_03_L__", b64_3_L)
 html_code = html_code.replace("__B64_BOSS_03_R__", b64_3_R)
 html_code = html_code.replace("__B64_BOSS_03__", b64_3)
+
 html_code = html_code.replace("__B64_BOSS_04__", b64_4)
 html_code = html_code.replace("__B64_BOSS_05__", b64_5)
 html_code = html_code.replace("__B64_BOSS_06__", b64_6)
