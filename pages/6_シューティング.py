@@ -7,11 +7,11 @@ import io
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
 
 st.markdown(
-    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.9</h1>", 
+    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.10</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【部位グラフィック完全対応】サソリのハサミパーツに画像が正常に反映されます！</p>", 
+    "<p style='font-size: 16px; color: #555;'>【ボス挙動・調整機能】ボスが画面上部に留まるようになり、攻撃サイクルの調整が簡単になりました。</p>", 
     unsafe_allow_html=True
 )
 
@@ -44,13 +44,16 @@ b64_1_b = get_image_base64("pages/images/boss1_b.png")
 b64_1_c = get_image_base64("pages/images/boss1_c.png")
 
 b64_2 = get_image_base64("pages/images/boss2.png")
-b64_3 = get_image_base64("pages/images/boss3.png")
 
-# 🌟 パーツの画像を読み込む
+b64_3 = get_image_base64("pages/images/boss3.png")
 b64_3_L = get_image_base64("pages/images/boss3_L.png")
 b64_3_R = get_image_base64("pages/images/boss3_R.png")
 
-b64_4 = get_image_base64("pages/images/boss4.png")
+# 🌟 LV4ボスの画像を3枚読み込む
+b64_4 = get_image_base64("pages/images/boss4.png")     # 待機
+b64_4_a = get_image_base64("pages/images/boss4_a.png") # ため
+b64_4_b = get_image_base64("pages/images/boss4_b.png") # 発射
+
 b64_5 = get_image_base64("pages/images/boss5.png")
 b64_6 = get_image_base64("pages/images/boss6.png")
 b64_7 = get_image_base64("pages/images/boss7.png")
@@ -128,11 +131,13 @@ html_code = """
 </div>
 
 <script>
-    // 🌟 JavaScript側の変数もしっかり確保
     var DATA_B64_1_A = "__B64_BOSS_01_A__"; var DATA_B64_1_B = "__B64_BOSS_01_B__"; var DATA_B64_1_C = "__B64_BOSS_01_C__";
     var DATA_B64_2 = "__B64_BOSS_02__"; 
     var DATA_B64_3 = "__B64_BOSS_03__"; var DATA_B64_3_L = "__B64_BOSS_03_L__"; var DATA_B64_3_R = "__B64_BOSS_03_R__";
-    var DATA_B64_4 = "__B64_BOSS_04__";
+    
+    // 🌟 ボス4用の変数を追加
+    var DATA_B64_4 = "__B64_BOSS_04__"; var DATA_B64_4_A = "__B64_BOSS_04_A__"; var DATA_B64_4_B = "__B64_BOSS_04_B__";
+    
     var DATA_B64_5 = "__B64_BOSS_05__"; var DATA_B64_6 = "__B64_BOSS_06__"; var DATA_B64_7 = "__B64_BOSS_07__"; 
     var DATA_B64_8 = "__B64_BOSS_08__"; var DATA_B64_9 = "__B64_BOSS_09__"; var DATA_B64_10 = "__B64_BOSS_10__";
 </script>
@@ -170,13 +175,16 @@ html_code = """
 
     const boss1_A = createBossImgObj(safeGetB64("DATA_B64_1_A")); const boss1_B = createBossImgObj(safeGetB64("DATA_B64_1_B")); const boss1_C = createBossImgObj(safeGetB64("DATA_B64_1_C"));
     const bossImg2 = createBossImgObj(safeGetB64("DATA_B64_2")); 
-    
-    // 🌟 パーツの画像オブジェクトを生成
     const bossImg3 = createBossImgObj(safeGetB64("DATA_B64_3")); 
     const boss3_L_Img = createBossImgObj(safeGetB64("DATA_B64_3_L")); 
     const boss3_R_Img = createBossImgObj(safeGetB64("DATA_B64_3_R")); 
 
-    const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4")); const bossImg5 = createBossImgObj(safeGetB64("DATA_B64_5")); 
+    // 🌟 ボス4の画像オブジェクトを3種類生成
+    const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4"));
+    const bossImg4_A = createBossImgObj(safeGetB64("DATA_B64_4_A"));
+    const bossImg4_B = createBossImgObj(safeGetB64("DATA_B64_4_B"));
+
+    const bossImg5 = createBossImgObj(safeGetB64("DATA_B64_5")); 
     const bossImg6 = createBossImgObj(safeGetB64("DATA_B64_6")); const bossImg7 = createBossImgObj(safeGetB64("DATA_B64_7")); 
     const bossImg8 = createBossImgObj(safeGetB64("DATA_B64_8")); const bossImg9 = createBossImgObj(safeGetB64("DATA_B64_9")); 
     const bossImg10 = createBossImgObj(safeGetB64("DATA_B64_10"));
@@ -186,12 +194,12 @@ html_code = """
         { name: "LV2: 暴走ナノクローラー", imgAnims: [bossImg2], emoji: "🕷️", hp: 200, speed: 0.6, size: 85, color: "#9b59b6" },
         { name: "LV3: 猛毒スコーピオン", imgAnims: [bossImg3], emoji: "🦂", hp: 400, speed: 0.4, size: 90, color: "#e67e22",
           parts: [ 
-              // 🌟 左右のハサミパーツに imgObj を設定
               { name: "左ハサミ", imgObj: boss3_L_Img, emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, 
               { name: "右ハサミ", imgObj: boss3_R_Img, emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } 
           ]
         },
-        { name: "LV4: 変異バクテリオファージ", imgAnims: [bossImg4], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
+        // 🌟 ボス4も imgAnims の配列に変更
+        { name: "LV4: 変異バクテリオファージ", imgAnims: [bossImg4, bossImg4_A, bossImg4_B], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
         { name: "LV5: 漆黒のネクロセル", imgAnims: [bossImg5], emoji: "💀", hp: 700, speed: 0.5, size: 100, color: "#95a5a6" },
         { name: "LV6: 監視者 ジ・アイ", imgAnims: [bossImg6], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
         { name: "LV7: 地球外病原体 X", imgAnims: [bossImg7], emoji: "👽", hp: 1400, speed: 1.0, size: 90, color: "#2ecc71" },
@@ -341,6 +349,12 @@ html_code = """
         }
     }
 
+    // ==========================================================================
+    // ⚙️ 【調整場所】ボスの出現間隔
+    // ==========================================================================
+    // 60フレーム ＝ 約1秒。1200 なら 約20秒ごと にボスが出現します。
+    let bossSpawnInterval = 1200;
+
     function update() {
         if (isGameOver) return; frameCount++;
         if (powerUpTime > 0) powerUpTime--; if (player.invincible > 0) player.invincible--; if (isBombing > 0) isBombing--;
@@ -390,7 +404,7 @@ html_code = """
         let missileLv = savedData.upgrades.missile;
         if (missileLv > 0 && frameCount % Math.max(20, 60 - missileLv * 3) === 0 && !isCharging) { bullets.push({ x: player.x, y: player.y, size: 12, vx: (Math.random()-0.5)*10, vy: -5, speed: 10, type: 'missile', emoji: "🚀" }); }
 
-        if (frameCount > 0 && frameCount % 1200 === 0) {
+        if (frameCount > 0 && frameCount % bossSpawnInterval === 0) {
             let bossIndex = Math.min(bossEncounterCount, bossList.length - 1);
             let bossInfo = bossList[bossIndex];
             let bossId = Date.now(); 
@@ -399,7 +413,8 @@ html_code = """
                 x: 250, y: -60, size: bossInfo.size, speed: bossInfo.speed, 
                 emoji: bossInfo.emoji, imgAnims: bossInfo.imgAnims,
                 hp: bossInfo.hp, maxHp: bossInfo.hp, 
-                name: bossInfo.name, color: bossInfo.color, isQuiz: false, isBoss: true, bId: bossId 
+                name: bossInfo.name, color: bossInfo.color, isQuiz: false, isBoss: true, bId: bossId,
+                lifetime: 0 // ボスの滞在時間を管理する変数を初期化
             });
             effects.push({ x: 250, y: 300, text: `⚠️ ${bossInfo.name} 襲来 ⚠️`, life: 120, vy: 0, color: bossInfo.color });
             
@@ -417,7 +432,7 @@ html_code = """
             bossEncounterCount++; 
         }
 
-        if (!activeQuiz && frameCount % 600 === 0 && (frameCount % 1200 !== 0)) {
+        if (!activeQuiz && frameCount % 600 === 0 && (frameCount % bossSpawnInterval !== 0)) {
             activeQuiz = ynQuizzes[Math.floor(Math.random() * ynQuizzes.length)];
             enemies.push({ x: 150, y: -30, size: 45, speed: 1.5, emoji: "⭕", hp: 3, isQuiz: true, ans: "⭕", invTime: 90 });
             enemies.push({ x: 350, y: -30, size: 45, speed: 1.5, emoji: "❌", hp: 3, isQuiz: true, ans: "❌", invTime: 90 });
@@ -508,34 +523,74 @@ html_code = """
                 let actualDx = enemy.isLeft ? enemy.baseDx - animOffset : enemy.baseDx + animOffset;
                 enemy.x = parent.x + actualDx; enemy.y = parent.y + enemy.baseDy + Math.cos(frameCount * 0.05) * 5;
                 
-                if (frameCount % 80 === 0 && enemy.y > 0) {
+                if (frameCount % 80 === 0 && enemy.y > 0 && enemy.y < 300) {
                     let dx = player.x - enemy.x; let dy = player.y - enemy.y; let dist = Math.hypot(dx, dy);
                     enemyBullets.push({ x: enemy.x, y: enemy.y, vx: (dx/dist)*4, vy: (dy/dist)*4, emoji: "🟢" });
                 }
             } 
             else {
-                enemy.y += enemy.speed;
+                // 🌟 通常の敵のY軸移動
+                if (!enemy.isBoss) {
+                    enemy.y += enemy.speed;
+                } else {
+                    // ==========================================================
+                    // ⚙️ 【調整場所】ボスが画面上部に留まる時間
+                    // ==========================================================
+                    // 60フレーム ＝ 約1秒。1800 なら 約30秒間 画面上部に留まります。
+                    enemy.lifetime = (enemy.lifetime || 0) + 1;
+                    let stayTime = 1800; 
+                    
+                    // Y座標が 120 (画面上部) になるまで降りてきて、その後は stayTime を過ぎるまで下に降りない
+                    if (enemy.y < 120 || enemy.lifetime > stayTime) {
+                        enemy.y += enemy.speed;
+                    }
+                }
+
                 if (enemy.isQuiz && enemy.invTime > 0) enemy.invTime--;
 
                 if (enemy.isBoss) { 
                     if (enemy.imgAnims && enemy.imgAnims.length >= 3) {
-                        let cycle = frameCount % 240; 
-                        if (cycle < 60) {
-                            enemy.animState = 0; enemy.x += Math.sin(frameCount * 0.03) * 2.5;
-                        } else if (cycle < 100) {
-                            enemy.animState = 1; enemy.x += Math.sin(frameCount * 1.5) * 4.0; 
+                        // ==========================================================
+                        // ⚙️ 【調整場所】ボスの攻撃サイクル（待機・ため・発射）
+                        // ==========================================================
+                        let cycleLength = 240; // 1サイクルの合計フレーム数（240なら約4秒周期）
+                        let cycle = enemy.lifetime % cycleLength; 
+                        
+                        let waitEnd = 160;   // 画像1（待機）が終わる時間（約2.6秒間）
+                        let chargeEnd = 200; // 画像2（ため・震える）が終わる時間（約0.6秒間）
+                        // chargeEnd の瞬間に 画像3（発射・ノックバック）が実行されます。
+                        
+                        if (cycle < waitEnd) {
+                            // 【状態A】待機・通常飛行
+                            enemy.animState = 0; 
+                            enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
+                        } else if (cycle < chargeEnd) {
+                            // 【状態B】ため・警告（激しく震える）
+                            enemy.animState = 1; 
+                            enemy.x += Math.sin(enemy.lifetime * 1.5) * 4.0; 
                         } else {
-                            enemy.animState = 2; enemy.x += Math.sin(frameCount * 0.03) * 1.0; 
-                            if (cycle === 100 && enemy.y > 0) {
+                            // 【状態C】発射・反動（ノックバック）
+                            enemy.animState = 2; 
+                            enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.0; 
+                            
+                            // 🌟 1発だけ発射される超強力な巨大弾（☄️）
+                            // 画面内にいる時だけ撃つように制御
+                            if (cycle === chargeEnd && enemy.y > 0 && enemy.y < 150) {
                                 enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 9, emoji: "☄️", isHuge: true });
                                 effects.push({ x: enemy.x, y: enemy.y + 30, text: "💨", life: 20, vy: 1, color: "#fff" });
                             }
-                            if (cycle >= 100 && cycle <= 104) { enemy.y -= 6; } 
-                            else if (cycle > 104) { enemy.y += 2; }
+                            
+                            // 🌟 ノックバックのイージング（滑らかな反動）
+                            if (cycle >= chargeEnd && cycle <= chargeEnd + 4) {
+                                enemy.y -= 6; // 発射直後に急激に後ろに下がる
+                            } else if (cycle > chargeEnd + 4) {
+                                enemy.y += 2; // その後ゆっくり元の位置に戻る
+                            }
                         }
                     } else {
-                        enemy.x += Math.sin(frameCount * 0.03) * 2.5; 
-                        if (frameCount % 60 === 0 && enemy.y > 0) {
+                        // アニメがない従来のボスの挙動
+                        enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5; 
+                        if (enemy.lifetime % 60 === 0 && enemy.y > 0 && enemy.y < 300) {
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: -2, vy: 5, emoji: "🔴" });
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 0, vy: 6, emoji: "🔴" });
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 2, vy: 5, emoji: "🔴" });
@@ -631,7 +686,6 @@ html_code = """
                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100, 8);
                 ctx.fillStyle = "#2ecc71"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100 * (e.hp / e.maxHp), 8);
             } else if (e.isBossPart) {
-                // 🌟 パーツの画像をしっかり描画する処理（ここが抜けていました！）
                 if (e.imgObj && e.imgObj.isLoaded) {
                     ctx.drawImage(e.imgObj.img, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2);
                 } else {
@@ -692,7 +746,6 @@ html_code = """
 </html>
 """
 
-# 🌟 PythonからJavaScriptへ、すべての画像データを間違いなく流し込む
 html_code = html_code.replace("__B64_BOSS_01_A__", b64_1_a)
 html_code = html_code.replace("__B64_BOSS_01_B__", b64_1_b)
 html_code = html_code.replace("__B64_BOSS_01_C__", b64_1_c)
@@ -703,7 +756,11 @@ html_code = html_code.replace("__B64_BOSS_03_L__", b64_3_L)
 html_code = html_code.replace("__B64_BOSS_03_R__", b64_3_R)
 html_code = html_code.replace("__B64_BOSS_03__", b64_3)
 
+# 🌟 ボス4用の画像を置換
+html_code = html_code.replace("__B64_BOSS_04_A__", b64_4_a)
+html_code = html_code.replace("__B64_BOSS_04_B__", b64_4_b)
 html_code = html_code.replace("__B64_BOSS_04__", b64_4)
+
 html_code = html_code.replace("__B64_BOSS_05__", b64_5)
 html_code = html_code.replace("__B64_BOSS_06__", b64_6)
 html_code = html_code.replace("__B64_BOSS_07__", b64_7)
