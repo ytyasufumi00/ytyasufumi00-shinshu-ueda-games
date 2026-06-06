@@ -7,11 +7,11 @@ import io
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
 
 st.markdown(
-    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V10.10</h1>", 
+    "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V14</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【ボス挙動・調整機能】ボスが画面上部に留まるようになり、攻撃サイクルの調整が簡単になりました。</p>", 
+    "<p style='font-size: 16px; color: #555;'>【ボス個性強化】ボス6（ジ・アイ）に持続的な放射弾幕とフラッシュ演出を追加しました！</p>", 
     unsafe_allow_html=True
 )
 
@@ -39,6 +39,7 @@ def get_image_base64(image_path):
         except: return ""
     except Exception: return ""
 
+# ボス1の画像3種
 b64_1_a = get_image_base64("pages/images/boss1_a.png")
 b64_1_b = get_image_base64("pages/images/boss1_b.png")
 b64_1_c = get_image_base64("pages/images/boss1_c.png")
@@ -49,13 +50,18 @@ b64_3 = get_image_base64("pages/images/boss3.png")
 b64_3_L = get_image_base64("pages/images/boss3_L.png")
 b64_3_R = get_image_base64("pages/images/boss3_R.png")
 
-# 🌟 LV4ボスの画像を3枚読み込む
-b64_4 = get_image_base64("pages/images/boss4.png")     # 待機
-b64_4_a = get_image_base64("pages/images/boss4_a.png") # ため
-b64_4_b = get_image_base64("pages/images/boss4_b.png") # 発射
+# ボス4の画像3種
+b64_4_a = get_image_base64("pages/images/boss4_a.png")
+b64_4_b = get_image_base64("pages/images/boss4_b.png")
+b64_4   = get_image_base64("pages/images/boss4.png")
 
 b64_5 = get_image_base64("pages/images/boss5.png")
-b64_6 = get_image_base64("pages/images/boss6.png")
+
+# 🌟 ボス6の画像3種を追加
+b64_6_a = get_image_base64("pages/images/boss6_a.png")
+b64_6_b = get_image_base64("pages/images/boss6_b.png")
+b64_6   = get_image_base64("pages/images/boss6.png")
+
 b64_7 = get_image_base64("pages/images/boss7.png")
 b64_8 = get_image_base64("pages/images/boss8.png")
 b64_9 = get_image_base64("pages/images/boss9.png")
@@ -73,6 +79,10 @@ html_code = """
     body { margin: 0; background: #2c3e50; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
     #game-container { position: relative; width: 100%; max-width: 500px; min-height: 750px; background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
     #hanger-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; color: white; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; z-index: 50; }
+    
+    .style-select-box { background: rgba(52, 152, 219, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #3498db; }
+    .style-select-box select { width: 100%; padding: 8px; border-radius: 5px; background: #2c3e50; color: #fff; border: 1px solid #3498db; font-weight: bold; margin-top: 5px; font-size: 14px; }
+    
     .upg-item { background: rgba(255,255,255,0.05); border-left: 5px solid #f1c40f; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .upg-title { font-weight: 900; font-size: 14px; margin-bottom: 2px; color: #fff;}
     .upg-desc { font-size: 10px; color: #bdc3c7; font-weight: bold; }
@@ -95,9 +105,23 @@ html_code = """
 <div id="game-container">
     <div id="hanger-screen">
         <h2 style="color: #f1c40f; text-align: center; margin-top: 0px; margin-bottom: 5px; font-size: 22px;">🛠️ 基地ハンガー</h2>
-        <div style="text-align: center; margin-bottom: 10px; background: rgba(0,0,0,0.4); padding: 5px; border-radius: 8px;">
-            <span style="font-size: 12px; color: #bdc3c7;">所持クレジット</span><br><span id="display-credits" style="font-size: 24px; font-weight: 900; color: #2ecc71;">0</span> <span style="font-size: 14px;">C</span>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <div style="flex: 1; text-align: center; background: rgba(0,0,0,0.4); padding: 5px; border-radius: 8px;">
+                <span style="font-size: 12px; color: #bdc3c7;">所持クレジット</span><br><span id="display-credits" style="font-size: 24px; font-weight: 900; color: #2ecc71;">0</span> <span style="font-size: 14px;">C</span>
+            </div>
         </div>
+
+        <div class="style-select-box">
+            <div style="font-size: 12px; color: #3498db; font-weight: bold;">📊 戦闘方針（ドロップアイテム傾向）</div>
+            <select id="style-select">
+                <option value="balanced">⚖️ バランス型 (全アイテム均等に出現)</option>
+                <option value="assault">⚔️ 強襲型 (主砲/レーザー/ミサイル/OP 特化)</option>
+                <option value="heavy">💣 重武装型 (ボム/サブボム/フォース 特化)</option>
+                <option value="defense">🛡️ 防衛・機動型 (シールド/スピード/ビット 特化)</option>
+            </select>
+        </div>
+
         <div style="flex-grow: 1; overflow-y: auto;">
             <div class="upg-item"><div><div class="upg-title">🔫 連射速度UP (Lv.<span id="lvl-fire"></span>)</div><div class="upg-desc">主砲の発射間隔が劇的に短縮</div></div><button class="upg-btn" id="btn-fire" onclick="buyUpgrade('fire')">100 C</button></div>
             <div class="upg-item"><div><div class="upg-title">⚡ 貫通レーザー (Lv.<span id="lvl-laser"></span>)</div><div class="upg-desc">敵を貫く高威力の光線を自動発射</div></div><button class="upg-btn" id="btn-laser" onclick="buyUpgrade('laser')">100 C</button></div>
@@ -134,11 +158,13 @@ html_code = """
     var DATA_B64_1_A = "__B64_BOSS_01_A__"; var DATA_B64_1_B = "__B64_BOSS_01_B__"; var DATA_B64_1_C = "__B64_BOSS_01_C__";
     var DATA_B64_2 = "__B64_BOSS_02__"; 
     var DATA_B64_3 = "__B64_BOSS_03__"; var DATA_B64_3_L = "__B64_BOSS_03_L__"; var DATA_B64_3_R = "__B64_BOSS_03_R__";
+    var DATA_B64_4_A = "__B64_BOSS_04_A__"; var DATA_B64_4_B = "__B64_BOSS_04_B__"; var DATA_B64_4 = "__B64_BOSS_04__";
+    var DATA_B64_5 = "__B64_BOSS_05__"; 
     
-    // 🌟 ボス4用の変数を追加
-    var DATA_B64_4 = "__B64_BOSS_04__"; var DATA_B64_4_A = "__B64_BOSS_04_A__"; var DATA_B64_4_B = "__B64_BOSS_04_B__";
+    // 🌟 ボス6用の変数を追加
+    var DATA_B64_6_A = "__B64_BOSS_06_A__"; var DATA_B64_6_B = "__B64_BOSS_06_B__"; var DATA_B64_6 = "__B64_BOSS_06__"; 
     
-    var DATA_B64_5 = "__B64_BOSS_05__"; var DATA_B64_6 = "__B64_BOSS_06__"; var DATA_B64_7 = "__B64_BOSS_07__"; 
+    var DATA_B64_7 = "__B64_BOSS_07__"; 
     var DATA_B64_8 = "__B64_BOSS_08__"; var DATA_B64_9 = "__B64_BOSS_09__"; var DATA_B64_10 = "__B64_BOSS_10__";
 </script>
 
@@ -176,16 +202,17 @@ html_code = """
     const boss1_A = createBossImgObj(safeGetB64("DATA_B64_1_A")); const boss1_B = createBossImgObj(safeGetB64("DATA_B64_1_B")); const boss1_C = createBossImgObj(safeGetB64("DATA_B64_1_C"));
     const bossImg2 = createBossImgObj(safeGetB64("DATA_B64_2")); 
     const bossImg3 = createBossImgObj(safeGetB64("DATA_B64_3")); 
-    const boss3_L_Img = createBossImgObj(safeGetB64("DATA_B64_3_L")); 
-    const boss3_R_Img = createBossImgObj(safeGetB64("DATA_B64_3_R")); 
+    const boss3_L_Img = createBossImgObj(safeGetB64("DATA_B64_3_L")); const boss3_R_Img = createBossImgObj(safeGetB64("DATA_B64_3_R")); 
 
-    // 🌟 ボス4の画像オブジェクトを3種類生成
-    const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4"));
-    const bossImg4_A = createBossImgObj(safeGetB64("DATA_B64_4_A"));
-    const bossImg4_B = createBossImgObj(safeGetB64("DATA_B64_4_B"));
-
+    const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4")); const bossImg4_A = createBossImgObj(safeGetB64("DATA_B64_4_A")); const bossImg4_B = createBossImgObj(safeGetB64("DATA_B64_4_B"));
     const bossImg5 = createBossImgObj(safeGetB64("DATA_B64_5")); 
-    const bossImg6 = createBossImgObj(safeGetB64("DATA_B64_6")); const bossImg7 = createBossImgObj(safeGetB64("DATA_B64_7")); 
+    
+    // 🌟 ボス6の画像オブジェクトを3種類生成
+    const bossImg6 = createBossImgObj(safeGetB64("DATA_B64_6")); 
+    const bossImg6_A = createBossImgObj(safeGetB64("DATA_B64_6_A")); 
+    const bossImg6_B = createBossImgObj(safeGetB64("DATA_B64_6_B")); 
+    
+    const bossImg7 = createBossImgObj(safeGetB64("DATA_B64_7")); 
     const bossImg8 = createBossImgObj(safeGetB64("DATA_B64_8")); const bossImg9 = createBossImgObj(safeGetB64("DATA_B64_9")); 
     const bossImg10 = createBossImgObj(safeGetB64("DATA_B64_10"));
 
@@ -193,15 +220,12 @@ html_code = """
         { name: "LV1: 狂乱の戦闘機", imgAnims: [boss1_A, boss1_B, boss1_C], emoji: "🍌", hp: 120, speed: 0.5, size: 80, color: "#f1c40f" },
         { name: "LV2: 暴走ナノクローラー", imgAnims: [bossImg2], emoji: "🕷️", hp: 200, speed: 0.6, size: 85, color: "#9b59b6" },
         { name: "LV3: 猛毒スコーピオン", imgAnims: [bossImg3], emoji: "🦂", hp: 400, speed: 0.4, size: 90, color: "#e67e22",
-          parts: [ 
-              { name: "左ハサミ", imgObj: boss3_L_Img, emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, 
-              { name: "右ハサミ", imgObj: boss3_R_Img, emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } 
-          ]
+          parts: [ { name: "左ハサミ", imgObj: boss3_L_Img, emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, { name: "右ハサミ", imgObj: boss3_R_Img, emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } ]
         },
-        // 🌟 ボス4も imgAnims の配列に変更
         { name: "LV4: 変異バクテリオファージ", imgAnims: [bossImg4, bossImg4_A, bossImg4_B], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
         { name: "LV5: 漆黒のネクロセル", imgAnims: [bossImg5], emoji: "💀", hp: 700, speed: 0.5, size: 100, color: "#95a5a6" },
-        { name: "LV6: 監視者 ジ・アイ", imgAnims: [bossImg6], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
+        // 🌟 ボス6も imgAnims の配列に変更
+        { name: "LV6: 監視者 ジ・アイ", imgAnims: [bossImg6, bossImg6_A, bossImg6_B], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
         { name: "LV7: 地球外病原体 X", imgAnims: [bossImg7], emoji: "👽", hp: 1400, speed: 1.0, size: 90, color: "#2ecc71" },
         { name: "LV8: 殺戮機兵 オメガ", imgAnims: [bossImg8], emoji: "🤖", hp: 1800, speed: 0.5, size: 120, color: "#34495e",
           parts: [ { name: "左砲台", emoji: "🛰️", baseDx: -80, baseDy: 0, hp: 400, size: 50, isLeft: true, animPhase: 0 }, { name: "右砲台", emoji: "🛰️", baseDx: 80, baseDy: 0, hp: 400, size: 50, isLeft: false, animPhase: Math.PI } ]
@@ -216,7 +240,12 @@ html_code = """
         { q: "AEDのパッドはペースメーカーの真上に貼る？", a: "❌" }, { q: "成人ICLSの高度気道確保後の換気は6秒に1回である？", a: "⭕" }
     ];
 
+    const itemIcons = { fire: "🔫", laser: "⚡", subBomb: "🧨", missile: "🚀", bit: "🛸", option: "🟠", speed: "💨", shield: "🛡️", bomb: "🔥", force: "🔵" };
+
     let savedData = { credits: 0, upgrades: { fire: 0, speed: 0, shield: 0, bomb: 0, laser: 0, subBomb: 0, missile: 0, bit: 0, option: 0, force: 0 } };
+    let tempUpgrades = { fire: 0, speed: 0, shield: 0, bomb: 0, laser: 0, subBomb: 0, missile: 0, bit: 0, option: 0, force: 0 };
+    let earnedCreditsInGame = 0;
+
     try {
         const localData = localStorage.getItem('medicalStrikerSaveV8');
         if (localData) {
@@ -234,7 +263,8 @@ html_code = """
         if(type === 'bomb' || type === 'laser' || type === 'missile') return 100 * multi; return 50 * multi; 
     }
 
-    const upgKeys = ['fire', 'speed', 'shield', 'bomb', 'laser', 'subBomb', 'missile', 'bit', 'option', 'force'];
+    function getLevel(type) { return savedData.upgrades[type] + tempUpgrades[type]; }
+
     function updateHangerUI() {
         document.getElementById('display-credits').innerText = savedData.credits;
         upgKeys.forEach(type => {
@@ -244,6 +274,8 @@ html_code = """
             else { let cost = getCost(type, lvl); btn.innerText = cost + " C"; btn.disabled = (savedData.credits < cost); }
         });
     }
+
+    const upgKeys = ['fire', 'speed', 'shield', 'bomb', 'laser', 'subBomb', 'missile', 'bit', 'option', 'force'];
     window.buyUpgrade = function(type) {
         let lvl = savedData.upgrades[type]; let limit = (type === 'option') ? MAX_LEVEL_OPTION : (type === 'force' ? MAX_LEVEL_FORCE : MAX_LEVEL);
         if (lvl >= limit) return; let cost = getCost(type, lvl);
@@ -257,24 +289,46 @@ html_code = """
     let stars = []; for(let i=0; i<50; i++) { stars.push({ x: Math.random() * 500, y: Math.random() * 666, speed: 1 + Math.random() * 3, size: Math.random() * 3 }); }
     let player = { x: 250, y: 550, size: 40, emoji: "💉", speed: 5.0, shields: 0, invincible: 0, history: [] };
     
-    let bullets = []; let enemies = []; let enemyBullets = []; let effects = []; let blasts = []; let gameLoopId;
+    let bullets = []; let enemies = []; let enemyBullets = []; let effects = []; let blasts = []; let items = []; let gameLoopId;
     let bombs = 0; let isBombing = 0; 
     let isCharging = false; let chargeLevel = 0; let actionPressTime = 0;
     let forceObj = { exists: false, attached: true, returning: false, x: 0, y: 0, vx: 0, vy: 0 };
     let waveCannon = { active: false, life: 0, width: 0, damage: 0 };
+    let screenFlash = 0; 
+
+    function spawnItem(x, y) {
+        let style = document.getElementById("style-select").value;
+        let pool = [];
+        let weights = {
+            balanced: { fire:1, laser:1, subBomb:1, missile:1, bit:1, option:1, speed:1, shield:1, bomb:1, force:1 },
+            assault:  { fire:4, laser:4, subBomb:1, missile:4, bit:1, option:4, speed:1, shield:1, bomb:1, force:1 },
+            heavy:    { fire:1, laser:1, subBomb:4, missile:1, bit:1, option:1, speed:1, shield:1, bomb:4, force:4 },
+            defense:  { fire:1, laser:1, subBomb:1, missile:1, bit:4, option:1, speed:4, shield:4, bomb:1, force:1 }
+        };
+        let w = weights[style] || weights.balanced;
+        for (let key in w) { for(let i = 0; i < w[key]; i++) { pool.push(key); } }
+        let chosen = pool[Math.floor(Math.random() * pool.length)];
+        items.push({ x: x, y: y, type: chosen, emoji: itemIcons[chosen], speed: 1.5, size: 20 });
+    }
 
     window.startGame = function() {
         hanger.style.display = "none"; canvas.style.display = "block"; controls.style.display = "flex"; 
-        player.speed = 5.0 + (savedData.upgrades.speed * 0.4); player.shields = savedData.upgrades.shield; player.invincible = 0; player.history = []; 
-        let forceLv = savedData.upgrades.force;
+        tempUpgrades = { fire: 0, speed: 0, shield: 0, bomb: 0, laser: 0, subBomb: 0, missile: 0, bit: 0, option: 0, force: 0 };
+        earnedCreditsInGame = 0;
+
+        player.speed = 5.0 + (getLevel('speed') * 0.4); 
+        player.shields = getLevel('shield'); 
+        player.invincible = 0; player.history = []; 
+        
+        let forceLv = getLevel('force');
         if (forceLv > 0) {
             actionBtn.style.background = "rgba(52, 152, 219, 0.8)"; actionBtn.innerHTML = `<div style="font-size: 26px;">🛡️</div><div style="font-size: 10px; font-weight: bold; color: white;">CHARGE</div>`;
             forceObj.exists = true; forceObj.attached = true;
         } else {
-            actionBtn.style.background = "rgba(231, 76, 60, 0.8)"; bombs = 2 + savedData.upgrades.bomb;
+            actionBtn.style.background = "rgba(231, 76, 60, 0.8)"; bombs = 2 + getLevel('bomb');
             actionBtn.innerHTML = `<div style="font-size: 26px;">🔥</div><div id="bomb-count-disp" style="font-size: 14px; font-weight: bold; color: white;">x${bombs}</div>`;
         }
-        blasts = []; bullets = []; enemies = []; enemyBullets = []; effects = [];
+        blasts = []; bullets = []; enemies = []; enemyBullets = []; effects = []; items = [];
         if (!gameLoopId) loop();
     }
 
@@ -284,7 +338,9 @@ html_code = """
                 player.shields--; player.invincible = 90; effects.push({ x: player.x, y: player.y, text: "🛡️ シールド破損!", life: 40, vy: -1, color: "#3498db" }); return false;
             } else {
                 isGameOver = true; controls.style.display = "none";
-                let earned = Math.floor(score / 25); savedData.credits += earned; saveData();
+                let earned = Math.floor(score / 25) + earnedCreditsInGame; 
+                savedData.credits += earned; saveData();
+                
                 effects.push({ x: player.x, y: player.y, text: "🔥", life: 60, vy: 0, color: "#fff" });
                 document.getElementById("final-score").innerText = score; document.getElementById("earned-credits").innerText = "+" + earned + " C"; overlay.style.display = "flex";
                 return true; 
@@ -295,13 +351,13 @@ html_code = """
 
     window.startAction = function(e) {
         if(e) e.preventDefault(); if (isGameOver) return;
-        if (savedData.upgrades.force > 0) { isCharging = true; chargeLevel = 0; actionPressTime = Date.now(); actionBtn.style.transform = "scale(0.9)"; } 
+        if (getLevel('force') > 0) { isCharging = true; chargeLevel = 0; actionPressTime = Date.now(); actionBtn.style.transform = "scale(0.9)"; } 
         else { if(bombs > 0 && isBombing === 0) fireNormalBomb(); }
     }
 
     window.endAction = function(e) {
         if(e) e.preventDefault(); if (isGameOver) return; actionBtn.style.transform = "scale(1.0)";
-        let forceLv = savedData.upgrades.force;
+        let forceLv = getLevel('force');
         if (forceLv > 0 && isCharging) {
             isCharging = false; let holdTime = Date.now() - actionPressTime;
             if (holdTime < 300) { if (forceObj.attached) { forceObj.attached = false; forceObj.vx = 0; forceObj.vy = -12; } else { forceObj.returning = true; } } 
@@ -316,7 +372,8 @@ html_code = """
     }
 
     function fireNormalBomb() {
-        bombs--; document.getElementById("bomb-count-disp").innerText = "x" + bombs; isBombing = 40; player.invincible = 120;
+        bombs--; let bd = document.getElementById("bomb-count-disp"); if(bd) bd.innerText = "x" + bombs; 
+        isBombing = 40; player.invincible = 120;
         effects.push({ x: canvas.width/2, y: canvas.height/2, text: "🔥 MAXIMUM BOMB 🔥", life: 60, vy: -1, color: "#e74c3c" });
         enemies.forEach(enemy => { enemy.hp -= 50; effects.push({ x: enemy.x + (Math.random()*40-20), y: enemy.y + (Math.random()*40-20), text: "💥", life: 30, vy: -1, color: "#fff" }); if(enemy.hp <= 0 && !enemy.vanish) killEnemy(enemy); });
         enemyBullets = [];
@@ -334,8 +391,12 @@ html_code = """
         enemy.vanish = true;
         if (enemy.isQuiz) {
             if (activeQuiz && enemy.ans === activeQuiz.a) {
-                powerUpTime = 400; score += 500; effects.push({ x: canvas.width/2, y: canvas.height/2, text: "✨ 3WAY解放！ ✨", life: 60, vy: -1, color: "#f1c40f" });
-            } else { effects.push({ x: canvas.width/2, y: canvas.height/2, text: "❌ 不正解...", life: 60, vy: -1, color: "#e74c3c" }); }
+                powerUpTime = 400; score += 500; 
+                effects.push({ x: canvas.width/2, y: canvas.height/2, text: "✨ 正解ボーナス!! アイテム出現 ✨", life: 60, vy: -1, color: "#f1c40f" });
+                spawnItem(canvas.width/2 - 40, canvas.height/2); spawnItem(canvas.width/2, canvas.height/2 - 25); spawnItem(canvas.width/2 + 40, canvas.height/2);
+            } else { 
+                effects.push({ x: canvas.width/2, y: canvas.height/2, text: "❌ 不正解...", life: 60, vy: -1, color: "#e74c3c" }); 
+            }
             activeQuiz = null; enemies.forEach(e => { if(e.isQuiz) e.vanish = true; });
         } else if (enemy.isBossPart) {
             score += 3000; gainExp(800); effects.push({ x: enemy.x, y: enemy.y, text: `💥 部位破壊!!`, life: 60, vy: -2, color: "#f1c40f" });
@@ -346,27 +407,32 @@ html_code = """
         } else {
             let isMid = enemy.emoji === "👾"; score += (isMid ? 300 : 100); gainExp(isMid ? 150 : 50);
             effects.push({ x: enemy.x, y: enemy.y, text: "✨", life: 20, vy: -2, color: "#fff" });
+            if (isMid && Math.random() < 0.4) spawnItem(enemy.x, enemy.y);
+            else if (!isMid && Math.random() < 0.05) spawnItem(enemy.x, enemy.y);
         }
     }
 
     // ==========================================================================
-    // ⚙️ 【調整場所】ボスの出現間隔
+    // ⚙️ 【調整場所】ゲームバランス・パラメータ群
     // ==========================================================================
-    // 60フレーム ＝ 約1秒。1200 なら 約20秒ごと にボスが出現します。
-    let bossSpawnInterval = 1200;
+    let difficultyScale = 1500; 
+    let bossSpawnInterval = 1200; 
+    let quizInvincibleTime = 150; 
 
     function update() {
         if (isGameOver) return; frameCount++;
-        if (powerUpTime > 0) powerUpTime--; if (player.invincible > 0) player.invincible--; if (isBombing > 0) isBombing--;
+        if (powerUpTime > 0) powerUpTime--; if (player.invincible > 0) player.invincible--; 
+        if (isBombing > 0) isBombing--; if (screenFlash > 0) screenFlash--;
 
         stars.forEach(s => { s.y += s.speed; if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; } });
 
+        player.speed = 5.0 + (getLevel('speed') * 0.4); 
         player.x += joyDx * player.speed; player.y += joyDy * player.speed;
         if(player.x < 20) player.x = 20; if(player.x > canvas.width - 20) player.x = canvas.width - 20;
         if(player.y < 20) player.y = 20; if(player.y > canvas.height - 20) player.y = canvas.height - 20;
 
         player.history.unshift({x: player.x, y: player.y});
-        let optLv = savedData.upgrades.option; if(player.history.length > optLv * 15 + 1) player.history.pop();
+        let optLv = getLevel('option'); if(player.history.length > optLv * 15 + 1) player.history.pop();
 
         if (forceObj.exists) {
             if (forceObj.attached) { forceObj.x = player.x; forceObj.y = player.y - 45; } 
@@ -382,7 +448,7 @@ html_code = """
 
         if (isCharging) { if (chargeLevel < 300) chargeLevel += 0.5; }
 
-        let fireRate = Math.max(3, 14 - Math.floor(savedData.upgrades.fire * 1)); 
+        let fireRate = Math.max(3, 14 - Math.floor(getLevel('fire') * 1)); 
         if (frameCount % fireRate === 0 && !isCharging) { 
             if (powerUpTime > 0) {
                 bullets.push({ x: player.x, y: player.y - 20, size: 15, vx: 0, vy: -15, type: 'main', emoji: "💊" });
@@ -395,13 +461,13 @@ html_code = """
             for(let i=1; i<=optLv; i++) { let pos = player.history[i*15]; if(pos) bullets.push({ x: pos.x, y: pos.y - 20, size: 15, vx: 0, vy: -15, type: 'main', emoji: "💊" }); }
         }
 
-        let laserLv = savedData.upgrades.laser;
+        let laserLv = getLevel('laser');
         if (laserLv > 0 && frameCount % Math.max(5, 25 - laserLv * 2) === 0 && !isCharging) { bullets.push({ x: player.x, y: player.y - 30, size: 5, vx: 0, vy: -30, type: 'laser' }); }
 
-        let subBombLv = savedData.upgrades.subBomb;
+        let subBombLv = getLevel('subBomb');
         if (subBombLv > 0 && frameCount % Math.max(30, 90 - subBombLv * 5) === 0 && !isCharging) { bullets.push({ x: player.x, y: player.y, size: 15, vx: 0, vy: -8, type: 'subBomb', targetY: player.y - 100 - (subBombLv * 15), emoji: "🧨" }); }
 
-        let missileLv = savedData.upgrades.missile;
+        let missileLv = getLevel('missile');
         if (missileLv > 0 && frameCount % Math.max(20, 60 - missileLv * 3) === 0 && !isCharging) { bullets.push({ x: player.x, y: player.y, size: 12, vx: (Math.random()-0.5)*10, vy: -5, speed: 10, type: 'missile', emoji: "🚀" }); }
 
         if (frameCount > 0 && frameCount % bossSpawnInterval === 0) {
@@ -414,7 +480,7 @@ html_code = """
                 emoji: bossInfo.emoji, imgAnims: bossInfo.imgAnims,
                 hp: bossInfo.hp, maxHp: bossInfo.hp, 
                 name: bossInfo.name, color: bossInfo.color, isQuiz: false, isBoss: true, bId: bossId,
-                lifetime: 0 // ボスの滞在時間を管理する変数を初期化
+                lifetime: 0 
             });
             effects.push({ x: 250, y: 300, text: `⚠️ ${bossInfo.name} 襲来 ⚠️`, life: 120, vy: 0, color: bossInfo.color });
             
@@ -434,20 +500,49 @@ html_code = """
 
         if (!activeQuiz && frameCount % 600 === 0 && (frameCount % bossSpawnInterval !== 0)) {
             activeQuiz = ynQuizzes[Math.floor(Math.random() * ynQuizzes.length)];
-            enemies.push({ x: 150, y: -30, size: 45, speed: 1.5, emoji: "⭕", hp: 3, isQuiz: true, ans: "⭕", invTime: 90 });
-            enemies.push({ x: 350, y: -30, size: 45, speed: 1.5, emoji: "❌", hp: 3, isQuiz: true, ans: "❌", invTime: 90 });
+            enemies.push({ x: 150, y: -30, size: 45, speed: 1.5, emoji: "⭕", hp: 3, isQuiz: true, ans: "⭕", invTime: quizInvincibleTime });
+            enemies.push({ x: 350, y: -30, size: 45, speed: 1.5, emoji: "❌", hp: 3, isQuiz: true, ans: "❌", invTime: quizInvincibleTime });
         }
 
-        let spawnRate = Math.max(8, 50 - Math.floor(score / 500)); 
+        let spawnRate = Math.max(5, 60 - Math.floor(score / (difficultyScale * 0.4))); 
         if (frameCount % spawnRate === 0) {
             let type = Math.random();
-            enemies.push({ x: Math.random() * (canvas.width - 40) + 20, y: -30, size: 35, speed: 3 + Math.random() * 3 + (score / 3000), emoji: type > 0.8 ? "👾" : "🦠", hp: type > 0.8 ? 4 : 1, isQuiz: false, isBoss: false });
+            let speedBonus = Math.min(2.5, score / (difficultyScale * 2));
+            let baseSpeed = 3 + Math.random() * 2 + speedBonus;
+            enemies.push({ x: Math.random() * (canvas.width - 40) + 20, y: -30, size: 35, speed: baseSpeed, emoji: type > 0.8 ? "👾" : "🦠", hp: type > 0.8 ? 4 : 1, isQuiz: false, isBoss: false });
+        }
+
+        for (let i = items.length - 1; i >= 0; i--) {
+            let item = items[i]; item.y += item.speed;
+            if (item.y > canvas.height + 20) { items.splice(i, 1); continue; }
+            
+            if (checkCollision(item, player, 25)) {
+                let type = item.type;
+                let limit = (type === 'option') ? MAX_LEVEL_OPTION : (type === 'force' ? MAX_LEVEL_FORCE : MAX_LEVEL);
+                
+                if (getLevel(type) < limit) {
+                    tempUpgrades[type]++; 
+                    effects.push({ x: player.x, y: player.y, text: `GET! ${item.emoji}`, life: 40, vy: -1.5, color: "#f1c40f" });
+                    
+                    if (type === 'force' && !forceObj.exists) { 
+                        forceObj.exists = true; forceObj.attached = true; 
+                        actionBtn.style.background = "rgba(52, 152, 219, 0.8)"; 
+                        actionBtn.innerHTML = `<div style="font-size: 26px;">🛡️</div><div style="font-size: 10px; font-weight: bold; color: white;">CHARGE</div>`; 
+                    }
+                    if (type === 'bomb' && getLevel('force') === 0) { bombs++; let bd = document.getElementById("bomb-count-disp"); if(bd) bd.innerText = "x" + bombs; }
+                    if (type === 'shield') player.shields++;
+                } else {
+                    earnedCreditsInGame += 50; 
+                    effects.push({ x: player.x, y: player.y, text: "+50 C", life: 40, vy: -1.5, color: "#2ecc71" });
+                }
+                items.splice(i, 1);
+            }
         }
 
         for (let i = enemyBullets.length - 1; i >= 0; i--) {
             let eb = enemyBullets[i]; eb.x += eb.vx; eb.y += eb.vy;
             if (eb.y > canvas.height + 20 || eb.x < -20 || eb.x > canvas.width + 20) { enemyBullets.splice(i, 1); continue; }
-            let hitRadiusForce = eb.isHuge ? 50 : 35; let hitRadiusPlayer = eb.isHuge ? 25 : 15;
+            let hitRadiusForce = eb.isSuperHuge ? 70 : (eb.isHuge ? 50 : 35); let hitRadiusPlayer = eb.isSuperHuge ? 35 : (eb.isHuge ? 25 : 15);
             if (forceObj.exists && checkCollision(eb, forceObj, hitRadiusForce)) { enemyBullets.splice(i, 1); effects.push({ x: eb.x, y: eb.y, text: "💥", life: 5, vy: 0, color: "#3498db" }); continue; }
             if (checkCollision(eb, player, hitRadiusPlayer)) { enemyBullets.splice(i, 1); damagePlayer(); }
         }
@@ -464,7 +559,7 @@ html_code = """
                 }
             }
             b.x += b.vx; b.y += b.vy;
-            if (b.type === 'subBomb' && b.y <= b.targetY) { blasts.push({ x: b.x, y: b.y, radius: 40 + (savedData.upgrades.subBomb * 5), life: 30, damage: 1 }); bullets.splice(i, 1); continue; }
+            if (b.type === 'subBomb' && b.y <= b.targetY) { blasts.push({ x: b.x, y: b.y, radius: 40 + (getLevel('subBomb') * 5), life: 30, damage: 1 }); bullets.splice(i, 1); continue; }
             if (b.y < -20 || b.x < -20 || b.x > canvas.width + 20) bullets.splice(i, 1);
         }
 
@@ -479,7 +574,7 @@ html_code = """
             if (blast.life <= 0) blasts.splice(i, 1);
         }
 
-        let bitCount = savedData.upgrades.bit;
+        let bitCount = getLevel('bit');
         if (bitCount > 0 && frameCount % 10 === 0) { 
             for(let i=0; i<bitCount; i++) {
                 let angle = frameCount * 0.05 + (i * Math.PI * 2 / bitCount);
@@ -495,7 +590,7 @@ html_code = """
         if (forceObj.exists && frameCount % 5 === 0) {
             enemies.forEach(e => {
                 if (e.isQuiz && e.invTime > 0) return;
-                if (!e.vanish && checkCollision(e, forceObj, (e.isBoss ? e.size/2 : 25) + 20)) { e.hp -= 2 + savedData.upgrades.force; effects.push({ x: e.x + (Math.random()*40-20), y: e.y + (Math.random()*40-20), text: "💥", life: 5, vy: -1, color: "#3498db" }); if (e.hp <= 0 && !e.vanish) killEnemy(e); }
+                if (!e.vanish && checkCollision(e, forceObj, (e.isBoss ? e.size/2 : 25) + 20)) { e.hp -= 2 + getLevel('force'); effects.push({ x: e.x + (Math.random()*40-20), y: e.y + (Math.random()*40-20), text: "💥", life: 5, vy: -1, color: "#3498db" }); if (e.hp <= 0 && !e.vanish) killEnemy(e); }
             });
         }
 
@@ -529,66 +624,85 @@ html_code = """
                 }
             } 
             else {
-                // 🌟 通常の敵のY軸移動
                 if (!enemy.isBoss) {
                     enemy.y += enemy.speed;
                 } else {
-                    // ==========================================================
-                    // ⚙️ 【調整場所】ボスが画面上部に留まる時間
-                    // ==========================================================
-                    // 60フレーム ＝ 約1秒。1800 なら 約30秒間 画面上部に留まります。
                     enemy.lifetime = (enemy.lifetime || 0) + 1;
                     let stayTime = 1800; 
-                    
-                    // Y座標が 120 (画面上部) になるまで降りてきて、その後は stayTime を過ぎるまで下に降りない
-                    if (enemy.y < 120 || enemy.lifetime > stayTime) {
-                        enemy.y += enemy.speed;
-                    }
+                    if (enemy.y < 120 || enemy.lifetime > stayTime) { enemy.y += enemy.speed; }
                 }
 
                 if (enemy.isQuiz && enemy.invTime > 0) enemy.invTime--;
 
                 if (enemy.isBoss) { 
                     if (enemy.imgAnims && enemy.imgAnims.length >= 3) {
-                        // ==========================================================
-                        // ⚙️ 【調整場所】ボスの攻撃サイクル（待機・ため・発射）
-                        // ==========================================================
-                        let cycleLength = 240; // 1サイクルの合計フレーム数（240なら約4秒周期）
-                        let cycle = enemy.lifetime % cycleLength; 
                         
-                        let waitEnd = 160;   // 画像1（待機）が終わる時間（約2.6秒間）
-                        let chargeEnd = 200; // 画像2（ため・震える）が終わる時間（約0.6秒間）
-                        // chargeEnd の瞬間に 画像3（発射・ノックバック）が実行されます。
-                        
-                        if (cycle < waitEnd) {
-                            // 【状態A】待機・通常飛行
-                            enemy.animState = 0; 
-                            enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
-                        } else if (cycle < chargeEnd) {
-                            // 【状態B】ため・警告（激しく震える）
-                            enemy.animState = 1; 
-                            enemy.x += Math.sin(enemy.lifetime * 1.5) * 4.0; 
-                        } else {
-                            // 【状態C】発射・反動（ノックバック）
-                            enemy.animState = 2; 
-                            enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.0; 
+                        // 🌟 ボスごとの行動パターン分岐
+                        if (enemy.name.includes("ジ・アイ")) {
+                            // 【ボス6 (LV6)】 2秒間の放射弾幕 ＋ フラッシュ
+                            let cycleLength = 360; 
+                            let waitEnd = 160;     
+                            let chargeEnd = 240;   
                             
-                            // 🌟 1発だけ発射される超強力な巨大弾（☄️）
-                            // 画面内にいる時だけ撃つように制御
-                            if (cycle === chargeEnd && enemy.y > 0 && enemy.y < 150) {
-                                enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 9, emoji: "☄️", isHuge: true });
-                                effects.push({ x: enemy.x, y: enemy.y + 30, text: "💨", life: 20, vy: 1, color: "#fff" });
+                            let cycle = enemy.lifetime % cycleLength; 
+                            
+                            if (cycle < waitEnd) {
+                                enemy.animState = 0; enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
+                            } else if (cycle < chargeEnd) {
+                                enemy.animState = 1; enemy.x += Math.sin(enemy.lifetime * 1.5) * 4.0; 
+                            } else {
+                                enemy.animState = 2; // 発射画像
+                                enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.0; 
+                                
+                                // 2秒間（120フレーム）持続的に放射状に弾を発射
+                                if (cycle % 8 === 0 && enemy.y > 0 && enemy.y < 250) {
+                                    let angleBase = cycle * 0.1;
+                                    for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                                        enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angleBase + a)*5, vy: Math.sin(angleBase + a)*5, emoji: "🧿" });
+                                    }
+                                }
+                                
+                                // 0.25秒(15フレーム)ごとのフラッシュ演出
+                                if (cycle % 15 === 0) {
+                                    screenFlash = 8; 
+                                }
                             }
+                        } else {
+                            // 【ボス1 & ボス4】 単発の超強力なため撃ち ＋ ノックバック
+                            let cycleLength = 240; 
+                            let waitEnd = 160;     
+                            let chargeEnd = 200;   
+
+                            let cycle = enemy.lifetime % cycleLength; 
                             
-                            // 🌟 ノックバックのイージング（滑らかな反動）
-                            if (cycle >= chargeEnd && cycle <= chargeEnd + 4) {
-                                enemy.y -= 6; // 発射直後に急激に後ろに下がる
-                            } else if (cycle > chargeEnd + 4) {
-                                enemy.y += 2; // その後ゆっくり元の位置に戻る
+                            if (cycle < waitEnd) {
+                                enemy.animState = 0; enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
+                            } else if (cycle < chargeEnd) {
+                                enemy.animState = 1; enemy.x += Math.sin(enemy.lifetime * 1.5) * 4.0; 
+                            } else {
+                                enemy.animState = 2; enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.0; 
+                                
+                                if (cycle === chargeEnd && enemy.y > 0 && enemy.y < 150) {
+                                    if (enemy.name.includes("バクテリオファージ")) {
+                                        enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 14, emoji: "☄️", isSuperHuge: true });
+                                        for (let angle = 0; angle <= Math.PI; angle += Math.PI/4) {
+                                            enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: Math.cos(angle)*8, vy: Math.sin(angle)*8, emoji: "🔥", isHuge: true });
+                                            enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: Math.cos(angle)*5, vy: Math.sin(angle)*5, emoji: "⚡", isHuge: false });
+                                        }
+                                        screenFlash = 25; 
+                                        effects.push({ x: enemy.x, y: enemy.y + 30, text: "🌟 BIG BANG 🌟", life: 60, vy: -1, color: "#f1c40f" });
+                                    } else {
+                                        enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 12, emoji: "☄️", isSuperHuge: true });
+                                        screenFlash = 10;
+                                        effects.push({ x: enemy.x, y: enemy.y + 30, text: "💨", life: 20, vy: 1, color: "#fff" });
+                                    }
+                                }
+                                
+                                if (cycle >= chargeEnd && cycle <= chargeEnd + 4) { enemy.y -= 6; } 
+                                else if (cycle > chargeEnd + 4) { enemy.y += 2; }
                             }
                         }
                     } else {
-                        // アニメがない従来のボスの挙動
                         enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5; 
                         if (enemy.lifetime % 60 === 0 && enemy.y > 0 && enemy.y < 300) {
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: -2, vy: 5, emoji: "🔴" });
@@ -597,13 +711,6 @@ html_code = """
                         }
                     }
                 } 
-                else if (!enemy.isQuiz) { 
-                    enemy.x += Math.sin(frameCount * 0.05 + i) * 1.5; 
-                    if (enemy.emoji === "👾" && (frameCount + i * 10) % 90 === 0 && enemy.y > 0) {
-                        let dx = player.x - enemy.x; let dy = player.y - enemy.y; let dist = Math.hypot(dx, dy);
-                        let speed = 4 + (level * 0.1); enemyBullets.push({ x: enemy.x, y: enemy.y, vx: (dx/dist)*speed, vy: (dy/dist)*speed, emoji: "🟣" });
-                    }
-                }
             }
 
             if (enemy.y > canvas.height + 30 + (enemy.size/2)) { if (enemy.isQuiz) activeQuiz = null; enemies.splice(i, 1); continue; }
@@ -637,6 +744,7 @@ html_code = """
         ctx.fillStyle = "#3498db"; stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill(); });
 
         if (isBombing > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${isBombing / 40})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+        if (screenFlash > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${screenFlash / 15})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
         if (waveCannon.active) {
             ctx.fillStyle = `rgba(52, 152, 219, ${Math.min(1.0, waveCannon.life/10)})`; ctx.shadowColor = "#00ffff"; ctx.shadowBlur = 20;
@@ -646,54 +754,58 @@ html_code = """
 
         blasts.forEach(b => { ctx.fillStyle = `rgba(231, 76, 60, ${b.life / 30})`; ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill(); });
 
-        let optLv = savedData.upgrades.option;
+        let optLv = getLevel('option');
         if (optLv > 0) {
             ctx.font = "25px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             for(let i=1; i<=optLv; i++) { let pos = player.history[i*15]; if(pos) { ctx.save(); ctx.shadowColor = "#e67e22"; ctx.shadowBlur = 10; ctx.fillText("🟠", pos.x, pos.y); ctx.restore(); } }
         }
-
+        
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        items.forEach(item => {
+            ctx.save(); ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 15; ctx.fillStyle = "rgba(241, 196, 15, 0.4)";
+            ctx.beginPath(); ctx.arc(item.x, item.y, 18, 0, Math.PI*2); ctx.fill(); ctx.restore();
+            ctx.font = "20px Arial"; ctx.fillText(item.emoji, item.x, item.y);
+        });
+
         bullets.forEach(b => { 
             if (b.type === 'laser') { ctx.fillStyle = "#00ffff"; ctx.shadowColor = "#00ffff"; ctx.shadowBlur = 10; ctx.fillRect(b.x - 2, b.y, 4, 30); ctx.shadowBlur = 0; } 
             else { ctx.font = "20px Arial"; ctx.fillText(b.emoji, b.x, b.y); }
         });
 
-        enemyBullets.forEach(eb => { ctx.font = eb.isHuge ? "40px Arial" : "15px Arial"; ctx.fillText(eb.emoji, eb.x, eb.y); });
+        enemyBullets.forEach(eb => { 
+            if (eb.isSuperHuge) { ctx.font = "80px Arial"; }
+            else if (eb.isHuge) { ctx.font = "40px Arial"; }
+            else { ctx.font = "15px Arial"; }
+            ctx.fillText(eb.emoji, eb.x, eb.y); 
+        });
         
         enemies.forEach(e => { 
             if (e.isBoss) {
                 let currentImgObj = null;
                 if (e.imgAnims && e.imgAnims.length > 0) {
                     let animIndex = 0;
-                    if (e.animState !== undefined && e.animState < e.imgAnims.length) {
-                        animIndex = e.animState;
-                    } else {
-                        animIndex = Math.floor(frameCount / 15) % e.imgAnims.length;
-                    }
-                    
+                    if (e.animState !== undefined && e.animState < e.imgAnims.length) { animIndex = e.animState; } 
+                    else { animIndex = Math.floor(frameCount / 15) % e.imgAnims.length; }
                     let candidate = e.imgAnims[animIndex];
                     if (candidate && candidate.isLoaded) { currentImgObj = candidate.img; } 
                     else if (e.imgAnims[0] && e.imgAnims[0].isLoaded) { currentImgObj = e.imgAnims[0].img; }
                 }
 
-                if (currentImgObj) { 
-                    ctx.drawImage(currentImgObj, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2); 
-                } else { 
-                    ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
-                }
+                if (currentImgObj) { ctx.drawImage(currentImgObj, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2); } 
+                else { ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); }
                 
-                ctx.fillStyle = e.color || "#fff"; ctx.font = "bold 14px Arial"; ctx.fillText(e.name, e.x, e.y - e.size/2 - 25);
-                ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100, 8);
-                ctx.fillStyle = "#2ecc71"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 15, 100 * (e.hp / e.maxHp), 8);
+                // 🌟 ボスのHPバーと名前の重なりを修正
+                ctx.fillStyle = e.color || "#fff"; ctx.font = "bold 14px Arial"; ctx.fillText(e.name, e.x, e.y - e.size/2 - 45);
+                ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 35, 100, 8);
+                ctx.fillStyle = "#2ecc71"; ctx.fillRect(e.x - 50, e.y - e.size/2 - 35, 100 * (e.hp / e.maxHp), 8);
             } else if (e.isBossPart) {
-                if (e.imgObj && e.imgObj.isLoaded) {
-                    ctx.drawImage(e.imgObj.img, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2);
-                } else {
-                    ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); 
-                }
-                ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 20, e.y - e.size/2 - 10, 40, 5);
-                ctx.fillStyle = "#f1c40f"; ctx.fillRect(e.x - 20, e.y - e.size/2 - 10, 40 * (e.hp / e.maxHp), 5);
-                ctx.fillStyle = "#fff"; ctx.font = "10px Arial"; ctx.fillText(e.name, e.x, e.y - e.size/2 - 15);
+                if (e.imgObj && e.imgObj.isLoaded) { ctx.drawImage(e.imgObj.img, e.x - e.size, e.y - e.size, e.size * 2, e.size * 2); } 
+                else { ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); }
+                
+                // 🌟 パーツ側のHPバーも同様に上に移動
+                ctx.fillStyle = "#e74c3c"; ctx.fillRect(e.x - 20, e.y - e.size/2 - 20, 40, 5);
+                ctx.fillStyle = "#f1c40f"; ctx.fillRect(e.x - 20, e.y - e.size/2 - 20, 40 * (e.hp / e.maxHp), 5);
+                ctx.fillStyle = "#fff"; ctx.font = "10px Arial"; ctx.fillText(e.name, e.x, e.y - e.size/2 - 25);
             } else if (e.isQuiz) { 
                 if (e.invTime > 0) {
                     ctx.globalAlpha = 0.5 + Math.sin(frameCount * 0.3) * 0.5; ctx.font = e.size + "px Arial"; ctx.fillText(e.emoji, e.x, e.y); ctx.globalAlpha = 1.0;
@@ -718,7 +830,7 @@ html_code = """
             
             if (forceObj.exists) { ctx.save(); ctx.shadowColor = "#3498db"; ctx.shadowBlur = 15; ctx.font = "35px Arial"; ctx.fillText("🛡️", forceObj.x, forceObj.y); ctx.restore(); }
 
-            let bitCount = savedData.upgrades.bit;
+            let bitCount = getLevel('bit');
             if (bitCount > 0) {
                 for(let i=0; i<bitCount; i++) {
                     let angle = frameCount * 0.05 + (i * Math.PI * 2 / bitCount); let bx = player.x + Math.cos(angle) * 60; let by = player.y + Math.sin(angle) * 60;
@@ -729,7 +841,7 @@ html_code = """
 
         effects.forEach(eff => {
             ctx.globalAlpha = eff.life / 20; ctx.fillStyle = eff.color || "#ffffff";
-            let fontSize = eff.text.includes("BOSS") || eff.text.includes("破壊") || eff.text.includes("BOMB") || eff.text.includes("波動砲") ? 28 : (eff.text.includes("解放") || eff.text.includes("不正解") ? 32 : 24);
+            let fontSize = eff.text.includes("BOSS") || eff.text.includes("破壊") || eff.text.includes("BOMB") || eff.text.includes("波動砲") ? 28 : (eff.text.includes("解放") || eff.text.includes("正解ボーナス") || eff.text.includes("不正解") ? 32 : 24);
             ctx.font = "bold " + fontSize + "px Arial"; ctx.fillText(eff.text, eff.x, eff.y); ctx.globalAlpha = 1.0;
         });
 
@@ -756,13 +868,16 @@ html_code = html_code.replace("__B64_BOSS_03_L__", b64_3_L)
 html_code = html_code.replace("__B64_BOSS_03_R__", b64_3_R)
 html_code = html_code.replace("__B64_BOSS_03__", b64_3)
 
-# 🌟 ボス4用の画像を置換
 html_code = html_code.replace("__B64_BOSS_04_A__", b64_4_a)
 html_code = html_code.replace("__B64_BOSS_04_B__", b64_4_b)
 html_code = html_code.replace("__B64_BOSS_04__", b64_4)
 
 html_code = html_code.replace("__B64_BOSS_05__", b64_5)
+
+html_code = html_code.replace("__B64_BOSS_06_A__", b64_6_a)
+html_code = html_code.replace("__B64_BOSS_06_B__", b64_6_b)
 html_code = html_code.replace("__B64_BOSS_06__", b64_6)
+
 html_code = html_code.replace("__B64_BOSS_07__", b64_7)
 html_code = html_code.replace("__B64_BOSS_08__", b64_8)
 html_code = html_code.replace("__B64_BOSS_09__", b64_9)
