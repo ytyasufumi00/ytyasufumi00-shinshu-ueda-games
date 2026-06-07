@@ -426,7 +426,7 @@ html_code = """
     // ⚙️ 【調整場所】ゲームバランス・パラメータ群
     // ==========================================================================
     let difficultyScale = 1500; 
-    let bossSpawnInterval = 1200; 
+    let bossSpawnInterval = 1600; 
     let quizInvincibleTime = 150; 
 
     function update() {
@@ -640,7 +640,7 @@ html_code = """
                     enemy.lifetime = (enemy.lifetime || 0) + 1;
                     
                     // 🌟 修正ポイント：一定時間経過後（stayTime）にボスが下に移動して撤退するように復活させました
-                    let stayTime = 1800; // 30秒
+                    let stayTime = 1200; // 20秒
                     if (enemy.y < 120 || enemy.lifetime > stayTime) { 
                         enemy.y += enemy.speed; 
                     }
