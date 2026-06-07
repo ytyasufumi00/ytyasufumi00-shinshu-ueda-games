@@ -11,7 +11,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【バグ修正】ボスの時間経過による撤退動作と、撤退時の攻撃（サイクル・発射）継続を両立させました！</p>", 
+    "<p style='font-size: 16px; color: #555;'>上田医療センターに襲来するエイリアンたち</p>", 
     unsafe_allow_html=True
 )
 
