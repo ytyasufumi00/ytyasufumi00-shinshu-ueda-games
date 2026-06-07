@@ -11,7 +11,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【バグ修正】ボスの長期間滞在時のアクション停止バグと、同時出現ボスの巻き添え消滅バグを修正しました！</p>", 
+    "<p style='font-size: 16px; color: #555;'>【バグ修正】ボスの時間経過による撤退動作と、撤退時の攻撃（サイクル・発射）継続を両立させました！</p>", 
     unsafe_allow_html=True
 )
 
@@ -409,11 +409,8 @@ html_code = """
             score += 10000; gainExp(2000);
             effects.push({ x: enemy.x, y: enemy.y, text: `🎊 ${enemy.name.split(' ')[0]} 撃破!! 🎊`, life: 60, vy: -2, color: enemy.color });
             
-            // 🌟 修正ポイント：撃破したボス以外のボスは消さないようにする
             enemies.forEach(e => { 
-                // 雑魚敵を消しつつ、他のボスやそのパーツは残す
                 if(!e.isQuiz && !e.isBoss && !e.isBossPart) e.vanish = true; 
-                // 撃破されたボス自身のパーツのみ消滅させる
                 if(e.isBossPart && e.parentId === enemy.bId) e.vanish = true;
             }); 
             enemyBullets = []; 
@@ -642,8 +639,11 @@ html_code = """
                 } else {
                     enemy.lifetime = (enemy.lifetime || 0) + 1;
                     
-                    // 🌟 修正ポイント：ボスが長時間経過しても画面外に逃げ出さないようにする
-                    if (enemy.y < 120) { enemy.y += enemy.speed; }
+                    // 🌟 修正ポイント：一定時間経過後（stayTime）にボスが下に移動して撤退するように復活させました
+                    let stayTime = 1800; // 30秒
+                    if (enemy.y < 120 || enemy.lifetime > stayTime) { 
+                        enemy.y += enemy.speed; 
+                    }
                 }
 
                 if (enemy.isQuiz && enemy.invTime > 0) enemy.invTime--;
@@ -674,7 +674,8 @@ html_code = """
                                 enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.5;
                                 enemy.isFiringBeam = false;
                                 
-                                if (cycle % 5 === 0 && enemy.y > 0 && enemy.y < 250) {
+                                // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
+                                if (cycle % 5 === 0 && enemy.y > 0 && enemy.y < canvas.height) {
                                     let angleBase = cycle * 0.15;
                                     for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
                                         enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angleBase + a)*4.5, vy: Math.sin(angleBase + a)*4.5, emoji: "🧿" });
@@ -703,7 +704,7 @@ html_code = """
                                 
                                 enemy.x += (Math.random() - 0.5) * 4;
                                 
-                                if (cycle === phase4End) {
+                                if (cycle === phase4End && enemy.y < canvas.height) {
                                     screenFlash = 25;
                                     effects.push({ x: enemy.x, y: enemy.y + 50, text: "💥 EXTREME BEAM 💥", life: 90, vy: -0.5, color: "#e74c3c" });
                                 }
@@ -727,7 +728,8 @@ html_code = """
                             } else {
                                 enemy.animState = 2; enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.0; 
                                 
-                                if (cycle === chargeEnd && enemy.y > 0 && enemy.y < 150) {
+                                // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
+                                if (cycle === chargeEnd && enemy.y > 0 && enemy.y < canvas.height) {
                                     if (enemy.name.includes("バクテリオファージ")) {
                                         enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 14, emoji: "☄️", isSuperHuge: true });
                                         for (let angle = 0; angle <= Math.PI; angle += Math.PI/4) {
@@ -743,14 +745,18 @@ html_code = """
                                     }
                                 }
                                 
-                                # 🌟 修正ポイント：ボス1＆4の反動ドリフトを修正（元の高さへ戻るように）
-                                if (cycle >= chargeEnd && cycle <= chargeEnd + 4) { enemy.y -= 6; } 
-                                else if (cycle > chargeEnd + 4) { enemy.y += (120 - enemy.y) * 0.05; }
+                                // 🌟 修正ポイント：反動ドリフトの復元処理を「撤退時間（1800）を過ぎていない時のみ」に制限し、撤退処理と競合しないようにしました
+                                if (cycle >= chargeEnd && cycle <= chargeEnd + 4) { 
+                                    enemy.y -= 6; 
+                                } else if (cycle > chargeEnd + 4 && enemy.lifetime <= 1800) { 
+                                    enemy.y += (120 - enemy.y) * 0.05; 
+                                }
                             }
                         }
                     } else {
                         enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5; 
-                        if (enemy.lifetime % 60 === 0 && enemy.y > 0 && enemy.y < 300) {
+                        // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
+                        if (enemy.lifetime % 60 === 0 && enemy.y > 0 && enemy.y < canvas.height) {
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: -2, vy: 5, emoji: "🔴" });
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 0, vy: 6, emoji: "🔴" });
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 2, vy: 5, emoji: "🔴" });
