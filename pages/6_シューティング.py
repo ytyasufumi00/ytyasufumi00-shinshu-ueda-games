@@ -223,14 +223,14 @@ html_code = """
     const bossImg10 = createBossImgObj(safeGetB64("DATA_B64_10"));
 
     const bossList = [
-        { name: "LV1: 狂乱の戦闘機", imgAnims: [boss1_A, boss1_B, boss1_C], emoji: "🍌", hp: 120, speed: 0.5, size: 80, color: "#f1c40f" },
-        { name: "LV2: 暴走ナノクローラー", imgAnims: [bossImg2], emoji: "🕷️", hp: 200, speed: 0.6, size: 85, color: "#9b59b6" },
-        { name: "LV3: 猛毒スコーピオン", imgAnims: [bossImg3], emoji: "🦂", hp: 400, speed: 0.4, size: 90, color: "#e67e22",
-          parts: [ { name: "左ハサミ", imgObj: boss3_L_Img, emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, { name: "右ハサミ", imgObj: boss3_R_Img, emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } ]
+        { name: "LV1: ガンダム", imgAnims: [boss1_A, boss1_B, boss1_C], emoji: "🍌", hp: 120, speed: 0.5, size: 80, color: "#f1c40f" },
+        { name: "LV2: 病床利用率将軍", imgAnims: [bossImg2], emoji: "🕷️", hp: 200, speed: 0.6, size: 85, color: "#9b59b6" },
+        { name: "LV3: 冷蔵庫", imgAnims: [bossImg3], emoji: "🦂", hp: 400, speed: 0.4, size: 90, color: "#e67e22",
+          parts: [ { name: "取り巻き1", imgObj: boss3_L_Img, emoji: "🦞", baseDx: -65, baseDy: 10, hp: 150, size: 45, isLeft: true, animPhase: 0 }, { name: "取り巻き2", imgObj: boss3_R_Img, emoji: "🦞", baseDx: 65, baseDy: 10, hp: 150, size: 45, isLeft: false, animPhase: Math.PI } ]
         },
-        { name: "LV4: 変異バクテリオファージ", imgAnims: [bossImg4, bossImg4_A, bossImg4_B], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
+        { name: "LV4: 超過勤務チェッカー", imgAnims: [bossImg4, bossImg4_A, bossImg4_B], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
         { name: "LV5: 漆黒のネクロセル", imgAnims: [bossImg5], emoji: "💀", hp: 700, speed: 0.5, size: 100, color: "#95a5a6" },
-        { name: "LV6: 監視者 ジ・アイ", imgAnims: [bossImg6, bossImg6_A, bossImg6_B, bossImg6_C, bossImg6_D], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
+        { name: "LV6: 一人称オラ", imgAnims: [bossImg6, bossImg6_A, bossImg6_B, bossImg6_C, bossImg6_D], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
         { name: "LV7: 地球外病原体 X", imgAnims: [bossImg7], emoji: "👽", hp: 1400, speed: 1.0, size: 90, color: "#2ecc71" },
         { name: "LV8: 殺戮機兵 オメガ", imgAnims: [bossImg8], emoji: "🤖", hp: 1800, speed: 0.5, size: 120, color: "#34495e",
           parts: [ { name: "左砲台", emoji: "🛰️", baseDx: -80, baseDy: 0, hp: 400, size: 50, isLeft: true, animPhase: 0 }, { name: "右砲台", emoji: "🛰️", baseDx: 80, baseDy: 0, hp: 400, size: 50, isLeft: false, animPhase: Math.PI } ]
@@ -651,7 +651,7 @@ html_code = """
                 if (enemy.isBoss) { 
                     if (enemy.imgAnims && enemy.imgAnims.length >= 3) {
                         
-                        if (enemy.name.includes("ジ・アイ")) {
+                        if (enemy.name.includes("一人称オラ")) {
                             let cycleLength = 600; 
                             let phase1End = 120; // 2秒: boss6 (待機)
                             let phase2End = 180; // 1秒: boss6_a (震え)
@@ -730,7 +730,7 @@ html_code = """
                                 
                                 // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
                                 if (cycle === chargeEnd && enemy.y > 0 && enemy.y < canvas.height) {
-                                    if (enemy.name.includes("バクテリオファージ")) {
+                                    if (enemy.name.includes("超過勤務チェッカー")) {
                                         enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 14, emoji: "☄️", isSuperHuge: true });
                                         for (let angle = 0; angle <= Math.PI; angle += Math.PI/4) {
                                             enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: Math.cos(angle)*8, vy: Math.sin(angle)*8, emoji: "🔥", isHuge: true });
