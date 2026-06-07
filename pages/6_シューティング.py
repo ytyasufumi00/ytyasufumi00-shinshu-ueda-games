@@ -11,7 +11,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='font-size: 16px; color: #555;'>【ボス個性強化】ボス6（ジ・アイ）に3秒間のチャージ演出と極太ビーム放射アクションを追加しました！</p>", 
+    "<p style='font-size: 16px; color: #555;'>【ボス個性強化】ボス6（ジ・アイ）のアクションを5段階のローテーション（待機→震え→弾幕→チャージ→ビーム）に調整しました！</p>", 
     unsafe_allow_html=True
 )
 
@@ -57,7 +57,8 @@ b64_4   = get_image_base64("pages/images/boss4.png")
 
 b64_5 = get_image_base64("pages/images/boss5.png")
 
-# 🌟 ボス6の画像4種 (a, b, c, d)
+# 🌟 ボス6の画像5種 (無印, a, b, c, d)
+b64_6   = get_image_base64("pages/images/boss6.png")
 b64_6_a = get_image_base64("pages/images/boss6_a.png")
 b64_6_b = get_image_base64("pages/images/boss6_b.png")
 b64_6_c = get_image_base64("pages/images/boss6_c.png")
@@ -162,7 +163,8 @@ html_code = """
     var DATA_B64_4_A = "__B64_BOSS_04_A__"; var DATA_B64_4_B = "__B64_BOSS_04_B__"; var DATA_B64_4 = "__B64_BOSS_04__";
     var DATA_B64_5 = "__B64_BOSS_05__"; 
     
-    // 🌟 ボス6用の変数 (a, b, c, d)
+    // 🌟 ボス6用の変数 (無印, a, b, c, d)
+    var DATA_B64_6   = "__B64_BOSS_06__"; 
     var DATA_B64_6_A = "__B64_BOSS_06_A__"; 
     var DATA_B64_6_B = "__B64_BOSS_06_B__"; 
     var DATA_B64_6_C = "__B64_BOSS_06_C__"; 
@@ -211,7 +213,8 @@ html_code = """
     const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4")); const bossImg4_A = createBossImgObj(safeGetB64("DATA_B64_4_A")); const bossImg4_B = createBossImgObj(safeGetB64("DATA_B64_4_B"));
     const bossImg5 = createBossImgObj(safeGetB64("DATA_B64_5")); 
     
-    // 🌟 ボス6の画像オブジェクトを4種類生成
+    // 🌟 ボス6の画像オブジェクトを5種類生成
+    const bossImg6   = createBossImgObj(safeGetB64("DATA_B64_6")); 
     const bossImg6_A = createBossImgObj(safeGetB64("DATA_B64_6_A")); 
     const bossImg6_B = createBossImgObj(safeGetB64("DATA_B64_6_B")); 
     const bossImg6_C = createBossImgObj(safeGetB64("DATA_B64_6_C")); 
@@ -229,8 +232,8 @@ html_code = """
         },
         { name: "LV4: 変異バクテリオファージ", imgAnims: [bossImg4, bossImg4_A, bossImg4_B], emoji: "🧬", hp: 500, speed: 0.8, size: 95, color: "#2ecc71" },
         { name: "LV5: 漆黒のネクロセル", imgAnims: [bossImg5], emoji: "💀", hp: 700, speed: 0.5, size: 100, color: "#95a5a6" },
-        // 🌟 ボス6のアニメーション配列を更新
-        { name: "LV6: 監視者 ジ・アイ", imgAnims: [bossImg6_A, bossImg6_B, bossImg6_C, bossImg6_D], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
+        // 🌟 ボス6のアニメーション配列を無印から始まる5種に更新
+        { name: "LV6: 監視者 ジ・アイ", imgAnims: [bossImg6, bossImg6_A, bossImg6_B, bossImg6_C, bossImg6_D], emoji: "👁️", hp: 1000, speed: 0.4, size: 110, color: "#e74c3c" },
         { name: "LV7: 地球外病原体 X", imgAnims: [bossImg7], emoji: "👽", hp: 1400, speed: 1.0, size: 90, color: "#2ecc71" },
         { name: "LV8: 殺戮機兵 オメガ", imgAnims: [bossImg8], emoji: "🤖", hp: 1800, speed: 0.5, size: 120, color: "#34495e",
           parts: [ { name: "左砲台", emoji: "🛰️", baseDx: -80, baseDy: 0, hp: 400, size: 50, isLeft: true, animPhase: 0 }, { name: "右砲台", emoji: "🛰️", baseDx: 80, baseDy: 0, hp: 400, size: 50, isLeft: false, animPhase: Math.PI } ]
@@ -644,31 +647,46 @@ html_code = """
                         
                         // 🌟 ボスごとの行動パターン分岐
                         if (enemy.name.includes("ジ・アイ")) {
-                            // 【ボス6 (LV6)】 行動パターンのアップデート
-                            let cycleLength = 540; // 全体で9秒ループ
-                            let phase1End = 240;   // フェーズ1 (約4秒): aとbを交互に＋放射状弾幕
-                            let phase2End = 420;   // フェーズ2 (約3秒): cでチャージ＋演出
+                            // 【ボス6 (LV6)】 5段階のローテーション (全10秒 = 600フレーム)
+                            let cycleLength = 600; 
+                            let phase1End = 120; // 2秒: boss6 (待機)
+                            let phase2End = 180; // 1秒: boss6_a (震え)
+                            let phase3End = 240; // 1秒: boss6_b (放射弾幕)
+                            let phase4End = 420; // 3秒: boss6_c (チャージ)
+                            // 残り180フレームが phase5: boss6_d (ビーム)
                             
                             let cycle = enemy.lifetime % cycleLength; 
                             
                             if (cycle < phase1End) {
-                                // Phase 1: boss6_a / boss6_b アニメーションと放射弾
-                                enemy.animState = Math.floor(cycle / 20) % 2; 
-                                enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
+                                // Phase 1: 待機 (無印boss6)
+                                enemy.animState = 0; 
+                                enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5; // ゆったり移動
+                                enemy.isFiringBeam = false;
+                            } else if (cycle < phase2End) {
+                                // Phase 2: 小刻みに震える (boss6_a)
+                                enemy.animState = 1; 
+                                enemy.x += (Math.random() - 0.5) * 4;
+                                enemy.y += (Math.random() - 0.5) * 4;
+                                enemy.isFiringBeam = false;
+                            } else if (cycle < phase3End) {
+                                // Phase 3: 放射状弾幕 (boss6_b)
+                                enemy.animState = 2; 
+                                enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.5;
                                 enemy.isFiringBeam = false;
                                 
-                                if (cycle % 45 === 0 && enemy.y > 0 && enemy.y < 250) {
-                                    let angleBase = cycle * 0.1;
+                                // 1秒間持続的に発射
+                                if (cycle % 5 === 0 && enemy.y > 0 && enemy.y < 250) {
+                                    let angleBase = cycle * 0.15;
                                     for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
                                         enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angleBase + a)*4.5, vy: Math.sin(angleBase + a)*4.5, emoji: "🧿" });
                                     }
                                 }
-                            } else if (cycle < phase2End) {
-                                // Phase 2: boss6_c 3秒間のチャージと演出
-                                enemy.animState = 2; 
+                            } else if (cycle < phase4End) {
+                                // Phase 4: 3秒間チャージ (boss6_c)
+                                enemy.animState = 3; 
                                 enemy.isFiringBeam = false;
                                 
-                                // 震える演出
+                                // 激しい震え
                                 enemy.x += (Math.random() - 0.5) * 8;
                                 enemy.y += (Math.random() - 0.5) * 4;
                                 
@@ -680,20 +698,20 @@ html_code = """
                                 }
                                 
                                 // チャージ開始時のテキスト
-                                if (cycle === phase1End) {
+                                if (cycle === phase3End) {
                                     effects.push({ x: enemy.x, y: enemy.y - 80, text: "⚠️ ENERGY CHARGE ⚠️", life: 180, vy: 0, color: "#f1c40f" });
                                 }
                                 // フラッシュ演出
                                 if (cycle % 20 === 0) screenFlash = 4; 
                             } else {
-                                // Phase 3: boss6_d 極太ビーム発射
-                                enemy.animState = 3; 
+                                // Phase 5: 極太ビーム発射 (boss6_d)
+                                enemy.animState = 4; 
                                 enemy.isFiringBeam = true; 
                                 
                                 // 反動で少し揺れる
                                 enemy.x += (Math.random() - 0.5) * 4;
                                 
-                                if (cycle === phase2End) {
+                                if (cycle === phase4End) {
                                     screenFlash = 25;
                                     effects.push({ x: enemy.x, y: enemy.y + 50, text: "💥 EXTREME BEAM 💥", life: 90, vy: -0.5, color: "#e74c3c" });
                                 }
@@ -927,7 +945,8 @@ html_code = html_code.replace("__B64_BOSS_04__", b64_4)
 
 html_code = html_code.replace("__B64_BOSS_05__", b64_5)
 
-# 🌟 追加したボスのBase64文字列を埋め込み
+# 🌟 追加したボスのBase64文字列を埋め込み (無印を追加)
+html_code = html_code.replace("__B64_BOSS_06__", b64_6)
 html_code = html_code.replace("__B64_BOSS_06_A__", b64_6_a)
 html_code = html_code.replace("__B64_BOSS_06_B__", b64_6_b)
 html_code = html_code.replace("__B64_BOSS_06_C__", b64_6_c)
