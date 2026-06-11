@@ -3,3 +3,5 @@ pandas
 requests
 yfinance
 google-generativeai
+openai
+anthropic
