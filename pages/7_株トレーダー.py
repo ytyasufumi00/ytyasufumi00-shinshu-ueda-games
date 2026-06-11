@@ -5,65 +5,75 @@ import pandas as pd
 import google.generativeai as genai
 
 # ==========================================
-# 1. 初期設定とAPIキーのセットアップ
+# 1. 初期設定とAPIキーの自動読み込み
 # ==========================================
 st.set_page_config(page_title="AI株式トレードシミュレーター", layout="wide")
 
-# Gemini APIの初期化 (StreamlitのSecrets機能、または直接入力)
-# ※ローカル環境では st.secrets["GEMINI_API_KEY"] を使用するのが安全です
-if "GEMINI_API_KEY" in st.secrets:
+try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-else:
-    # 開発用に画面上で入力できるようにフォールバック
-    api_key = st.sidebar.text_input("Gemini API Key を入力してください", type="password")
-    if api_key:
-        genai.configure(api_key=api_key)
+except Exception:
+    pass
 
-model = genai.GenerativeModel('gemini-2.5-flash')
+# キャラクターの個性が強く出るようにtemperatureを維持
+model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"temperature": 0.85})
 
 # ==========================================
-# 2. 銘柄プールとセッション状態の初期化
+# 2. 銘柄プールとセッション・キャラクター設定
 # ==========================================
-# ゲームに登場させる候補銘柄リスト（大型バリュー・中小型グロース混合）
 TICKER_POOL = {
-    "7203.T": "大手自動車メーカー",
-    "6758.T": "大手総合電機・エンタメ企業",
-    "9984.T": "大手投資・通信グループ",
-    "4385.T": "フリマアプリ運営の新興IT企業",
-    "7974.T": "大手ゲーム玩具メーカー",
-    "6501.T": "重電・システム大手のインフラ企業",
-    "6062.T": "医療・福祉特化の人材サービス企業",
-    "4475.T": "クラウドセキュリティを展開するIT企業"
+    "7203.T": "トヨタ自動車",
+    "6758.T": "ソニーグループ",
+    "9984.T": "ソフトバンクグループ",
+    "4385.T": "メルカリ",
+    "7974.T": "任天堂",
+    "6501.T": "日立製作所",
+    "6062.T": "チャーム・ケア・コーポレーション",
+    "4475.T": "HENNGE"
 }
 
-# セッション状態でゲームのステージや選択銘柄を管理
+# アイコンに合わせて個性を再定義
+PERSONAS = [
+    {
+        "avatar": "🥷", 
+        "desc": "相場の裏を読む凄腕の忍（忍びの言葉使い。「潜伏」「陽動」「仕掛けの刻（とき）」などの言葉を使い、チャートの裏に潜む大口投資家の動きや気配を語る）"
+    },
+    {
+        "avatar": "👩‍💼", 
+        "desc": "冷徹で理知的な女性クオンツAI（敬語で丁寧だが、データ至上主義で少し冷たい印象。「〜と推察されますわ」「感情はノイズに過ぎません」「期待値は極めて高いですわね」などのお嬢様・クール系女性口調を使う）"
+    },
+    {
+        "avatar": "🧑‍🎤", 
+        "desc": "相場をライブ会場に変えるロックスター・トレーダー（ハイテンションで音楽的な比喩を使う。「ビートに乗れ！」「ノイズを切り裂くギターソロ！」「アゲアゲのチューン」などを使い熱狂的に語る）"
+    }
+]
+
 if "current_tickers" not in st.session_state:
     st.session_state.current_tickers = random.sample(list(TICKER_POOL.keys()), 3)
 if "hints" not in st.session_state:
     st.session_state.hints = {}
 if "game_stage" not in st.session_state:
-    st.session_state.game_stage = "select" # select（選択中） or result（結果発表）
+    st.session_state.game_stage = "select"
 if "selected_ticker" not in st.session_state:
     st.session_state.selected_ticker = None
 
 # ==========================================
-# 3. ビジネスロジック（データ取得・分析関数）
+# 3. データ処理・分析・一括生成関数
 # ==========================================
 @st.cache_data(show_spinner=False)
-def get_30days_ago_metrics(ticker):
-    """30日前時点の多面的指標を計算・取得する"""
+def get_90days_ago_data(ticker):
+    """90日前時点でのデータを取得する"""
     try:
         stock = yf.Ticker(ticker)
         df = stock.history(period="1y", interval="1d")
         df.index = df.index.tz_localize(None)
         
-        target_idx = -30
+        # ターゲットを90日前に変更
+        target_idx = -90
         if len(df) < abs(target_idx):
-            return None
+            return None, None
             
         past_df = df.iloc[:len(df) + target_idx].copy()
         
-        # 指標計算
         diff = past_df['Close'].diff()
         up, down = diff.clip(lower=0), -1 * diff.clip(upper=0)
         rsi = 100 - (100 / (1 + (up.rolling(14).mean().iloc[-1] / down.rolling(14).mean().iloc[-1])))
@@ -73,85 +83,117 @@ def get_30days_ago_metrics(ticker):
         peg = info.get('pegRatio', 999)
         rev_growth = info.get('revenueGrowth', 0) or 0
         
-        return {"rsi": rsi, "per": per, "peg": peg, "growth": rev_growth * 100}
+        metrics = {"rsi": rsi, "per": per, "peg": peg, "growth": rev_growth * 100}
+        
+        # 90日前の時点から見た、さらに過去90日分のチャートデータを返す
+        return metrics, past_df.tail(90)
     except:
-        return {"rsi": 50, "per": 20, "peg": 1.5, "growth": 5.0}
+        return {"rsi": 50, "per": 20, "peg": 1.5, "growth": 5.0}, None
 
-def generate_ai_hint(ticker, metrics):
-    """Gemini APIを使用して、銘柄名を知らないAIに寸評を作らせる"""
-    prompt = f"""
-    あなたは投資ゲームのナビゲーターです。30日前時点の以下の指標を分析し、プレイヤーへの寸評（ヒント）を作ってください。
-    ・RSI(14日): {metrics['rsi']:.1f}%
-    ・PER: {metrics['per']}倍
-    ・PEGレシオ: {metrics['peg']}
-    ・売上高成長率: {metrics['growth']:.1f}%
+def generate_all_hints(all_data):
+    """3銘柄分の寸評を一括生成"""
+    prompt = "あなたは株式投資ゲームのナビゲーターです。以下の3つの銘柄に対して、それぞれ指定されたキャラクター設定で寸評（約120〜150文字）を作成してください。\n\n"
     
-    【条件】銘柄コードや実際の企業名は絶対に伏せ、「この銘柄」と呼んでください。100文字程度で、特徴（グロース株かバリュー株か、買い場か）をワクワクするトーンで解説してください。
-    """
+    for i, data in enumerate(all_data):
+        prompt += f"【銘柄 {i+1}】\n"
+        prompt += f"・キャラクター設定: {data['persona']}\n"
+        prompt += f"・対象企業: {data['company_name']}\n"
+        prompt += f"・RSI(14日): {data['metrics']['rsi']:.1f}%\n"
+        prompt += f"・PER: {data['metrics']['per']}倍\n"
+        prompt += f"・PEGレシオ: {data['metrics']['peg']}\n"
+        prompt += f"・売上高成長率: {data['metrics']['growth']:.1f}%\n\n"
+
+    prompt += """【絶対ルール】
+    1. 各寸評は必ず「===」という記号だけで区切って出力してください。
+    2. 寸評以外のテキスト（見出しや挨拶など）は一切書かないでください。
+    3. 各キャラクターの口調・個性を完全に守りきってください。
+    4. 現在が「90日前」の時点であるという前提で語ってください。"""
+
     try:
         response = model.generate_content(prompt)
-        return response.text
-    except:
-        return "（APIエラーまたはキー未設定。データに基づいた裏側での自動計算は生きています。）"
+        
+        # もしセーフティーフィルターでブロックされた場合の処理
+        if not response.parts:
+            return [f"安全装置作動: 表現がブロックされました"] * 3
+            
+        hints = [h.strip() for h in response.text.split("===") if h.strip()]
+        while len(hints) < 3:
+            hints.append("（分析データの受信に失敗しました）")
+        return hints
+        
+    except Exception as e:
+        # 「通信エラー発生」の代わりに、エラーの本当の理由を画面に出力する
+        return [f"エラー詳細: {e}"] * 3
 
 def shuffle_tickers():
-    """銘柄のシャッフル（引き直し）処理"""
     st.session_state.current_tickers = random.sample(list(TICKER_POOL.keys()), 3)
-    st.session_state.hints = {} # ヒントをリセット
+    st.session_state.hints = {}
     st.session_state.selected_ticker = None
 
 # ==========================================
-# 4. UI 描画（メイン画面）
+# 4. UI 描画
 # ==========================================
 st.title("📈 AI自動売買アルゴリズム・シミュレーションゲーム")
-st.subheader("〜 30日前にタイムスリップして、ベストな銘柄を仕込め 〜")
+st.subheader("〜 90日前のデータとチャートから、未来の勝ち組を予測せよ 〜")
 
-st.markdown("""
-システムが多面的な分析（テクニカル・成長性・財務面）からスクリーニングした3つの候補銘柄があります。
-プレイヤーであるあなたは、30日前時点での**AIナビゲーターによる寸評（ヒント）**を頼りに、
-これから30日間で「自動売買アルゴリズムが最も高い収益を叩き出す銘柄」を1つ選んでください。
-""")
-
-# 銘柄選択ステージ
 if st.session_state.game_stage == "select":
     
-    # シャッフルボタン
-    if st.button("🔄 銘柄をシャッフル（選び直す）"):
+    if st.button("🔄 別の3銘柄にシャッフルする"):
         shuffle_tickers()
         st.rerun()
 
     st.write("---")
     
-    # 3つの銘柄を横並びに表示（Streamlitのcolumns機能）
+    all_data = []
+    chart_data_list = []
+    
+    for i, ticker in enumerate(st.session_state.current_tickers):
+        company_name = TICKER_POOL[ticker]
+        metrics, chart_data = get_90days_ago_data(ticker)
+        chart_data_list.append(chart_data)
+        all_data.append({
+            "ticker": ticker, 
+            "company_name": company_name, 
+            "metrics": metrics, 
+            "persona": PERSONAS[i]["desc"]
+        })
+
+    if not st.session_state.hints:
+        with st.spinner("3人の個性派ナビゲーターが会議中... (一括解析)"):
+            hints_list = generate_all_hints(all_data)
+            for i, ticker in enumerate(st.session_state.current_tickers):
+                st.session_state.hints[ticker] = hints_list[i]
+                
     cols = st.columns(3)
     
     for i, ticker in enumerate(st.session_state.current_tickers):
+        company_name = TICKER_POOL[ticker]
+        chart_data = chart_data_list[i]
+        avatar_icon = PERSONAS[i]["avatar"]
+        
         with cols[i]:
-            st.markdown(f"### 📦 候補銘柄 {chr(65+i)}") # 銘柄A, B, Cとして表示（名前は伏せる）
-            st.caption(f"分類ヒント: {TICKER_POOL[ticker]}")
+            st.markdown(f"### 🏢 {company_name}")
+            st.caption(f"`{ticker}`")
             
-            # データの取得とヒント生成（セッションに保持して無駄なAPI呼び出しを防ぐ）
-            if ticker not in st.session_state.hints:
-                with st.spinner("AIが指標を解析中..."):
-                    metrics = get_30days_ago_metrics(ticker)
-                    hint_text = generate_ai_hint(ticker, metrics)
-                    st.session_state.hints[ticker] = hint_text
+            if chart_data is not None:
+                st.caption("📊 90日前時点から見た過去90日間の推移")
+                st.line_chart(chart_data['Close'], height=200)
             
-            # 寸評カードの表示
-            st.info(st.session_state.hints[ticker])
+            with st.chat_message("assistant", avatar=avatar_icon):
+                st.write(st.session_state.hints.get(ticker, "解析中..."))
             
-            # 選択ボタン
-            if st.button(f"銘柄 {chr(65+i)} を選んでシミュレート", key=f"btn_{ticker}"):
+            st.write("")
+            
+            if st.button(f"{company_name} を選択してシミュレート", key=f"btn_{ticker}"):
                 st.session_state.selected_ticker = ticker
                 st.session_state.game_stage = "result"
                 st.rerun()
 
-# 結果発表ステージ（プレースホルダー。ここに前回のバックテストロジックが入ります）
 elif st.session_state.game_stage == "result":
-    st.success(f"### 選択完了: 銘柄 {st.session_state.selected_ticker}（正体: {st.session_state.selected_ticker}）")
-    st.write("ここで裏側で30日間のループを回し、売買資産の推移グラフとランキングを発表します。")
+    selected_name = TICKER_POOL[st.session_state.selected_ticker]
+    st.success(f"### 📈 {selected_name} の90日間自動売買シミュレーションを開始します")
     
-    if st.button("↩️ もう一度遊ぶ（最初に戻る）"):
+    if st.button("↩️ 銘柄選択に戻る"):
         st.session_state.game_stage = "select"
         shuffle_tickers()
         st.rerun()
