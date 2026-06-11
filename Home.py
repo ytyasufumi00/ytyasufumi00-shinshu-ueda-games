@@ -135,6 +135,8 @@ with col2:
     st.page_link("pages/5_ICLSクイズ.py", label="第五陣：ICLS限界突破クイズ", icon="🧬")
     st.write("")
     st.page_link("pages/6_シューティング.py", label="第六陣：メディカルストライカー", icon="🚀")
+    st.write("")
+    st.page_link("pages/7_株トレーダー.py", label="第七陣：株トレーダー", icon="🚀")
 
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #7f8c8d; font-size: 14px;'>© 2026 信州上田医療センター 総合教育ポータル</div>", unsafe_allow_html=True)
