@@ -39,7 +39,6 @@ def get_image_base64(image_path):
         except: return ""
     except Exception: return ""
 
-# ボス1の画像3種
 b64_1_a = get_image_base64("pages/images/boss1_a.png")
 b64_1_b = get_image_base64("pages/images/boss1_b.png")
 b64_1_c = get_image_base64("pages/images/boss1_c.png")
@@ -50,14 +49,12 @@ b64_3 = get_image_base64("pages/images/boss3.png")
 b64_3_L = get_image_base64("pages/images/boss3_L.png")
 b64_3_R = get_image_base64("pages/images/boss3_R.png")
 
-# ボス4の画像3種
 b64_4_a = get_image_base64("pages/images/boss4_a.png")
 b64_4_b = get_image_base64("pages/images/boss4_b.png")
 b64_4   = get_image_base64("pages/images/boss4.png")
 
 b64_5 = get_image_base64("pages/images/boss5.png")
 
-# ボス6の画像5種 (無印, a, b, c, d)
 b64_6   = get_image_base64("pages/images/boss6.png")
 b64_6_a = get_image_base64("pages/images/boss6_a.png")
 b64_6_b = get_image_base64("pages/images/boss6_b.png")
@@ -78,10 +75,17 @@ html_code = """
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-    body { margin: 0; background: #2c3e50; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
-    #game-container { position: relative; width: 100%; max-width: 500px; min-height: 750px; background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
-    #hanger-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; color: white; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; z-index: 50; }
+    body { margin: 0; background: #2c3e50; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; user-select: none; -webkit-user-select: none; }
     
+    #game-container { position: relative; width: 100%; max-width: 500px; min-height: 750px; background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; touch-action: none; }
+    
+    #hanger-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; color: white; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; z-index: 50; touch-action: auto; overflow-y: auto; }
+    
+    /* 🌟 エッジスクロール用のレーン */
+    .scroll-edge { display: none; position: absolute; top: 0; width: 40px; height: 100%; z-index: 15; touch-action: pan-y; align-items: center; justify-content: center; color: rgba(255,255,255,0.15); font-size: 24px; font-weight: bold; pointer-events: auto; }
+    #edge-left { left: 0; background: linear-gradient(90deg, rgba(255,255,255,0.05), transparent); border-right: 1px solid rgba(255,255,255,0.05); }
+    #edge-right { right: 0; background: linear-gradient(270deg, rgba(255,255,255,0.05), transparent); border-left: 1px solid rgba(255,255,255,0.05); }
+
     .style-select-box { background: rgba(52, 152, 219, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #3498db; }
     .style-select-box select { width: 100%; padding: 8px; border-radius: 5px; background: #2c3e50; color: #fff; border: 1px solid #3498db; font-weight: bold; margin-top: 5px; font-size: 14px; }
     
@@ -92,7 +96,8 @@ html_code = """
     .upg-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 #d35400; }
     .upg-btn:disabled { background: #7f8c8d; box-shadow: 0 3px 0 #34495e; color: #bdc3c7; cursor: not-allowed; }
     canvas { width: 100%; max-width: 500px; aspect-ratio: 500 / 666; display: none; margin: 0 auto; }
-    #controls-container { display: none; width: 100%; background: #1a252f; border-top: 2px solid #34495e; padding: 10px 20px; box-sizing: border-box; justify-content: space-between; align-items: center; z-index: 20; }
+    
+    #controls-container { display: none; width: 100%; background: #1a252f; border-top: 2px solid #34495e; padding: 10px 20px; box-sizing: border-box; justify-content: space-between; align-items: center; z-index: 20; position: relative; touch-action: none; }
     #joystick-zone { display: flex; touch-action: none; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2); margin: 0; position: relative; }
     #joystick-knob { width: 45px; height: 45px; background: rgba(52, 152, 219, 0.8); border-radius: 50%; position: absolute; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none; }
     #action-btn { display: flex; touch-action: none; width: 80px; height: 80px; background: rgba(231, 76, 60, 0.8); border-radius: 50%; flex-direction: column; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.3); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); margin: 0; position: relative; }
@@ -105,6 +110,9 @@ html_code = """
 </head>
 <body>
 <div id="game-container">
+    <div id="edge-left" class="scroll-edge"><span>↕</span></div>
+    <div id="edge-right" class="scroll-edge"><span>↕</span></div>
+
     <div id="hanger-screen">
         <h2 style="color: #f1c40f; text-align: center; margin-top: 0px; margin-bottom: 5px; font-size: 22px;">🛠️ 基地ハンガー</h2>
         
@@ -207,17 +215,15 @@ html_code = """
     const boss1_A = createBossImgObj(safeGetB64("DATA_B64_1_A")); const boss1_B = createBossImgObj(safeGetB64("DATA_B64_1_B")); const boss1_C = createBossImgObj(safeGetB64("DATA_B64_1_C"));
     const bossImg2 = createBossImgObj(safeGetB64("DATA_B64_2")); 
     const bossImg3 = createBossImgObj(safeGetB64("DATA_B64_3")); 
-    const boss3_L_Img = createBossImgObj(safeGetB64("DATA_B64_3_L")); const boss3_R_Img = createBossImgObj(safeGetB64("DATA_B64_3_R")); 
+    const boss3_L_Img = createBossImgObj(safeGetB64("DATA_B64_3_L")); 
+    const boss3_R_Img = createBossImgObj(safeGetB64("DATA_B64_3_R")); 
 
-    const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4")); const bossImg4_A = createBossImgObj(safeGetB64("DATA_B64_4_A")); const bossImg4_B = createBossImgObj(safeGetB64("DATA_B64_4_B"));
+    const bossImg4 = createBossImgObj(safeGetB64("DATA_B64_4"));
+    const bossImg4_A = createBossImgObj(safeGetB64("DATA_B64_4_A"));
+    const bossImg4_B = createBossImgObj(safeGetB64("DATA_B64_4_B"));
+
     const bossImg5 = createBossImgObj(safeGetB64("DATA_B64_5")); 
-    
-    const bossImg6   = createBossImgObj(safeGetB64("DATA_B64_6")); 
-    const bossImg6_A = createBossImgObj(safeGetB64("DATA_B64_6_A")); 
-    const bossImg6_B = createBossImgObj(safeGetB64("DATA_B64_6_B")); 
-    const bossImg6_C = createBossImgObj(safeGetB64("DATA_B64_6_C")); 
-    const bossImg6_D = createBossImgObj(safeGetB64("DATA_B64_6_D")); 
-    
+    const bossImg6 = createBossImgObj(safeGetB64("DATA_B64_6")); const bossImg6_A = createBossImgObj(safeGetB64("DATA_B64_6_A")); const bossImg6_B = createBossImgObj(safeGetB64("DATA_B64_6_B")); const bossImg6_C = createBossImgObj(safeGetB64("DATA_B64_6_C")); const bossImg6_D = createBossImgObj(safeGetB64("DATA_B64_6_D")); 
     const bossImg7 = createBossImgObj(safeGetB64("DATA_B64_7")); 
     const bossImg8 = createBossImgObj(safeGetB64("DATA_B64_8")); const bossImg9 = createBossImgObj(safeGetB64("DATA_B64_9")); 
     const bossImg10 = createBossImgObj(safeGetB64("DATA_B64_10"));
@@ -318,6 +324,11 @@ html_code = """
 
     window.startGame = function() {
         hanger.style.display = "none"; canvas.style.display = "block"; controls.style.display = "flex"; 
+        
+        // 🌟 プレイ開始時に左右のスクロールゾーンを表示
+        document.getElementById("edge-left").style.display = "flex";
+        document.getElementById("edge-right").style.display = "flex";
+
         tempUpgrades = { fire: 0, speed: 0, shield: 0, bomb: 0, laser: 0, subBomb: 0, missile: 0, bit: 0, option: 0, force: 0 };
         earnedCreditsInGame = 0;
 
@@ -343,6 +354,9 @@ html_code = """
                 player.shields--; player.invincible = 90; effects.push({ x: player.x, y: player.y, text: "🛡️ シールド破損!", life: 40, vy: -1, color: "#3498db" }); return false;
             } else {
                 isGameOver = true; controls.style.display = "none";
+                document.getElementById("edge-left").style.display = "none";
+                document.getElementById("edge-right").style.display = "none";
+
                 let earned = Math.floor(score / 25) + earnedCreditsInGame; 
                 savedData.credits += earned; saveData();
                 
@@ -422,9 +436,6 @@ html_code = """
         }
     }
 
-    // ==========================================================================
-    // ⚙️ 【調整場所】ゲームバランス・パラメータ群
-    // ==========================================================================
     let difficultyScale = 1500; 
     let bossSpawnInterval = 1600; 
     let quizInvincibleTime = 150; 
@@ -638,9 +649,7 @@ html_code = """
                     enemy.y += enemy.speed;
                 } else {
                     enemy.lifetime = (enemy.lifetime || 0) + 1;
-                    
-                    // 🌟 修正ポイント：一定時間経過後（stayTime）にボスが下に移動して撤退するように復活させました
-                    let stayTime = 1200; // 20秒
+                    let stayTime = 1200; 
                     if (enemy.y < 120 || enemy.lifetime > stayTime) { 
                         enemy.y += enemy.speed; 
                     }
@@ -649,32 +658,38 @@ html_code = """
                 if (enemy.isQuiz && enemy.invTime > 0) enemy.invTime--;
 
                 if (enemy.isBoss) { 
+                    // 🌟 ボス共通の「ゆらゆら＋じわじわ追尾」計算
+                    // ボスのスピードに合わせて揺れの速さと幅が変わります
+                    let trackingSpeed = 0.008; 
+                    let swaySpeed = 0.02 + (enemy.speed * 0.02); 
+                    let swayAmount = 1.5 + enemy.speed; 
+                    let baseMoveX = (player.x - enemy.x) * trackingSpeed + Math.sin(enemy.lifetime * swaySpeed) * swayAmount;
+
                     if (enemy.imgAnims && enemy.imgAnims.length >= 3) {
                         
                         if (enemy.name.includes("一人称オラ")) {
                             let cycleLength = 600; 
-                            let phase1End = 120; // 2秒: boss6 (待機)
-                            let phase2End = 180; // 1秒: boss6_a (震え)
-                            let phase3End = 240; // 1秒: boss6_b (放射弾幕)
-                            let phase4End = 420; // 3秒: boss6_c (チャージ)
+                            let phase1End = 120; 
+                            let phase2End = 180; 
+                            let phase3End = 240; 
+                            let phase4End = 420; 
                             
                             let cycle = enemy.lifetime % cycleLength; 
                             
                             if (cycle < phase1End) {
                                 enemy.animState = 0; 
-                                enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
+                                enemy.x += baseMoveX; // 🌟 揺れ＋追尾
                                 enemy.isFiringBeam = false;
                             } else if (cycle < phase2End) {
                                 enemy.animState = 1; 
-                                enemy.x += (Math.random() - 0.5) * 4;
+                                enemy.x += baseMoveX + (Math.random() - 0.5) * 4; // 🌟 揺れ＋追尾＋震え
                                 enemy.y += (Math.random() - 0.5) * 4;
                                 enemy.isFiringBeam = false;
                             } else if (cycle < phase3End) {
                                 enemy.animState = 2; 
-                                enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.5;
+                                enemy.x += baseMoveX * 0.8; // 🌟 放射中は少し動きを抑える
                                 enemy.isFiringBeam = false;
                                 
-                                // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
                                 if (cycle % 5 === 0 && enemy.y > 0 && enemy.y < canvas.height) {
                                     let angleBase = cycle * 0.15;
                                     for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
@@ -685,7 +700,7 @@ html_code = """
                                 enemy.animState = 3; 
                                 enemy.isFiringBeam = false;
                                 
-                                enemy.x += (Math.random() - 0.5) * 8;
+                                enemy.x += baseMoveX * 0.5 + (Math.random() - 0.5) * 8; // 🌟 チャージ中は追尾を鈍くして激しく震える
                                 enemy.y += (Math.random() - 0.5) * 4;
                                 
                                 if (cycle % 3 === 0) {
@@ -702,7 +717,7 @@ html_code = """
                                 enemy.animState = 4; 
                                 enemy.isFiringBeam = true; 
                                 
-                                enemy.x += (Math.random() - 0.5) * 4;
+                                enemy.x += baseMoveX * 0.3 + (Math.random() - 0.5) * 4; // 🌟 ビーム中もゆっくり追尾＋振動
                                 
                                 if (cycle === phase4End && enemy.y < canvas.height) {
                                     screenFlash = 25;
@@ -722,13 +737,15 @@ html_code = """
                             let cycle = enemy.lifetime % cycleLength; 
                             
                             if (cycle < waitEnd) {
-                                enemy.animState = 0; enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5;
+                                enemy.animState = 0; 
+                                enemy.x += baseMoveX; 
                             } else if (cycle < chargeEnd) {
-                                enemy.animState = 1; enemy.x += Math.sin(enemy.lifetime * 1.5) * 4.0; 
+                                enemy.animState = 1; 
+                                enemy.x += baseMoveX + (Math.random() - 0.5) * 4.0; 
                             } else {
-                                enemy.animState = 2; enemy.x += Math.sin(enemy.lifetime * 0.03) * 1.0; 
+                                enemy.animState = 2; 
+                                enemy.x += baseMoveX * 0.5; // 発射時は追尾を鈍らせる
                                 
-                                // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
                                 if (cycle === chargeEnd && enemy.y > 0 && enemy.y < canvas.height) {
                                     if (enemy.name.includes("超過勤務チェッカー")) {
                                         enemyBullets.push({ x: enemy.x, y: enemy.y + 20, vx: 0, vy: 14, emoji: "☄️", isSuperHuge: true });
@@ -745,7 +762,6 @@ html_code = """
                                     }
                                 }
                                 
-                                // 🌟 修正ポイント：反動ドリフトの復元処理を「撤退時間（1800）を過ぎていない時のみ」に制限し、撤退処理と競合しないようにしました
                                 if (cycle >= chargeEnd && cycle <= chargeEnd + 4) { 
                                     enemy.y -= 6; 
                                 } else if (cycle > chargeEnd + 4 && enemy.lifetime <= 1800) { 
@@ -754,8 +770,8 @@ html_code = """
                             }
                         }
                     } else {
-                        enemy.x += Math.sin(enemy.lifetime * 0.03) * 2.5; 
-                        // 🌟 修正ポイント：撤退中も画面内にいる限り弾を撃ち続けるように制限を「canvas.height」に変更
+                        enemy.x += baseMoveX; // 🌟 3枚アニメなしのボスもゆらゆら追従
+                        
                         if (enemy.lifetime % 60 === 0 && enemy.y > 0 && enemy.y < canvas.height) {
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: -2, vy: 5, emoji: "🔴" });
                             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 0, vy: 6, emoji: "🔴" });
@@ -941,11 +957,11 @@ html_code = html_code.replace("__B64_BOSS_04__", b64_4)
 
 html_code = html_code.replace("__B64_BOSS_05__", b64_5)
 
-html_code = html_code.replace("__B64_BOSS_06__", b64_6)
 html_code = html_code.replace("__B64_BOSS_06_A__", b64_6_a)
 html_code = html_code.replace("__B64_BOSS_06_B__", b64_6_b)
 html_code = html_code.replace("__B64_BOSS_06_C__", b64_6_c)
 html_code = html_code.replace("__B64_BOSS_06_D__", b64_6_d)
+html_code = html_code.replace("__B64_BOSS_06__", b64_6)
 
 html_code = html_code.replace("__B64_BOSS_07__", b64_7)
 html_code = html_code.replace("__B64_BOSS_08__", b64_8)
