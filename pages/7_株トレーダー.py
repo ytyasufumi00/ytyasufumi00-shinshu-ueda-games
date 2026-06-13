@@ -116,7 +116,7 @@ ROLES = [
 
 if "screened_candidates" not in st.session_state: st.session_state.screened_candidates = []
 if "hints" not in st.session_state: st.session_state.hints = {}
-if "game_stage" not in st.session_state: st.session_state.game_stage = "select"
+if "game_stage" not in st.session_state: st.session_state.game_stage = "config"
 if "selected_ticker" not in st.session_state: st.session_state.selected_ticker = None
 if "use_ai" not in st.session_state: st.session_state.use_ai = True
 
@@ -655,7 +655,7 @@ def reset_to_start():
     st.session_state.hints = {}
     st.session_state.selected_ticker = None
     st.session_state.screened_candidates = []
-    st.session_state.game_stage = "select"
+    st.session_state.game_stage = "config"
 
 def show_glossary():
     with st.expander("👑 投資システム・アルゴリズムの解説（クリックで開閉）"):
@@ -669,75 +669,91 @@ def show_glossary():
         """)
 
 # ==========================================
-# 4. UI 描画
+# 4. UI 描画（完全な3画面遷移設計）
 # ==========================================
 st.markdown("<h1>⚡ QUANTUM TRADER : AI多層アルゴリズム・コロシアム</h1>", unsafe_allow_html=True)
 
-if st.session_state.game_stage == "select":
-    # ★コンテナマジック：レイアウトの定義順を操作して、ボタンを下側の設定値で動かす
-    header_container = st.container()
-    btn_container = st.container()
-    settings_container = st.container()
-    results_container = st.container()
+# ------------------------------------------
+# Stage 1: 設定画面 (Config)
+# ------------------------------------------
+if st.session_state.game_stage == "config":
+    st.subheader(f"〜 90日前（{past_90_str}）から、本日（{today_str}）までの値動きを予測せよ 〜")
+    st.write(f"システムは **{past_90_str}** の時点で時間を止め、全市場から有望な銘柄を抽出します。ここから **本日（{today_str}）** までの90日間の相場で、最も利益を叩き出す銘柄はどれか選択してください！")
 
-    with header_container:
-        st.subheader(f"〜 90日前（{past_90_str}）から、本日（{today_str}）までの値動きを予測せよ 〜")
-        st.write(f"システムは **{past_90_str}** の時点で時間を止め、全市場から有望な銘柄を抽出します。ここから **本日（{today_str}）** までの90日間の相場で、最も利益を叩き出す銘柄はどれか選択してください！")
+    st.write("---")
+    st.markdown("#### 🔍 スキャン条件の設定")
+    scan_mode = st.radio("スキャン方式", ["✨ おまかせスキャン（AI自動最適化）", "⚙️ こだわりスキャン（インジケーター手動調整）"], horizontal=True)
+    
+    target_rsi, target_growth, target_per = 45, 10, 15
+    
+    if scan_mode == "⚙️ こだわりスキャン（インジケーター手動調整）":
+        col_t, col_g, col_v = st.columns(3)
+        with col_t: target_rsi = st.slider("🥷 RSI上限 (売られすぎ基準)", min_value=10, max_value=80, value=40, step=5)
+        with col_g: target_growth = st.slider("🧑‍🎤 売上成長率下限 (%)", min_value=0, max_value=50, value=10, step=5)
+        with col_v: target_per = st.slider("👩‍💼 PER上限 (割安基準)", min_value=5, max_value=50, value=15, step=1)
+    
+    show_glossary()
+    
+    st.write("") # スペーサー
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        st.button(
+            "✨ AIの解説付きで市場をスキャン (APIキー消費)", 
+            type="primary", 
+            use_container_width=True,
+            on_click=reset_and_scan,
+            args=(target_rsi, target_growth, target_per, True)
+        )
+    with col_btn2:
+        st.button(
+            "⚡ エコモードで高速スキャン (キー消費ゼロ)", 
+            type="secondary", 
+            use_container_width=True,
+            on_click=reset_and_scan,
+            args=(target_rsi, target_growth, target_per, False)
+        )
+# ------------------------------------------
+# Stage 2: 候補選択画面 (Select)
+# ------------------------------------------
+elif st.session_state.game_stage == "select":
+    st.subheader("🎯 抽出完了：未来の勝ち組を選択してください")
+    
+    # 戻る（再設定）ボタンをトップに配置し、スマホでも見失わないようにする
+    st.button("↩️ 条件を変えて再スキャンする（設定画面に戻る）", on_click=goto_config, use_container_width=True)
 
-    # 1. まず設定項目を描画し、変数を取得（表示上はボタンの下になります）
-    with settings_container:
+    if st.session_state.screened_candidates:
         st.write("---")
-        st.markdown("#### 🔍 スキャン条件の設定")
-        scan_mode = st.radio("スキャン方式", ["✨ おまかせスキャン（AI自動最適化）", "⚙️ こだわりスキャン（インジケーター手動調整）"], horizontal=True)
-        
-        target_rsi, target_growth, target_per = 45, 10, 15
-        
-        if scan_mode == "⚙️ こだわりスキャン（インジケーター手動調整）":
-            col_t, col_g, col_v = st.columns(3)
-            with col_t: target_rsi = st.slider("🥷 RSI上限 (売られすぎ基準)", min_value=10, max_value=80, value=40, step=5)
-            with col_g: target_growth = st.slider("🧑‍🎤 売上成長率下限 (%)", min_value=0, max_value=50, value=10, step=5)
-            with col_v: target_per = st.slider("👩‍💼 PER上限 (割安基準)", min_value=5, max_value=50, value=15, step=1)
-        
-        show_glossary()
-
-    # 2. 次にボタンを描画（表示上は設定項目の上になりますが、取得済みの変数を使用できます）
-    with btn_container:
-        st.write("") # スペーサー
-        col_btn1, col_btn2 = st.columns(2)
-        
-        if not st.session_state.screened_candidates:
-            with col_btn1:
+        if not st.session_state.hints:
+            msg = "抽出結果に基づき、AIナビゲーターが分析レポートを作成中..." if st.session_state.use_ai else "内蔵の予備システムが銘柄データを高速解析中..."
+            with st.spinner(msg):
+                hints_list = generate_all_hints(st.session_state.screened_candidates)
+                for i, cand in enumerate(st.session_state.screened_candidates):
+                    st.session_state.hints[cand["data"]["ticker"]] = hints_list[i]
+                    
+        cols = st.columns(3)
+        for i, cand in enumerate(st.session_state.screened_candidates):
+            role = cand["role"]
+            data = cand["data"]
+            ticker = data["ticker"]
+            name = data["name"]
+            chart_data = data["chart_data"]
+            
+            with cols[i]:
+                st.markdown(f"**【{role['type']}抽出】**")
+                st.markdown(f"### 🏢 {name}")
+                st.caption(f"`{ticker}`")
+                
+                st.line_chart(chart_data['Close'], height=150)
+                st.markdown(f"<div class='avatar-container'>{role['avatar']}</div>", unsafe_allow_html=True)
+                st.info(st.session_state.hints.get(ticker, "解析中..."))
+                
+                st.write("")
                 st.button(
-                    "✨ AIの解説付きで市場をスキャン (APIキー消費)", 
-                    type="primary", 
-                    use_container_width=True,
-                    on_click=reset_and_scan,
-                    args=(target_rsi, target_growth, target_per, True)
-                )
-            with col_btn2:
-                st.button(
-                    "⚡ エコモードで高速スキャン (キー消費ゼロ)", 
-                    type="secondary", 
-                    use_container_width=True,
-                    on_click=reset_and_scan,
-                    args=(target_rsi, target_growth, target_per, False)
-                )
-        else:
-            with col_btn1:
-                st.button(
-                    "🔄 AIの解説付きで再スキャン (APIキー消費)", 
-                    type="primary", 
-                    use_container_width=True,
-                    on_click=reset_and_scan,
-                    args=(target_rsi, target_growth, target_per, True)
-                )
-            with col_btn2:
-                st.button(
-                    "⚡ エコモードで高速再スキャン (キー消費ゼロ)", 
-                    type="secondary", 
-                    use_container_width=True,
-                    on_click=reset_and_scan,
-                    args=(target_rsi, target_growth, target_per, False)
+                 f"{name} を選択してシミュレート", 
+                key=f"btn_{ticker}", 
+                use_container_width=True,
+                on_click=start_simulation,
+                args=(ticker,) 
                 )
 
     # 3. 最後に結果を描画
