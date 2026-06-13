@@ -63,6 +63,14 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
     font-size: 2.8rem !important; font-weight: 900 !important; color: #00f2fe !important;
 }
 .streamlit-expanderHeader { font-weight: bold; color: #00C9FF; }
+
+/* ★追加：スマホでのグラフ誤タッチ（拡大縮小・スクロール吸い込み）を完全に防止 */
+@media screen and (max-width: 768px) {
+    [data-testid="stArrowVegaLiteChart"], 
+    [data-testid="stVegaLiteChart"] {
+        pointer-events: none !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -119,6 +127,7 @@ if "hints" not in st.session_state: st.session_state.hints = {}
 if "game_stage" not in st.session_state: st.session_state.game_stage = "config"
 if "selected_ticker" not in st.session_state: st.session_state.selected_ticker = None
 if "use_ai" not in st.session_state: st.session_state.use_ai = True
+if "used_tickers" not in st.session_state: st.session_state.used_tickers = []
 
 # ==========================================
 # 3. 各種コア関数
@@ -164,7 +173,15 @@ def fetch_single_stock(ticker, target_rsi, target_growth, target_per):
         return None
 
 def scan_market(target_rsi, target_growth, target_per):
-    sample_tickers = random.sample(list(MARKET_UNIVERSE.keys()), 50)
+    # ★ プロの工夫2-A：ユニバースから過去の抽出銘柄をスマートに除外
+    available_tickers = [t for t in MARKET_UNIVERSE.keys() if t not in st.session_state.used_tickers]
+    
+    # ★ プロの工夫2-B：市場が枯渇（残り50社未満）したら、自動で記憶をリセットしてエラー回避
+    if len(available_tickers) < 50:
+        st.session_state.used_tickers = []
+        available_tickers = list(MARKET_UNIVERSE.keys())
+        
+    sample_tickers = random.sample(available_tickers, 50)
     analyzed_data = []
     progress_bar = st.progress(0)
     status_text = st.empty()
@@ -196,6 +213,9 @@ def scan_market(target_rsi, target_growth, target_per):
         if analyzed_data:
             value_pick = max(analyzed_data, key=lambda x: x['scores']['value'])
             selected.append({"role": ROLES[2], "data": value_pick})
+
+    for item in selected:
+        st.session_state.used_tickers.append(item["data"]["ticker"])
     
     return selected
 
@@ -651,6 +671,9 @@ def start_simulation(ticker):
     st.session_state.selected_ticker = ticker
     st.session_state.game_stage = "result"
 
+def goto_config():
+    st.session_state.game_stage = "config"
+
 def reset_to_start():
     st.session_state.hints = {}
     st.session_state.selected_ticker = None
@@ -671,12 +694,14 @@ def show_glossary():
 # ==========================================
 # 4. UI 描画（完全な3画面遷移設計）
 # ==========================================
-st.markdown("<h1>⚡ QUANTUM TRADER : AI多層アルゴリズム・コロシアム</h1>", unsafe_allow_html=True)
 
 # ------------------------------------------
 # Stage 1: 設定画面 (Config)
 # ------------------------------------------
 if st.session_state.game_stage == "config":
+    # ★ タイトルの描画を「Config画面（最初の画面）」のブロック内だけに限定
+    st.markdown("<h1>⚡株simulator ～もし90日前に買ってたら～</h1>", unsafe_allow_html=True)
+    
     st.subheader(f"〜 90日前（{past_90_str}）から、本日（{today_str}）までの値動きを予測せよ 〜")
     st.write(f"システムは **{past_90_str}** の時点で時間を止め、全市場から有望な銘柄を抽出します。ここから **本日（{today_str}）** までの90日間の相場で、最も利益を叩き出す銘柄はどれか選択してください！")
 
@@ -756,45 +781,12 @@ elif st.session_state.game_stage == "select":
                 args=(ticker,) 
                 )
 
-    # 3. 最後に結果を描画
-    with results_container:
-        if st.session_state.screened_candidates:
-            st.write("---")
-            if not st.session_state.hints:
-                msg = "抽出結果に基づき、AIナビゲーターが分析レポートを作成中..." if st.session_state.use_ai else "内蔵の予備システムが銘柄データを高速解析中..."
-                with st.spinner(msg):
-                    hints_list = generate_all_hints(st.session_state.screened_candidates)
-                    for i, cand in enumerate(st.session_state.screened_candidates):
-                        st.session_state.hints[cand["data"]["ticker"]] = hints_list[i]
-                        
-            cols = st.columns(3)
-            for i, cand in enumerate(st.session_state.screened_candidates):
-                role = cand["role"]
-                data = cand["data"]
-                ticker = data["ticker"]
-                name = data["name"]
-                chart_data = data["chart_data"]
-                
-                with cols[i]:
-                    st.markdown(f"**【{role['type']}抽出】**")
-                    st.markdown(f"### 🏢 {name}")
-                    st.caption(f"`{ticker}`")
-                    
-                    st.line_chart(chart_data['Close'], height=150)
-                    st.markdown(f"<div class='avatar-container'>{role['avatar']}</div>", unsafe_allow_html=True)
-                    st.info(st.session_state.hints.get(ticker, "解析中..."))
-                    
-                    st.write("")
-                    st.button(
-                     f"{name} を選択してシミュレート", 
-                    key=f"btn_{ticker}", 
-                    use_container_width=True,
-                    on_click=start_simulation,
-                    args=(ticker,)  # タプルで引数を渡すため、末尾のカンマが必須です
-                    )
-
+# ------------------------------------------
+# Stage 3: 結果発表画面 (Result)
+# ------------------------------------------
 elif st.session_state.game_stage == "result":
-    st.subheader("🏁 自動売買シミュレーション 結果発表")
+    st.components.v1.html("<script>window.parent.document.querySelector('.main').scrollTo(0, 0);</script>", height=0)
+    st.subheader("🏁 自動売買シミュレーション 結果発表 (下のＡＩ総括も見てね)")
     st.markdown(f"**【対象期間】 {past_90_str} 〜 本日（{today_str}）**")
     
     with st.spinner("アルゴリズムが市場で戦っています..."):
@@ -825,11 +817,11 @@ elif st.session_state.game_stage == "result":
     
     if player_rank == 1:
         st.balloons()
-        st.success(f"🎉 お見事！あなたの選んだ **{selected_name}** が見事1位に輝きました！")
+        st.success(f"## 🎉 お見事！\n### あなたの選んだ **{selected_name}** が見事1位に輝きました！")
     elif player_rank == 2:
-        st.info(f"👍 惜しい！あなたの選んだ **{selected_name}** は2位でした。")
+        st.info(f"## 👍 惜しい！\n### あなたの選んだ **{selected_name}** は2位でした。")
     else:
-        st.error(f"📉 残念... あなたの選んだ **{selected_name}** は最下位でした。")
+        st.error(f"## 📉 残念...\n### あなたの選んだ **{selected_name}** は最下位でした。")
 
     st.markdown("#### 📊 3部門の資産推移グラフ（初期資金: 1,000,000円）")
     st.line_chart(chart_df, height=300)
@@ -854,8 +846,6 @@ elif st.session_state.game_stage == "result":
 
     st.write("---")
     st.markdown("#### 📝 アルゴリズムの売買ログ（詳細履歴）")
-    
-    show_glossary()
     
     tab_names = [res['name'] for res in results]
     tabs = st.tabs(tab_names)
