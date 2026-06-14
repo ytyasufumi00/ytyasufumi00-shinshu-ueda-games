@@ -783,11 +783,12 @@ elif st.session_state.game_stage == "select":
                 
                 st.write("")
                 st.button(
-                    f"{name} を選択してシミュレート", 
+                    f"🚀 {name} を選択してシミュレート",  # ★アイコンを追加してさらに目立たせる
+                    type="primary",  # ★追加：サイバー装飾（発光グラデーション）を適用！
                     key=f"btn_{ticker}", 
                     use_container_width=True,
                     on_click=start_simulation,
-                    args=(ticker,) 
+                    args=(ticker,)
                 )
 
 # ------------------------------------------
