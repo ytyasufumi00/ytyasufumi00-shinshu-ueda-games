@@ -74,7 +74,7 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
 
 try:
     genai.configure(api_key=st.secrets.get("GEMINI_API_KEY"))
-    model = genai.GenerativeModel('gemini-2-flash-lite', generation_config={"temperature": 0.85})
+    model = genai.GenerativeModel('gemini-2.5-flash-lite', generation_config={"temperature": 0.85})
 except Exception:
     model = None
 
