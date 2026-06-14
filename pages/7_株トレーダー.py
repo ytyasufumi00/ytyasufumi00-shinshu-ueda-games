@@ -708,7 +708,7 @@ def show_glossary():
 # Stage 1: 設定画面 (Config)
 # ------------------------------------------
 if st.session_state.game_stage == "config":
-    st.markdown("<h1>⚡株シミュレーター～もし90日前に買ってたら～</h1>", unsafe_allow_html=True)
+    st.markdown("<h1>⚡株simulator～もし90日前に買ってたら～</h1>", unsafe_allow_html=True)
     st.subheader(f"〜 90日前（{past_90_str}）から、本日（{today_str}）までの値動きを予測せよ 〜")
     st.write(f"システムは **{past_90_str}** の時点で時間を止め、全市場から有望な銘柄を抽出します。ここから **本日（{today_str}）** までの90日間の相場で、最も利益を叩き出す銘柄はどれか選択してください！")
 
