@@ -10,7 +10,7 @@ import concurrent.futures
 # ==========================================
 # 1. 初期設定・APIキー・日付の計算・カスタムCSS
 # ==========================================
-st.set_page_config(page_title="株シミュレーター　～もし90日前に買ってたら～", layout="wide")
+st.set_page_config(page_title="QUANTUM TRADER | AIアルゴリズム・コロシアム", layout="wide")
 
 st.markdown("""
 <style>
@@ -31,7 +31,6 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
     padding: 10px 24px !important;
     transition: all 0.3s ease 0s !important;
 }
-/* Primaryボタン（AIあり）のサイバー装飾 */
 [data-testid="baseButton-primary"] {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
     color: white !important;
@@ -42,7 +41,6 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 242, 254, 0.7) !important;
 }
-/* Secondaryボタン（AIなし・エコ）の装飾 */
 [data-testid="baseButton-secondary"] {
     background: transparent !important;
     color: #00f2fe !important;
@@ -64,7 +62,7 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
 }
 .streamlit-expanderHeader { font-weight: bold; color: #00C9FF; }
 
-/* ★追加：スマホでのグラフ誤タッチ（拡大縮小・スクロール吸い込み）を完全に防止 */
+/* スマホでのグラフ誤タッチ（拡大縮小・スクロール吸い込み）を完全に防止 */
 @media screen and (max-width: 768px) {
     [data-testid="stArrowVegaLiteChart"], 
     [data-testid="stVegaLiteChart"] {
@@ -76,7 +74,7 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
 
 try:
     genai.configure(api_key=st.secrets.get("GEMINI_API_KEY"))
-    model = genai.GenerativeModel('gemini-1.5-flash', generation_config={"temperature": 0.85})
+    model = genai.GenerativeModel('gemini-2.5-flash-lite', generation_config={"temperature": 0.85})
 except Exception:
     model = None
 
@@ -176,10 +174,8 @@ def fetch_single_stock(ticker, target_rsi, target_growth, target_per):
         return None
 
 def scan_market(target_rsi, target_growth, target_per):
-    # ★ プロの工夫2-A：ユニバースから過去の抽出銘柄をスマートに除外
     available_tickers = [t for t in MARKET_UNIVERSE.keys() if t not in st.session_state.used_tickers]
     
-    # ★ プロの工夫2-B：市場が枯渇（残り50社未満）したら、自動で記憶をリセットしてエラー回避
     if len(available_tickers) < 50:
         st.session_state.used_tickers = []
         available_tickers = list(MARKET_UNIVERSE.keys())
@@ -236,7 +232,6 @@ def generate_all_hints(candidates):
     2. 寸評以外のテキストは一切書かないでください。
     3. 各キャラクターの口調を守り、現在が「{past_90_str}」の時点であるという前提で語ってください。"""
 
-    # ★ エコモード（AIオフ）ならAPIを完全にバイパスする
     if st.session_state.use_ai:
         if model:
             try:
@@ -450,7 +445,7 @@ def generate_all_hints(candidates):
                     f"シャープレシオの最適化において、{name}（PER{per:.1f}倍）の組み入れは絶対条件ですわ。このリスク・リターン比率、芸術的とすら言えます。",
                     f"モンテカルロ・シミュレーションを1万回実行いたしました。PER{per:.1f}倍の{name}に投資して損失を被る確率は、統計上の誤差レベルですわ。",
                     f"割引キャッシュフロー（DCF）法による算出結果と、現在の株価（PER{per:.1f}倍）との凄まじい乖離。{name}はまさに、財務理論が証明する『買い』ですわ。",
-                    f"わたくしのディープラーニング・モデルが導き出した最適解。それがPER{per:.1f}倍の{name}ですわ。数理的根拠に反論の余地はありません。",
+                    f"わたくしのディープラーニング・モデルが導き出した最適解。 রুমেそれがPER{per:.1f}倍の{name}ですわ。数理的根拠に反論の余地はありません。",
                     f"資本コスト（WACC）を考慮しても、{name}（PER{per:.1f}倍）の超過収益力は際立っておりますわ。エレガントな資産運用には欠かせない銘柄です。",
                     f"ボラティリティの波の底に隠された、真珠のような銘柄ですわ。PER{per:.1f}倍の{name}。ポートフォリオの期待利回りを、優雅に底上げしてくれます。",
                     f"バリュエーションの多変量解析を完了。{name}（PER{per:.1f}倍）は、全てのベクトルにおいて「著しい割安」という同一の結論を指し示しておりますわ。",
@@ -521,23 +516,21 @@ def generate_all_hints(candidates):
                         f"大衆の熱狂が、{name}の株価をPER{per:.1f}倍まで押し上げましたわ。バブルと呼ぶのは簡単ですが、バブルの中で踊りながら利益を抜くのが真のクオンツというものです。",
                         f"需給バランスが完全に崩れておりますわ（{name}、PER{per:.1f}倍）。売り手が枯渇した状態でのプラチナチケット化。需給モメンタムに従い、買いを推奨いたしますわ。"
                     ]
-            available_options = [opt for opt in options if opt not in st.session_state.used_hints]
+
+        available_options = [opt for opt in options if opt not in st.session_state.used_hints]
+    
+        if not available_options:
+            st.session_state.used_hints = [h for h in st.session_state.used_hints if h not in options]
+            available_options = options
         
-            # 2. もし遊びすぎて全てのバリエーションを使い切ってしまった場合…
-            if not available_options:
-            # エラーで落とさず、この状況のセリフ記憶だけをこっそりリセットして復活させる
-                st.session_state.used_hints = [h for h in st.session_state.used_hints if h not in options]
-                available_options = options
-            
-            # 3. 未使用リストからランダムに選び、発言履歴に刻み込む
-            text = random.choice(available_options)
-            st.session_state.used_hints.append(text)  
-            emergency_hints.append(text + " *(System)*")
+        text = random.choice(available_options)
+        st.session_state.used_hints.append(text)  
+
+        emergency_hints.append(text + " *(System)*")
         
     return emergency_hints
 
 def generate_ai_summary(results, selected_ticker):
-    # ★ エコモードならAI総括を静かに省略
     if not st.session_state.use_ai or not model: return None
     
     player_res = next(r for r in results if r['ticker'] == selected_ticker)
@@ -550,7 +543,7 @@ def generate_ai_summary(results, selected_ticker):
     else:
         log_details = "期間中の売買取引なし（一度も買いシグナルが点灯しませんでした）"
         
-    persona = random.choice(ROLES)
+    persona = player_res['role']
     
     prompt = f"""
     あなたは株式投資ゲームのプロの辛口ナビゲーターです。シミュレーションが完了しました。
@@ -669,20 +662,20 @@ def run_algorithm_simulation(ticker):
         "logs": trade_logs
     }
 
-def reset_and_scan(target_rsi, target_growth, target_per, use_ai):
+def run_scan_and_goto_select(target_rsi, target_growth, target_per, use_ai):
     st.session_state.hints = {}
     st.session_state.selected_ticker = None
     st.session_state.use_ai = use_ai
-    st.session_state.summary_done = False  # ★追加：AI総括の使用フラグをリセット
-    st.session_state.summary_data = None   # ★追加：AI総括のデータを空にする
-    st.session_state.game_stage = "select"
+    st.session_state.summary_done = False
+    st.session_state.summary_data = None
     with st.spinner("最新のデータベースから市場をスキャン中..."):
         st.session_state.screened_candidates = scan_market(target_rsi, target_growth, target_per)
+    st.session_state.game_stage = "select"
 
 def start_simulation(ticker):
     st.session_state.selected_ticker = ticker
-    st.session_state.summary_done = False  # ★追加
-    st.session_state.summary_data = None   # ★追加
+    st.session_state.summary_done = False
+    st.session_state.summary_data = None
     st.session_state.game_stage = "result"
 
 def goto_config():
@@ -692,8 +685,8 @@ def reset_to_start():
     st.session_state.hints = {}
     st.session_state.selected_ticker = None
     st.session_state.screened_candidates = []
-    st.session_state.summary_done = False  # ★追加
-    st.session_state.summary_data = None   # ★追加
+    st.session_state.summary_done = False
+    st.session_state.summary_data = None
     st.session_state.game_stage = "config"
 
 def show_glossary():
@@ -715,9 +708,7 @@ def show_glossary():
 # Stage 1: 設定画面 (Config)
 # ------------------------------------------
 if st.session_state.game_stage == "config":
-    # ★ タイトルの描画を「Config画面（最初の画面）」のブロック内だけに限定
-    st.markdown("<h1>⚡株simulator ～もし90日前に買ってたら～</h1>", unsafe_allow_html=True)
-    
+    st.markdown("<h1>⚡株シミュレーター～もし90日前に買ってたら～</h1>", unsafe_allow_html=True)
     st.subheader(f"〜 90日前（{past_90_str}）から、本日（{today_str}）までの値動きを予測せよ 〜")
     st.write(f"システムは **{past_90_str}** の時点で時間を止め、全市場から有望な銘柄を抽出します。ここから **本日（{today_str}）** までの90日間の相場で、最も利益を叩き出す銘柄はどれか選択してください！")
 
@@ -742,7 +733,7 @@ if st.session_state.game_stage == "config":
             "✨ AIの解説付きで市場をスキャン (APIキー消費)", 
             type="primary", 
             use_container_width=True,
-            on_click=reset_and_scan,
+            on_click=run_scan_and_goto_select,
             args=(target_rsi, target_growth, target_per, True)
         )
     with col_btn2:
@@ -750,16 +741,15 @@ if st.session_state.game_stage == "config":
             "⚡ エコモードで高速スキャン (キー消費ゼロ)", 
             type="secondary", 
             use_container_width=True,
-            on_click=reset_and_scan,
+            on_click=run_scan_and_goto_select,
             args=(target_rsi, target_growth, target_per, False)
         )
+
 # ------------------------------------------
 # Stage 2: 候補選択画面 (Select)
 # ------------------------------------------
 elif st.session_state.game_stage == "select":
     st.subheader("🎯 抽出完了：未来の勝ち組を選択してください")
-    
-    # 戻る（再設定）ボタンをトップに配置し、スマホでも見失わないようにする
     st.button("↩️ 条件を変えて再スキャンする（設定画面に戻る）", on_click=goto_config, use_container_width=True)
 
     if st.session_state.screened_candidates:
@@ -790,11 +780,11 @@ elif st.session_state.game_stage == "select":
                 
                 st.write("")
                 st.button(
-                 f"{name} を選択してシミュレート", 
-                key=f"btn_{ticker}", 
-                use_container_width=True,
-                on_click=start_simulation,
-                args=(ticker,) 
+                    f"{name} を選択してシミュレート", 
+                    key=f"btn_{ticker}", 
+                    use_container_width=True,
+                    on_click=start_simulation,
+                    args=(ticker,) 
                 )
 
 # ------------------------------------------
@@ -816,6 +806,7 @@ elif st.session_state.game_stage == "result":
             sim_result['ticker'] = ticker
             sim_result['name'] = name
             sim_result['type'] = cand["role"]["type"]
+            sim_result['role'] = cand["role"]
             results.append(sim_result)
             
             temp_df = pd.DataFrame({name: sim_result['history']}, index=sim_result['dates'])
@@ -879,13 +870,11 @@ elif st.session_state.game_stage == "result":
         st.write("---")
         st.markdown("#### 🤖 AIナビゲーターによる個別戦略分析（辛口総括）")
         
-        # ★ ここから修正：すでにAI総括を取得済みならスキップする（無駄撃ち完全防止）
         if not st.session_state.summary_done:
             with st.spinner("AIがあなたの選択した銘柄のトレード履歴をディープ分析中..."):
                 st.session_state.summary_data = generate_ai_summary(results, st.session_state.selected_ticker)
                 st.session_state.summary_done = True
                 
-        # 保存されているデータを取り出して表示
         if st.session_state.summary_data:
             summary = st.session_state.summary_data
             st.markdown(f"<div class='avatar-container' style='width: 80px; height: 80px; font-size: 45px; line-height: 80px; margin-bottom: 10px;'>{summary['avatar']}</div>", unsafe_allow_html=True)
@@ -894,5 +883,4 @@ elif st.session_state.game_stage == "result":
             st.write("（API制限またはサーバー混雑のため、AIの個別戦略分析は省略されました）")
 
     st.write("---")
-    # if文と st.rerun() を削除し、on_click引数に reset_to_start 関数を渡します
     st.button("↩️ 最初の設定画面に戻る（新しくゲームを始める）", on_click=reset_to_start, use_container_width=True)
