@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 import random
 import time
 import datetime
@@ -73,7 +74,9 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
 """, unsafe_allow_html=True)
 
 try:
-    genai.configure(api_key=st.secrets.get("GEMINI_API_KEY"))
+    api_key = os.environ.get("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
+    
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash-lite', generation_config={"temperature": 0.85})
 except Exception:
     model = None
