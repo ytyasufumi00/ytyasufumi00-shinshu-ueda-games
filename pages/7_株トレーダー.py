@@ -76,7 +76,7 @@ h2, h3, h4 { color: #e0e0e0; font-weight: 700; }
 
 try:
     genai.configure(api_key=st.secrets.get("GEMINI_API_KEY"))
-    model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"temperature": 0.85})
+    model = genai.GenerativeModel('gemini-1.5-flash', generation_config={"temperature": 0.85})
 except Exception:
     model = None
 
@@ -127,6 +127,9 @@ if "hints" not in st.session_state: st.session_state.hints = {}
 if "game_stage" not in st.session_state: st.session_state.game_stage = "config"
 if "selected_ticker" not in st.session_state: st.session_state.selected_ticker = None
 if "use_ai" not in st.session_state: st.session_state.use_ai = True
+if "used_hints" not in st.session_state: st.session_state.used_hints = []
+if "summary_done" not in st.session_state: st.session_state.summary_done = False
+if "summary_data" not in st.session_state: st.session_state.summary_data = None
 if "used_tickers" not in st.session_state: st.session_state.used_tickers = []
 
 # ==========================================
@@ -339,7 +342,6 @@ def generate_all_hints(candidates):
                     f"常識を超えた買われっぷり。RSI{rsi:.1f}%の{name}。だが、強いトレンドは常識を嘲笑うもの。信じてついていくのが上策よ。",
                     f"光速のトレード。{name}（RSI{rsi:.1f}%）のチャートは一瞬の油断も許さぬ。この圧倒的な気流に、お主の直感を乗せてみよ！"
                 ]
-            text = random.choice(options)
 
         elif "グロース" in role_type:
             if growth >= 15:
@@ -423,7 +425,6 @@ def generate_all_hints(candidates):
                     f"ツアー疲れが出てるな。{name}（成長率{growth:.1f}%）。今はゆっくり休んで、また最高のステージを作ってくれ。ファンは逃げないぜ。",
                     f"ちょっと音がレトロすぎたか？成長率{growth:.1f}%の{name}。だが、時代は巡る。このオールドスクールなサウンドが、また最先端になる日が来るさ！"
                 ]
-            text = random.choice(options)
 
         else:
             if 0 < per <= 12:
@@ -520,9 +521,18 @@ def generate_all_hints(candidates):
                         f"大衆の熱狂が、{name}の株価をPER{per:.1f}倍まで押し上げましたわ。バブルと呼ぶのは簡単ですが、バブルの中で踊りながら利益を抜くのが真のクオンツというものです。",
                         f"需給バランスが完全に崩れておりますわ（{name}、PER{per:.1f}倍）。売り手が枯渇した状態でのプラチナチケット化。需給モメンタムに従い、買いを推奨いたしますわ。"
                     ]
-            text = random.choice(options)
+            available_options = [opt for opt in options if opt not in st.session_state.used_hints]
+        
+            # 2. もし遊びすぎて全てのバリエーションを使い切ってしまった場合…
+            if not available_options:
+            # エラーで落とさず、この状況のセリフ記憶だけをこっそりリセットして復活させる
+                st.session_state.used_hints = [h for h in st.session_state.used_hints if h not in options]
+                available_options = options
             
-        emergency_hints.append(text + " *(System)*")
+            # 3. 未使用リストからランダムに選び、発言履歴に刻み込む
+            text = random.choice(available_options)
+            st.session_state.used_hints.append(text)  
+            emergency_hints.append(text + " *(System)*")
         
     return emergency_hints
 
@@ -663,12 +673,16 @@ def reset_and_scan(target_rsi, target_growth, target_per, use_ai):
     st.session_state.hints = {}
     st.session_state.selected_ticker = None
     st.session_state.use_ai = use_ai
+    st.session_state.summary_done = False  # ★追加：AI総括の使用フラグをリセット
+    st.session_state.summary_data = None   # ★追加：AI総括のデータを空にする
     st.session_state.game_stage = "select"
     with st.spinner("最新のデータベースから市場をスキャン中..."):
         st.session_state.screened_candidates = scan_market(target_rsi, target_growth, target_per)
 
 def start_simulation(ticker):
     st.session_state.selected_ticker = ticker
+    st.session_state.summary_done = False  # ★追加
+    st.session_state.summary_data = None   # ★追加
     st.session_state.game_stage = "result"
 
 def goto_config():
@@ -678,6 +692,8 @@ def reset_to_start():
     st.session_state.hints = {}
     st.session_state.selected_ticker = None
     st.session_state.screened_candidates = []
+    st.session_state.summary_done = False  # ★追加
+    st.session_state.summary_data = None   # ★追加
     st.session_state.game_stage = "config"
 
 def show_glossary():
@@ -862,13 +878,20 @@ elif st.session_state.game_stage == "result":
     if st.session_state.use_ai:
         st.write("---")
         st.markdown("#### 🤖 AIナビゲーターによる個別戦略分析（辛口総括）")
-        with st.spinner("AIがあなたの選択した銘柄のトレード履歴をディープ分析中..."):
-            summary = generate_ai_summary(results, st.session_state.selected_ticker)
-            if summary:
-                st.markdown(f"<div class='avatar-container' style='width: 80px; height: 80px; font-size: 45px; line-height: 80px; margin-bottom: 10px;'>{summary['avatar']}</div>", unsafe_allow_html=True)
-                st.info(summary['text'])
-            else:
-                st.write("（通信エラーのため、AIの個別戦略分析は省略されました）")
+        
+        # ★ ここから修正：すでにAI総括を取得済みならスキップする（無駄撃ち完全防止）
+        if not st.session_state.summary_done:
+            with st.spinner("AIがあなたの選択した銘柄のトレード履歴をディープ分析中..."):
+                st.session_state.summary_data = generate_ai_summary(results, st.session_state.selected_ticker)
+                st.session_state.summary_done = True
+                
+        # 保存されているデータを取り出して表示
+        if st.session_state.summary_data:
+            summary = st.session_state.summary_data
+            st.markdown(f"<div class='avatar-container' style='width: 80px; height: 80px; font-size: 45px; line-height: 80px; margin-bottom: 10px;'>{summary['avatar']}</div>", unsafe_allow_html=True)
+            st.info(summary['text'])
+        else:
+            st.write("（API制限またはサーバー混雑のため、AIの個別戦略分析は省略されました）")
 
     st.write("---")
     # if文と st.rerun() を削除し、on_click引数に reset_to_start 関数を渡します
