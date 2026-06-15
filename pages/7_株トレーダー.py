@@ -741,7 +741,7 @@ if st.session_state.game_stage == "config":
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         st.button(
-            "✨ AIの解説付きで市場をスキャン (APIキー消費)", 
+            "✨ AIの解説付きで市場をスキャン", 
             type="primary", 
             use_container_width=True,
             on_click=run_scan_and_goto_select,
@@ -749,7 +749,7 @@ if st.session_state.game_stage == "config":
         )
     with col_btn2:
         st.button(
-            "⚡ エコモードで高速スキャン (キー消費ゼロ)", 
+            "⚡ エコモードで高速スキャン (結果のAI総評なし)", 
             type="secondary", 
             use_container_width=True,
             on_click=run_scan_and_goto_select,
