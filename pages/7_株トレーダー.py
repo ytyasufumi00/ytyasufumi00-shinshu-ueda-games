@@ -224,7 +224,7 @@ def scan_market(target_rsi, target_growth, target_per):
 def generate_all_hints(candidates):
     if not candidates: return []
 
-    prompt = "あなたは株式投資ゲームのナビゲーターです。3人の異なるキャラクターが、それぞれ【自分が担当する1つの銘柄】について寸評（約120〜150文字）を行います。全員が同じ銘柄について語ることは絶対に避けてください。\n\n"
+    prompt = "あなたは株式投資ゲームのナビゲーターです。3人の異なるキャラクターが、それぞれ【自分が担当する1つの銘柄】について寸評（約120〜150文字）を行います。【自分が担当する1つの銘柄】以外には言及しない。\n\n"
     
     for i, cand in enumerate(candidates):
         role = cand["role"]
