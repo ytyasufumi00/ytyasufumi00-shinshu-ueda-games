@@ -77,7 +77,7 @@ html_code = """
 <style>
     body { margin: 0; background: #2c3e50; display: flex; flex-direction: column; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; user-select: none; -webkit-user-select: none; }
     
-    #game-container { position: relative; width: 100%; max-width: 500px; min-height: 750px; background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; touch-action: none; }
+    #game-container { position: relative; width: 100%; max-width: 500px; min-height: 750px; background: #000; border: 4px solid #34495e; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; touch-action: auto; }
     
     #hanger-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; color: white; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; z-index: 50; touch-action: auto; overflow-y: auto; }
     
@@ -95,7 +95,7 @@ html_code = """
     .upg-btn { background: #f1c40f; color: #2c3e50; border: none; padding: 8px 10px; border-radius: 8px; font-weight: 900; font-size: 12px; cursor: pointer; box-shadow: 0 3px 0 #d35400; transition: 0.1s; min-width: 70px; text-align: center; }
     .upg-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 #d35400; }
     .upg-btn:disabled { background: #7f8c8d; box-shadow: 0 3px 0 #34495e; color: #bdc3c7; cursor: not-allowed; }
-    canvas { width: 100%; max-width: 500px; aspect-ratio: 500 / 666; display: none; margin: 0 auto; }
+    canvas { width: 100%; max-width: 500px; aspect-ratio: 500 / 666; display: none; margin: 0 auto; touch-action: auto; }
     
     #controls-container { display: none; width: 100%; background: #1a252f; border-top: 2px solid #34495e; padding: 10px 20px; box-sizing: border-box; justify-content: space-between; align-items: center; z-index: 20; position: relative; touch-action: none; }
     #joystick-zone { display: flex; touch-action: none; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2); margin: 0; position: relative; }
