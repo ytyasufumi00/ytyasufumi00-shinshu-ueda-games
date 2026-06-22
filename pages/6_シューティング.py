@@ -3,8 +3,12 @@ import streamlit.components.v1 as components
 import base64
 import os
 import io
+import counter
 
 st.set_page_config(page_title="シューティング プロトタイプ", page_icon="🚀", layout="wide")
+if 'visited_shooting' not in st.session_state:
+    counter.add_count("シューティング")
+    st.session_state.visited_shooting = True
 
 st.markdown(
     "<h1 style='font-size: 32px; margin-bottom: 0px;'>🚀 メディカル・ストライカー V14</h1>", 

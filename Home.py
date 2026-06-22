@@ -1,4 +1,5 @@
 import streamlit as st
+import counter
 
 # ページの基本設定
 st.set_page_config(
@@ -140,3 +141,31 @@ with col2:
 
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #7f8c8d; font-size: 14px;'>© 2026 信州上田医療センター 総合教育ポータル</div>", unsafe_allow_html=True)
+counts = counter.get_all_counts()
+
+# 記録がある場合のみ表示
+if counts:
+    # 辞書の中身を「シューティング: 15 | クイズ: 8」のような文字列にする
+    hidden_text = " | ".join([f"{k}: {v}" for k, v in counts.items()])
+    
+    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # 余白を空けて下の方へ追いやる
+    
+    # マウスを乗せた時（hover）だけ、うっすらと文字が浮かび上がるCSSマジック
+    st.markdown(
+        f"""
+        <style>
+        .secret-counter {{
+            text-align: right;
+            font-size: 18px;
+            color: transparent; /* 普段は完全に透明 */
+            transition: color 0.5s ease; /* 0.5秒かけてフワッと表示 */
+            cursor: default;
+        }}
+        .secret-counter:hover {{
+            color: #bdc3c7; /* マウスを乗せると薄いグレーになる */
+        }}
+        </style>
+        <div class="secret-counter">Access - {hidden_text}</div>
+        """, 
+        unsafe_allow_html=True
+    )
