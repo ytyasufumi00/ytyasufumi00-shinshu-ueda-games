@@ -144,28 +144,33 @@ st.markdown("<div style='text-align: center; color: #7f8c8d; font-size: 14px;'>�
 counts = counter.get_all_counts()
 
 # 記録がある場合のみ表示
+import counter
+
+counts = counter.get_all_counts()
+
 if counts:
-    # 辞書の中身を「シューティング: 15 | クイズ: 8」のような文字列にする
     hidden_text = " | ".join([f"{k}: {v}" for k, v in counts.items()])
     
-    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # 余白を空けて下の方へ追いやる
-    
-    # マウスを乗せた時（hover）だけ、うっすらと文字が浮かび上がるCSSマジック
+    # 🌟 修正：画面右下に固定配置するCSSに変更
     st.markdown(
         f"""
         <style>
-        .secret-counter {{
-            text-align: right;
-            font-size: 18px;
-            color: transparent; /* 普段は完全に透明 */
-            transition: color 0.5s ease; /* 0.5秒かけてフワッと表示 */
+        .fixed-footer {{
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: transparent; /* 背景色と同化 */
+            z-index: 9999;
             cursor: default;
         }}
-        .secret-counter:hover {{
-            color: #bdc3c7; /* マウスを乗せると薄いグレーになる */
+        .fixed-footer:hover {{
+            color: #bdc3c7; /* ホバーで浮かび上がる */
         }}
         </style>
-        <div class="secret-counter">Access - {hidden_text}</div>
+        <div class="fixed-footer" title="Access - {hidden_text}">
+            Access - {hidden_text} .
+        </div>
         """, 
         unsafe_allow_html=True
     )
