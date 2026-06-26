@@ -1,9 +1,13 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import counter
 
 st.set_page_config(page_title="ICLS Simulator", page_icon="⚡", layout="wide")
 st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>⚡ 信州上田ICLS sim</h1>", unsafe_allow_html=True)
 st.markdown("<p style='font-size: 16px; color: #555;'>10秒で１分が経過します。リズムチェックは２分=20秒なので注意！</p>", unsafe_allow_html=True)
+if 'visited_ICLS sim' not in st.session_state:
+    counter.add_count("ICLS sim")
+    st.session_state.visited_nursedash = True
 
 html_code = """
 <!DOCTYPE html>

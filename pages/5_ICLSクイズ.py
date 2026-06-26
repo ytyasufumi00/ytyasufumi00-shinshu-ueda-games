@@ -1,9 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import counter
 
 st.set_page_config(page_title="ICLS Quiz", page_icon="📝", layout="wide")
 st.markdown("<h1 style='font-size: 32px; margin-bottom: 0px;'>📝 ICLS マニアック・クイズアタック</h1>", unsafe_allow_html=True)
 st.markdown("<p style='font-size: 16px; color: #555;'>累積正解数(XP)を引き継ぎ、ナースが10段階の姿へ進化します！間違えた問題は次回優先出題！</p>", unsafe_allow_html=True)
+
+if 'visited_icls' not in st.session_state:
+    counter.add_count("ICLSクイズ")
+    st.session_state.visited_icls = True
 
 html_code = """
 <!DOCTYPE html>

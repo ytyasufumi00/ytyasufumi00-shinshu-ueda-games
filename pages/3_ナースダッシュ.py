@@ -1,7 +1,12 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import counter
 
 st.set_page_config(page_title="ナースダッシュ！", page_icon="💉", layout="wide")
+
+if 'visited_nursedash' not in st.session_state:
+    counter.add_count("ナースダッシュ")
+    st.session_state.visited_nursedash = True
 
 # 🌟 st.markdownを使ってタイトルとサブタイトルの文字サイズを最適化
 st.markdown(

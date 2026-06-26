@@ -7,11 +7,15 @@ import yfinance as yf
 import pandas as pd
 import google.generativeai as genai
 import concurrent.futures
+import counter
 
 # ==========================================
 # 1. 初期設定・APIキー・日付の計算・カスタムCSS
 # ==========================================
 st.set_page_config(page_title="QUANTUM TRADER | AIアルゴリズム・コロシアム", layout="wide")
+if 'visited_quantum' not in st.session_state:
+    counter.add_count("株 TRADER")
+    st.session_state.visited_quantum = True
 
 st.markdown("""
 <style>

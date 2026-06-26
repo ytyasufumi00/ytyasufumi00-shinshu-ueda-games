@@ -1,7 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import counter
 
 st.set_page_config(page_title="ヴァンサバ風・酸塩基アクション", page_icon="🥷", layout="wide")
+if 'visited_vansava' not in st.session_state:
+    counter.add_count("ヴァンサバ")
+    st.session_state.visited_quantum = True
 
 st.title("🥷 信州上田ヴァンサバ風・酸塩基サバイバル V12（難易度選択版）")
 st.write("最初に難易度を選択できます。Lv5ごとの節目は通常問題ですが、正解すると超絶ボーナスが発動します！")

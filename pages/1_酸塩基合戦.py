@@ -5,6 +5,7 @@ import pandas as pd
 import threading
 import time
 import math  
+import counter
 
 # 発行したGASのURL
 GAS_URL = "https://script.google.com/macros/s/AKfycbyItu-Z6pmfnN-UUFME3I_YFv7rfujWFhI2oEsqFAW5CTu6AU7iZZuLEM7bBDRay5jU/exec"
@@ -151,6 +152,9 @@ def handle_answer(user_selection, current_rank):
 
 # --- Streamlit UI設定 ---
 st.set_page_config(page_title="酸塩基平衡アタック", page_icon="⚔️")
+if 'visited_acid-base quiz' not in st.session_state:
+    counter.add_count("酸塩基合戦")
+    st.session_state.visited_quantum = True
 
 # 👇 ★追加：【超強力版】翻訳ポップアップ完全撃退スクリプト
 import streamlit.components.v1 as components
