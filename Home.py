@@ -7,7 +7,7 @@ st.set_page_config(
     page_icon="🏯",
     layout="centered"
 )
-
+counter.add_count("Home")
 # 🏯 上田城・真田赤備え風のカスタムCSS
 st.markdown("""
 <style>
@@ -143,10 +143,6 @@ st.markdown("---")
 st.markdown("<div style='text-align: center; color: #7f8c8d; font-size: 14px;'>© 2026 信州上田医療センター 総合教育ポータル</div>", unsafe_allow_html=True)
 counts = counter.get_all_counts()
 
-# 記録がある場合のみ表示
-import counter
-
-counts = counter.get_all_counts()
 
 if counts:
     hidden_text = " | ".join([f"{k}: {v}" for k, v in counts.items()])
