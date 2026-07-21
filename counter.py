@@ -1,23 +1,21 @@
-import json
-import os
+import requests
 
-# 🌟 修正：counter.py がある場所（一番上のフォルダ）を基準にファイルを固定する
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FILE_PATH = os.path.join(BASE_DIR, "visitor_counts.json")
+# 🌟 コピーしたGASのWebアプリURLをここに貼り付けます
+GAS_URL = "https://script.google.com/macros/s/AKfycbzWN8ku7pvpNc-bzPHLYOYfc2DEsJWyZndvC1mso0lOAIDqQ00vQhiUl1dmR1htlRfX/exec"
 
 def get_all_counts():
-    """現在のアクセス数をすべて取得する"""
-    if os.path.exists(FILE_PATH):
-        with open(FILE_PATH, "r", encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except:
-                return {}
+    """GAS経由でスプレッドシートから現在のアクセス数を取得する"""
+    try:
+        response = requests.get(f"{GAS_URL}?action=get")
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        pass
     return {}
 
 def add_count(game_name):
-    """指定されたゲームのアクセス数を1増やす"""
-    counts = get_all_counts()
-    counts[game_name] = counts.get(game_name, 0) + 1
-    with open(FILE_PATH, "w", encoding="utf-8") as f:
-        json.dump(counts, f, ensure_ascii=False, indent=2)
+    """指定されたゲームのアクセス数をGAS経由で1増やす"""
+    try:
+        requests.get(f"{GAS_URL}?action=add&game={game_name}")
+    except Exception:
+        pass
